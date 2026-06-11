@@ -3,7 +3,7 @@
 use crate::config::{load_dispositions, DispositionEntry, DispositionsFile};
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 const DISP_FILE: &str = ".fusa-dispositions.json";
 
@@ -28,7 +28,7 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     }
 }
 
-fn cmd_add(args: &[String], path: &PathBuf, stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
+fn cmd_add(args: &[String], path: &Path, stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     let rule = parse_flag(args, "--rule");
     let file = parse_flag(args, "--file");
     let status = parse_flag(args, "--status").unwrap_or_else(|| "accepted".to_string());
@@ -111,8 +111,8 @@ fn cmd_list(
 
     writeln!(
         stdout,
-        "{:<12} {:<30} {:<10} {:<15} {}",
-        "Rule", "File", "Status", "By", "Note"
+        "{:<12} {:<30} {:<10} {:<15} Note",
+        "Rule", "File", "Status", "By"
     )
     .ok();
     writeln!(stdout, "{}", "-".repeat(80)).ok();
@@ -132,14 +132,14 @@ fn cmd_list(
     EXIT_OK
 }
 
-fn load_or_empty(path: &PathBuf) -> DispositionsFile {
+fn load_or_empty(path: &Path) -> DispositionsFile {
     load_dispositions(path).unwrap_or(DispositionsFile {
         dispositions: vec![],
     })
 }
 
 fn save_dispositions(
-    path: &PathBuf,
+    path: &Path,
     file_data: &DispositionsFile,
     stdout: &mut dyn Write,
     stderr: &mut dyn Write,

@@ -69,11 +69,9 @@ impl CheckReport {
         };
         let (project, standard, asil, sil, dal) = if let Some(c) = cfg {
             let (ak, av, ad) = match c.integrity_level() {
-                Some((k, v)) if k == "asil" => {
-                    (Some(v.to_string()), None::<String>, None::<String>)
-                }
-                Some((k, v)) if k == "sil" => (None, Some(v.to_string()), None),
-                Some((k, v)) if k == "dal" => (None, None, Some(v.to_string())),
+                Some(("asil", v)) => (Some(v.to_string()), None::<String>, None::<String>),
+                Some(("sil", v)) => (None, Some(v.to_string()), None),
+                Some(("dal", v)) => (None, None, Some(v.to_string())),
                 _ => (None, None, None),
             };
             (

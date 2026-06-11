@@ -55,7 +55,7 @@ fn cmd_keygen(_args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) 
                 "rsfusa sign keygen: /dev/urandom not available; using placeholder key"
             )
             .ok();
-            if let Err(e) = std::fs::write(key_path, &[0u8; 32]) {
+            if let Err(e) = std::fs::write(key_path, [0u8; 32]) {
                 writeln!(stderr, "rsfusa sign keygen: {e}").ok();
                 return EXIT_RUNTIME;
             }

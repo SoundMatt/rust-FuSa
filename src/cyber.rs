@@ -218,8 +218,7 @@ impl Rule for RulePathTraversal {
                         || trimmed.contains("request"))
                 {
                     let range = i.saturating_sub(3)..=(i + 3).min(lines.len() - 1);
-                    let nearby: String =
-                        lines[range].iter().copied().collect::<Vec<_>>().join("\n");
+                    let nearby: String = lines[range].to_vec().join("\n");
                     if !nearby.contains("canonicalize") && !nearby.contains("//fusa:safe") {
                         findings.push(Finding::new(
                             self.id(), Severity::Warning,
@@ -750,8 +749,8 @@ impl Rule for RuleToctouCheck {
             for i in 0..lines.len().saturating_sub(5) {
                 let check_line = lines[i].trim();
                 if check_fns.iter().any(|p| check_line.contains(p)) {
-                    for j in i + 1..=(i + 5).min(lines.len() - 1) {
-                        let use_line = lines[j].trim();
+                    for use_line in lines[i + 1..=(i + 5).min(lines.len() - 1)].iter() {
+                        let use_line = use_line.trim();
                         if use_fns.iter().any(|p| use_line.contains(p))
                             && !check_line.contains("//fusa:safe")
                         {
@@ -877,7 +876,7 @@ impl Rule for RulePathFromUserInput {
                 }
                 if trimmed.contains(".join(") && !trimmed.contains(".join(\"") {
                     let range = i.saturating_sub(3)..=(i + 3).min(lines.len() - 1);
-                    let nearby: String = lines[range].iter().copied().collect::<Vec<_>>().join(" ");
+                    let nearby: String = lines[range].to_vec().join(" ");
                     if !nearby.contains("canonicalize") && !nearby.contains("//fusa:safe") {
                         let prev = if i > 0 { lines[i - 1].trim() } else { "" };
                         if !prev.contains("//fusa:safe") {

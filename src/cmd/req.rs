@@ -5,7 +5,7 @@ use crate::config::{load_reqs, ReqsFile, Requirement};
 use crate::trace::build;
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     let subcmd = args.first().map(|s| s.as_str()).unwrap_or("show");
@@ -31,12 +31,7 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     }
 }
 
-fn cmd_show(
-    root: &PathBuf,
-    args: &[String],
-    stdout: &mut dyn Write,
-    stderr: &mut dyn Write,
-) -> i32 {
+fn cmd_show(root: &Path, args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     let format = parse_flag(args, "--format").unwrap_or_else(|| "text".to_string());
     let reqs_path = root.join(".fusa-reqs.json");
 
@@ -62,8 +57,8 @@ fn cmd_show(
     writeln!(stdout, "{} requirements", reqs.requirements.len()).ok();
     writeln!(
         stdout,
-        "{:<16} {:<40} {:<12} {}",
-        "ID", "Title", "Traced", "Tested"
+        "{:<16} {:<40} {:<12} Tested",
+        "ID", "Title", "Traced"
     )
     .ok();
     writeln!(stdout, "{}", "-".repeat(80)).ok();
@@ -94,12 +89,7 @@ fn cmd_show(
     EXIT_OK
 }
 
-fn cmd_import(
-    args: &[String],
-    root: &PathBuf,
-    stdout: &mut dyn Write,
-    stderr: &mut dyn Write,
-) -> i32 {
+fn cmd_import(args: &[String], root: &Path, stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     let file = match parse_flag(args, "--file")
         .or_else(|| args.iter().find(|a| !a.starts_with("--")).cloned())
     {
@@ -175,12 +165,7 @@ fn cmd_import(
     }
 }
 
-fn cmd_export(
-    root: &PathBuf,
-    args: &[String],
-    stdout: &mut dyn Write,
-    stderr: &mut dyn Write,
-) -> i32 {
+fn cmd_export(root: &Path, args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     let reqs_path = root.join(".fusa-reqs.json");
     let reqs = match load_reqs(&reqs_path) {
         Ok(r) => r,

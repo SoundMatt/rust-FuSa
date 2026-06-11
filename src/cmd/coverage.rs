@@ -4,7 +4,7 @@ use crate::types::{
     EXIT_GATE_FAIL, EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION,
 };
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     let opts = match parse(args, stderr) {
@@ -152,7 +152,7 @@ fn try_llvm_cov(root: &PathBuf) -> Option<String> {
     None
 }
 
-fn infer_dal(root: &PathBuf) -> &'static str {
+fn infer_dal(root: &Path) -> &'static str {
     if let Ok(data) = std::fs::read_to_string(root.join(".fusa.json")) {
         if let Ok(v) = serde_json::from_str::<serde_json::Value>(&data) {
             if let Some(dal) = v.get("dal").and_then(|d| d.as_str()) {

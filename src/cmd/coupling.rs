@@ -95,7 +95,7 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
             if trimmed.starts_with("use crate::") {
                 let import = trimmed
                     .trim_start_matches("use crate::")
-                    .split(|c| c == ';' || c == ':' || c == '{')
+                    .split([';', ':', '{'])
                     .next()
                     .unwrap_or("")
                     .to_string();

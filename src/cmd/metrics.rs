@@ -3,7 +3,7 @@
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use serde::{Deserialize, Serialize};
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub const METRICS_FILE: &str = ".fusa-metrics.json";
 
@@ -52,9 +52,9 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
 }
 
 fn cmd_record(
-    path: &PathBuf,
+    path: &Path,
     args: &[String],
-    root: &PathBuf,
+    root: &Path,
     stdout: &mut dyn Write,
     stderr: &mut dyn Write,
 ) -> i32 {
@@ -130,8 +130,8 @@ fn cmd_show(
     writeln!(stdout, "{} snapshots", file_data.snapshots.len()).ok();
     writeln!(
         stdout,
-        "{:<26} {:>6} {:>8} {:>8} {:>8} {}",
-        "Timestamp", "Errors", "Warnings", "Coverage", "Traced", "Label"
+        "{:<26} {:>6} {:>8} {:>8} {:>8} Label",
+        "Timestamp", "Errors", "Warnings", "Coverage", "Traced"
     )
     .ok();
     writeln!(stdout, "{}", "-".repeat(80)).ok();
@@ -151,7 +151,7 @@ fn cmd_show(
     EXIT_OK
 }
 
-fn read_check_report(root: &PathBuf) -> (u64, u64) {
+fn read_check_report(root: &Path) -> (u64, u64) {
     if let Ok(data) = std::fs::read_to_string(root.join("check-report.json")) {
         if let Ok(v) = serde_json::from_str::<serde_json::Value>(&data) {
             let errors = v["summary"]["errors"].as_u64().unwrap_or(0);
@@ -162,7 +162,7 @@ fn read_check_report(root: &PathBuf) -> (u64, u64) {
     (0, 0)
 }
 
-fn read_coverage(root: &PathBuf) -> f64 {
+fn read_coverage(root: &Path) -> f64 {
     if let Ok(data) = std::fs::read_to_string(root.join("coverage-report.json")) {
         if let Ok(v) = serde_json::from_str::<serde_json::Value>(&data) {
             return v["lineCoverage"].as_f64().unwrap_or(0.0);
@@ -171,7 +171,7 @@ fn read_coverage(root: &PathBuf) -> f64 {
     0.0
 }
 
-fn read_trace(root: &PathBuf) -> (u64, u64) {
+fn read_trace(root: &Path) -> (u64, u64) {
     if let Ok(data) = std::fs::read_to_string(root.join("trace.json")) {
         if let Ok(v) = serde_json::from_str::<serde_json::Value>(&data) {
             let traced = v["coverage"]["tracedRequirements"].as_u64().unwrap_or(0);
@@ -182,7 +182,7 @@ fn read_trace(root: &PathBuf) -> (u64, u64) {
     (0, 0)
 }
 
-fn load_or_empty(path: &PathBuf) -> MetricsFile {
+fn load_or_empty(path: &Path) -> MetricsFile {
     if let Ok(data) = std::fs::read_to_string(path) {
         if let Ok(f) = serde_json::from_str::<MetricsFile>(&data) {
             return f;

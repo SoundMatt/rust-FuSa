@@ -9,7 +9,7 @@
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};
 use std::collections::{HashMap, HashSet};
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 pub const BOUNDARY_DOT: &str = "boundary.dot";
@@ -128,7 +128,7 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     EXIT_OK
 }
 
-fn parse_cargo_toml(root: &PathBuf) -> (String, Vec<String>) {
+fn parse_cargo_toml(root: &Path) -> (String, Vec<String>) {
     let cargo_path = root.join("Cargo.toml");
     let data = match std::fs::read_to_string(&cargo_path) {
         Ok(d) => d,
@@ -158,13 +158,13 @@ fn parse_cargo_toml(root: &PathBuf) -> (String, Vec<String>) {
     (pkg_name, deps)
 }
 
-fn scan_module_imports(root: &PathBuf) -> HashMap<String, Vec<String>> {
+fn scan_module_imports(root: &Path) -> HashMap<String, Vec<String>> {
     let mut result: HashMap<String, Vec<String>> = HashMap::new();
     let src_dir = root.join("src");
     let scan_root = if src_dir.exists() {
         src_dir
     } else {
-        root.clone()
+        root.to_path_buf()
     };
 
     for entry in WalkDir::new(&scan_root)
@@ -195,7 +195,7 @@ fn scan_module_imports(root: &PathBuf) -> HashMap<String, Vec<String>> {
             if trimmed.starts_with("use crate::") {
                 let name = trimmed
                     .trim_start_matches("use crate::")
-                    .split(|c: char| c == ';' || c == ':' || c == '{' || c == ' ')
+                    .split([';', ':', '{', ' '])
                     .next()
                     .unwrap_or("")
                     .to_string();
@@ -213,7 +213,7 @@ fn scan_module_imports(root: &PathBuf) -> HashMap<String, Vec<String>> {
 }
 
 fn sanitise(s: &str) -> String {
-    s.replace('-', "_").replace('/', "_").replace(':', "_")
+    s.replace(['-', '/', ':'], "_")
 }
 
 fn mermaid_id(s: &str) -> String {

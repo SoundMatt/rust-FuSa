@@ -10,7 +10,7 @@
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use serde::Serialize;
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 pub const FMEA_JSON: &str = "fmea.json";
@@ -300,7 +300,7 @@ fn compute_risk(severity: &str, detection: &str) -> String {
 fn extract_req_ids(line: &str) -> Vec<String> {
     let mut ids = Vec::new();
     if let Some(pos) = line.find("//fusa:req") {
-        let rest = &line[pos + 10..].trim_start_matches(|c| c == ':' || c == ' ');
+        let rest = &line[pos + 10..].trim_start_matches([':', ' ']);
         for id in rest.split_whitespace() {
             ids.push(id.to_string());
         }
@@ -308,7 +308,7 @@ fn extract_req_ids(line: &str) -> Vec<String> {
     ids
 }
 
-fn read_asil(root: &PathBuf) -> String {
+fn read_asil(root: &Path) -> String {
     if let Ok(data) = std::fs::read_to_string(root.join(".fusa.json")) {
         if let Ok(v) = serde_json::from_str::<serde_json::Value>(&data) {
             if let Some(a) = v.get("asil").and_then(|v| v.as_str()) {

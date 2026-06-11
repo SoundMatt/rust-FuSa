@@ -11,7 +11,7 @@ use crate::types::{
     EXIT_GATE_FAIL, EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION,
 };
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub const VULN_FILE: &str = "vuln.json";
 
@@ -161,7 +161,7 @@ fn process_audit_json(
 }
 
 fn scan_cargo_lock(
-    root: &PathBuf,
+    root: &Path,
     out_path: &str,
     stdout: &mut dyn Write,
     stderr: &mut dyn Write,

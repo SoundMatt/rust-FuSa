@@ -4,7 +4,7 @@ use crate::config::load_reqs;
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use std::collections::HashSet;
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     let opts = match parse(args, stderr) {
@@ -116,7 +116,7 @@ fn get_changed_files(root: &PathBuf, from: &str, to: &str) -> Vec<String> {
     }
 }
 
-fn find_impacted_requirements(root: &PathBuf, changed_files: &[String]) -> Vec<String> {
+fn find_impacted_requirements(root: &Path, changed_files: &[String]) -> Vec<String> {
     let mut reqs = HashSet::new();
     for rel in changed_files {
         let path = root.join(rel);
@@ -128,7 +128,7 @@ fn find_impacted_requirements(root: &PathBuf, changed_files: &[String]) -> Vec<S
         };
         for line in content.lines() {
             if let Some(pos) = line.find("//fusa:req") {
-                let rest = line[pos + 10..].trim_start_matches(|c| c == ':' || c == ' ');
+                let rest = line[pos + 10..].trim_start_matches([':', ' ']);
                 for id in rest.split_whitespace() {
                     reqs.insert(id.to_string());
                 }
@@ -140,7 +140,7 @@ fn find_impacted_requirements(root: &PathBuf, changed_files: &[String]) -> Vec<S
     v
 }
 
-fn find_stale_artifacts(root: &PathBuf, changed_files: &[String]) -> Vec<String> {
+fn find_stale_artifacts(root: &Path, changed_files: &[String]) -> Vec<String> {
     const ARTIFACTS: &[&str] = &[
         "check-report.json",
         "trace.json",

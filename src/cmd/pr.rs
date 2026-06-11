@@ -181,8 +181,8 @@ fn cmd_list(
     .ok();
     writeln!(
         stdout,
-        "{:<10} {:<8} {:<14} {:<8} {}",
-        "ID", "Severity", "Phase", "Status", "Title"
+        "{:<10} {:<8} {:<14} {:<8} Title",
+        "ID", "Severity", "Phase", "Status"
     )
     .ok();
     writeln!(stdout, "{}", "-".repeat(80)).ok();

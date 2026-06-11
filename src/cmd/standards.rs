@@ -463,7 +463,7 @@ fn run_gap_report(
     } else {
         writeln!(stdout, "{standard_name} Compliance Gap Report").ok();
         writeln!(stdout, "{}", "=".repeat(50)).ok();
-        writeln!(stdout, "{:<18} {:<44} {}", "Requirement", "Title", "Status").ok();
+        writeln!(stdout, "{:<18} {:<44} Status", "Requirement", "Title").ok();
         writeln!(stdout, "{}", "-".repeat(80)).ok();
         for item in &items {
             let status_str = if item["status"] == "met" {
