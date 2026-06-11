@@ -12,9 +12,9 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     // Get changed files via git diff
     let from = opts.from.as_deref().unwrap_or("HEAD~1");
@@ -64,7 +64,9 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
             if path == "-" {
                 writeln!(stdout, "{}", serde_json::to_string_pretty(&report).unwrap()).ok();
             } else {
-                if let Err(e) = std::fs::write(path, serde_json::to_string_pretty(&report).unwrap() + "\n") {
+                if let Err(e) =
+                    std::fs::write(path, serde_json::to_string_pretty(&report).unwrap() + "\n")
+                {
                     writeln!(stderr, "rsfusa impact: write {path}: {e}").ok();
                     return EXIT_RUNTIME;
                 }
@@ -83,7 +85,12 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
             for r in &impacted_reqs {
                 writeln!(stdout, "  {r}").ok();
             }
-            writeln!(stdout, "\nPossibly stale artifacts: {}", stale_artifacts.len()).ok();
+            writeln!(
+                stdout,
+                "\nPossibly stale artifacts: {}",
+                stale_artifacts.len()
+            )
+            .ok();
             for a in &stale_artifacts {
                 writeln!(stdout, "  {a}").ok();
             }
@@ -100,13 +107,11 @@ fn get_changed_files(root: &PathBuf, from: &str, to: &str) -> Vec<String> {
         .output();
 
     match output {
-        Ok(o) if o.status.success() => {
-            String::from_utf8_lossy(&o.stdout)
-                .lines()
-                .map(|l| l.to_string())
-                .filter(|l| !l.is_empty())
-                .collect()
-        }
+        Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout)
+            .lines()
+            .map(|l| l.to_string())
+            .filter(|l| !l.is_empty())
+            .collect(),
         _ => vec![],
     }
 }
@@ -115,8 +120,12 @@ fn find_impacted_requirements(root: &PathBuf, changed_files: &[String]) -> Vec<S
     let mut reqs = HashSet::new();
     for rel in changed_files {
         let path = root.join(rel);
-        if !path.exists() { continue; }
-        let Ok(content) = std::fs::read_to_string(&path) else { continue };
+        if !path.exists() {
+            continue;
+        }
+        let Ok(content) = std::fs::read_to_string(&path) else {
+            continue;
+        };
         for line in content.lines() {
             if let Some(pos) = line.find("//fusa:req") {
                 let rest = line[pos + 10..].trim_start_matches(|c| c == ':' || c == ' ');
@@ -133,24 +142,31 @@ fn find_impacted_requirements(root: &PathBuf, changed_files: &[String]) -> Vec<S
 
 fn find_stale_artifacts(root: &PathBuf, changed_files: &[String]) -> Vec<String> {
     const ARTIFACTS: &[&str] = &[
-        "check-report.json", "trace.json", ".fusa-evidence.json",
-        "sbom.json", "fmea.json", "tara.json", "coupling-report.json",
+        "check-report.json",
+        "trace.json",
+        ".fusa-evidence.json",
+        "sbom.json",
+        "fmea.json",
+        "tara.json",
+        "coupling-report.json",
         "cyber-report.json",
     ];
 
-    let newest_src_time = changed_files.iter()
-        .filter_map(|f| {
-            root.join(f).metadata().ok()
-                .and_then(|m| m.modified().ok())
-        })
+    let newest_src_time = changed_files
+        .iter()
+        .filter_map(|f| root.join(f).metadata().ok().and_then(|m| m.modified().ok()))
         .max();
 
-    let Some(src_time) = newest_src_time else { return vec![] };
+    let Some(src_time) = newest_src_time else {
+        return vec![];
+    };
 
     let mut stale = Vec::new();
     for artifact in ARTIFACTS {
         let path = root.join(artifact);
-        if !path.exists() { continue; }
+        if !path.exists() {
+            continue;
+        }
         if let Ok(meta) = path.metadata() {
             if let Ok(artifact_time) = meta.modified() {
                 if artifact_time < src_time {
@@ -171,7 +187,13 @@ struct Opts {
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut opts = Opts { dir: None, from: None, to: None, format: None, output: None };
+    let mut opts = Opts {
+        dir: None,
+        from: None,
+        to: None,
+        format: None,
+        output: None,
+    };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
@@ -191,12 +213,17 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                else if let Some(v) = other.strip_prefix("--from=") { opts.from = Some(v.to_string()); }
-                else if let Some(v) = other.strip_prefix("--to=") { opts.to = Some(v.to_string()); }
-                else if let Some(v) = other.strip_prefix("--format=") { opts.format = Some(v.to_string()); }
-                else if let Some(v) = other.strip_prefix("--output=") { opts.output = Some(v.to_string()); }
-                else {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--from=") {
+                    opts.from = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--to=") {
+                    opts.to = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--format=") {
+                    opts.format = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--output=") {
+                    opts.output = Some(v.to_string());
+                } else {
                     writeln!(stderr, "rsfusa impact: unknown flag: {other}").ok();
                     return None;
                 }

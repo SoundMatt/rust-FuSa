@@ -47,7 +47,9 @@ fn rust_sources(root: &Path, cfg: &FusaConfig) -> Vec<PathBuf> {
 
 fn is_excluded(rel: &str, patterns: &[String]) -> bool {
     patterns.iter().any(|pat| {
-        glob::Pattern::new(pat).map(|g| g.matches(rel)).unwrap_or(false)
+        glob::Pattern::new(pat)
+            .map(|g| g.matches(rel))
+            .unwrap_or(false)
     })
 }
 
@@ -71,7 +73,9 @@ fn rel_path(root: &Path, path: &Path) -> String {
 // ANA001 — function body length exceeds 60 lines.
 struct RuleFunctionLength;
 impl Rule for RuleFunctionLength {
-    fn id(&self) -> &str { "ANA001" }
+    fn id(&self) -> &str {
+        "ANA001"
+    }
     fn description(&self) -> &str {
         "Functions exceeding 60 lines are harder to review and certify."
     }
@@ -80,8 +84,7 @@ impl Rule for RuleFunctionLength {
         let mut findings = Vec::new();
         for file in rust_sources(root, cfg) {
             let rel = rel_path(root, &file);
-            let content = std::fs::read_to_string(&file)
-                .map_err(|e| format!("read {rel}: {e}"))?;
+            let content = std::fs::read_to_string(&file).map_err(|e| format!("read {rel}: {e}"))?;
             let lines: Vec<&str> = content.lines().collect();
             let mut fn_start: Option<(usize, String)> = None;
             let mut brace_depth: i32 = 0;
@@ -89,16 +92,19 @@ impl Rule for RuleFunctionLength {
 
             for (i, line) in lines.iter().enumerate() {
                 let trimmed = line.trim();
-                if fn_start.is_none() && (trimmed.contains("fn ") && (trimmed.starts_with("fn ")
-                    || trimmed.starts_with("pub fn ")
-                    || trimmed.starts_with("async fn ")
-                    || trimmed.starts_with("pub async fn ")
-                    || trimmed.starts_with("unsafe fn ")
-                    || trimmed.starts_with("pub unsafe fn ")))
+                if fn_start.is_none()
+                    && (trimmed.contains("fn ")
+                        && (trimmed.starts_with("fn ")
+                            || trimmed.starts_with("pub fn ")
+                            || trimmed.starts_with("async fn ")
+                            || trimmed.starts_with("pub async fn ")
+                            || trimmed.starts_with("unsafe fn ")
+                            || trimmed.starts_with("pub unsafe fn ")))
                 {
                     if let Some(name_start) = trimmed.find("fn ") {
                         let after = &trimmed[name_start + 3..];
-                        let name: String = after.chars()
+                        let name: String = after
+                            .chars()
                             .take_while(|c| c.is_alphanumeric() || *c == '_')
                             .collect();
                         fn_start = Some((i + 1, name));
@@ -106,8 +112,11 @@ impl Rule for RuleFunctionLength {
                     }
                 }
                 for c in trimmed.chars() {
-                    if c == '{' { brace_depth += 1; }
-                    else if c == '}' { brace_depth -= 1; }
+                    if c == '{' {
+                        brace_depth += 1;
+                    } else if c == '}' {
+                        brace_depth -= 1;
+                    }
                 }
                 if let Some((start, ref name)) = fn_start {
                     if brace_depth < fn_brace_depth {
@@ -134,7 +143,9 @@ impl Rule for RuleFunctionLength {
 // ANA002 — nesting depth exceeds 5 levels (indentation heuristic).
 struct RuleNestingDepth;
 impl Rule for RuleNestingDepth {
-    fn id(&self) -> &str { "ANA002" }
+    fn id(&self) -> &str {
+        "ANA002"
+    }
     fn description(&self) -> &str {
         "Deep nesting (>5 levels) increases complexity and review burden."
     }
@@ -143,8 +154,7 @@ impl Rule for RuleNestingDepth {
         let mut findings = Vec::new();
         for file in rust_sources(root, cfg) {
             let rel = rel_path(root, &file);
-            let content = std::fs::read_to_string(&file)
-                .map_err(|e| format!("read {rel}: {e}"))?;
+            let content = std::fs::read_to_string(&file).map_err(|e| format!("read {rel}: {e}"))?;
             let mut reported_lines = std::collections::HashSet::new();
             for (i, line) in content.lines().enumerate() {
                 if line.trim().is_empty() || line.trim().starts_with("//") {
@@ -157,7 +167,9 @@ impl Rule for RuleNestingDepth {
                     findings.push(Finding::new(
                         self.id(),
                         Severity::Warning,
-                        format!("nesting depth {depth} exceeds limit of {MAX_DEPTH} at this location"),
+                        format!(
+                            "nesting depth {depth} exceeds limit of {MAX_DEPTH} at this location"
+                        ),
                         Location::at(rel.clone(), (i + 1) as u32),
                         Category::Safety,
                         "extract deeply nested blocks into helper functions",
@@ -173,7 +185,9 @@ impl Rule for RuleNestingDepth {
 // ANA003 — function with more than 7 parameters.
 struct RuleTooManyParams;
 impl Rule for RuleTooManyParams {
-    fn id(&self) -> &str { "ANA003" }
+    fn id(&self) -> &str {
+        "ANA003"
+    }
     fn description(&self) -> &str {
         "Functions with more than 7 parameters are hard to call correctly and review."
     }
@@ -182,8 +196,7 @@ impl Rule for RuleTooManyParams {
         let mut findings = Vec::new();
         for file in rust_sources(root, cfg) {
             let rel = rel_path(root, &file);
-            let content = std::fs::read_to_string(&file)
-                .map_err(|e| format!("read {rel}: {e}"))?;
+            let content = std::fs::read_to_string(&file).map_err(|e| format!("read {rel}: {e}"))?;
             for (i, line) in content.lines().enumerate() {
                 let trimmed = line.trim();
                 if !(trimmed.starts_with("fn ")
@@ -199,7 +212,10 @@ impl Rule for RuleTooManyParams {
                         let count = if params_str.trim().is_empty() {
                             0
                         } else {
-                            params_str.split(',').filter(|p| !p.trim().is_empty()).count()
+                            params_str
+                                .split(',')
+                                .filter(|p| !p.trim().is_empty())
+                                .count()
                         };
                         if count > MAX_PARAMS {
                             let name_start = trimmed.find("fn ").unwrap_or(0) + 3;
@@ -210,7 +226,9 @@ impl Rule for RuleTooManyParams {
                             findings.push(Finding::new(
                                 self.id(),
                                 Severity::Warning,
-                                format!("function '{name}' has {count} parameters (limit {MAX_PARAMS})"),
+                                format!(
+                                    "function '{name}' has {count} parameters (limit {MAX_PARAMS})"
+                                ),
                                 Location::at(rel.clone(), (i + 1) as u32),
                                 Category::Safety,
                                 "group related parameters into a struct to reduce parameter count",
@@ -227,7 +245,9 @@ impl Rule for RuleTooManyParams {
 // ANA004 — raw pointer dereference without //fusa:unsafe justification.
 struct RuleRawPointerDeref;
 impl Rule for RuleRawPointerDeref {
-    fn id(&self) -> &str { "ANA004" }
+    fn id(&self) -> &str {
+        "ANA004"
+    }
     fn description(&self) -> &str {
         "Raw pointer dereference (*ptr) is memory-unsafe and requires explicit justification."
     }
@@ -235,28 +255,33 @@ impl Rule for RuleRawPointerDeref {
         let mut findings = Vec::new();
         for file in rust_sources(root, cfg) {
             let rel = rel_path(root, &file);
-            let content = std::fs::read_to_string(&file)
-                .map_err(|e| format!("read {rel}: {e}"))?;
+            let content = std::fs::read_to_string(&file).map_err(|e| format!("read {rel}: {e}"))?;
             let lines: Vec<&str> = content.lines().collect();
             for (i, line) in lines.iter().enumerate() {
                 let trimmed = line.trim();
                 if trimmed.starts_with("//") {
                     continue;
                 }
-                if (trimmed.contains("*ptr") || trimmed.contains("*raw") || trimmed.contains("*p ")
-                    || trimmed.contains("*self.ptr") || trimmed.contains("*buf"))
+                if (trimmed.contains("*ptr")
+                    || trimmed.contains("*raw")
+                    || trimmed.contains("*p ")
+                    || trimmed.contains("*self.ptr")
+                    || trimmed.contains("*buf"))
                     && !trimmed.starts_with("*")
                 {
                     let prev = if i > 0 { lines[i - 1].trim() } else { "" };
                     if !prev.contains("//fusa:unsafe") {
-                        findings.push(Finding::new(
-                            self.id(),
-                            Severity::Warning,
-                            "raw pointer dereference without //fusa:unsafe justification",
-                            Location::at(rel.clone(), (i + 1) as u32),
-                            Category::Safety,
-                            "add '//fusa:unsafe <justification>' before the dereference",
-                        ).with_standard("cert-c", "EXP34-C"));
+                        findings.push(
+                            Finding::new(
+                                self.id(),
+                                Severity::Warning,
+                                "raw pointer dereference without //fusa:unsafe justification",
+                                Location::at(rel.clone(), (i + 1) as u32),
+                                Category::Safety,
+                                "add '//fusa:unsafe <justification>' before the dereference",
+                            )
+                            .with_standard("cert-c", "EXP34-C"),
+                        );
                     }
                 }
             }
@@ -268,7 +293,9 @@ impl Rule for RuleRawPointerDeref {
 // ANA005 — truncating integer cast (as u8/u16/i8/i16) without comment.
 struct RuleIntegerTruncatingCast;
 impl Rule for RuleIntegerTruncatingCast {
-    fn id(&self) -> &str { "ANA005" }
+    fn id(&self) -> &str {
+        "ANA005"
+    }
     fn description(&self) -> &str {
         "Narrowing integer casts (as u8, as i8, as u16, as i16) silently truncate values."
     }
@@ -277,8 +304,7 @@ impl Rule for RuleIntegerTruncatingCast {
         let mut findings = Vec::new();
         for file in rust_sources(root, cfg) {
             let rel = rel_path(root, &file);
-            let content = std::fs::read_to_string(&file)
-                .map_err(|e| format!("read {rel}: {e}"))?;
+            let content = std::fs::read_to_string(&file).map_err(|e| format!("read {rel}: {e}"))?;
             let lines: Vec<&str> = content.lines().collect();
             for (i, line) in lines.iter().enumerate() {
                 let trimmed = line.trim();
@@ -310,7 +336,9 @@ impl Rule for RuleIntegerTruncatingCast {
 // ANA006 — function with more than 3 explicit return points.
 struct RuleMultipleReturnPoints;
 impl Rule for RuleMultipleReturnPoints {
-    fn id(&self) -> &str { "ANA006" }
+    fn id(&self) -> &str {
+        "ANA006"
+    }
     fn description(&self) -> &str {
         "Functions with many return points are harder to reason about for safety analysis."
     }
@@ -319,8 +347,7 @@ impl Rule for RuleMultipleReturnPoints {
         let mut findings = Vec::new();
         for file in rust_sources(root, cfg) {
             let rel = rel_path(root, &file);
-            let content = std::fs::read_to_string(&file)
-                .map_err(|e| format!("read {rel}: {e}"))?;
+            let content = std::fs::read_to_string(&file).map_err(|e| format!("read {rel}: {e}"))?;
             let lines: Vec<&str> = content.lines().collect();
             let mut fn_start: Option<(usize, String)> = None;
             let mut brace_depth: i32 = 0;
@@ -329,14 +356,16 @@ impl Rule for RuleMultipleReturnPoints {
 
             for (i, line) in lines.iter().enumerate() {
                 let trimmed = line.trim();
-                if fn_start.is_none() && (trimmed.starts_with("fn ")
-                    || trimmed.starts_with("pub fn ")
-                    || trimmed.starts_with("async fn ")
-                    || trimmed.starts_with("pub async fn "))
+                if fn_start.is_none()
+                    && (trimmed.starts_with("fn ")
+                        || trimmed.starts_with("pub fn ")
+                        || trimmed.starts_with("async fn ")
+                        || trimmed.starts_with("pub async fn "))
                 {
                     if let Some(name_start) = trimmed.find("fn ") {
                         let after = &trimmed[name_start + 3..];
-                        let name: String = after.chars()
+                        let name: String = after
+                            .chars()
                             .take_while(|c| c.is_alphanumeric() || *c == '_')
                             .collect();
                         fn_start = Some((i + 1, name));
@@ -348,8 +377,11 @@ impl Rule for RuleMultipleReturnPoints {
                     return_count += 1;
                 }
                 for c in trimmed.chars() {
-                    if c == '{' { brace_depth += 1; }
-                    else if c == '}' { brace_depth -= 1; }
+                    if c == '{' {
+                        brace_depth += 1;
+                    } else if c == '}' {
+                        brace_depth -= 1;
+                    }
                 }
                 if let Some((start, ref name)) = fn_start {
                     if brace_depth < fn_brace_depth {

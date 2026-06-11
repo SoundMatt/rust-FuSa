@@ -32,14 +32,17 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     let cfg = match load(&project_root.join(".fusa.json")) {
         Ok(c) => c,
         Err(crate::config::ConfigError::NotFound(_)) => crate::config::FusaConfig::new(
-            project_root.file_name().and_then(|n| n.to_str()).unwrap_or("project"),
+            project_root
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("project"),
             "generic",
         ),
         Err(e) => {
@@ -73,22 +76,27 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         add_baseline_entries(&mut entries);
     }
 
-    let json_path = opts.json_output.unwrap_or_else(|| {
-        project_root.join(TARA_JSON).to_string_lossy().into_owned()
-    });
-    let md_path = opts.md_output.unwrap_or_else(|| {
-        project_root.join(TARA_MD).to_string_lossy().into_owned()
-    });
+    let json_path = opts
+        .json_output
+        .unwrap_or_else(|| project_root.join(TARA_JSON).to_string_lossy().into_owned());
+    let md_path = opts
+        .md_output
+        .unwrap_or_else(|| project_root.join(TARA_MD).to_string_lossy().into_owned());
 
-    let entries_json: Vec<serde_json::Value> = entries.iter().map(|e| serde_json::json!({
-        "threat": e.threat,
-        "category": e.category,
-        "stride": e.stride,
-        "cwe": e.cwe,
-        "riskRating": e.risk_rating,
-        "mitigation": e.mitigation,
-        "sourceRule": e.source_rule,
-    })).collect();
+    let entries_json: Vec<serde_json::Value> = entries
+        .iter()
+        .map(|e| {
+            serde_json::json!({
+                "threat": e.threat,
+                "category": e.category,
+                "stride": e.stride,
+                "cwe": e.cwe,
+                "riskRating": e.risk_rating,
+                "mitigation": e.mitigation,
+                "sourceRule": e.source_rule,
+            })
+        })
+        .collect();
 
     let report = serde_json::json!({
         "schemaVersion": SPEC_VERSION,
@@ -107,7 +115,10 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         }
     });
 
-    match std::fs::write(&json_path, serde_json::to_string_pretty(&report).unwrap() + "\n") {
+    match std::fs::write(
+        &json_path,
+        serde_json::to_string_pretty(&report).unwrap() + "\n",
+    ) {
         Ok(_) => writeln!(stdout, "TARA written to {json_path}").ok(),
         Err(e) => {
             writeln!(stderr, "rsfusa tara: write {json_path}: {e}").ok();
@@ -122,7 +133,8 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
          **Generated**: {}  \n\
          **Tool**: {} {}  \n\n",
         chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ"),
-        TOOL_NAME, VERSION
+        TOOL_NAME,
+        VERSION
     );
     md.push_str("## Threat Register\n\n");
     md.push_str("| Threat | STRIDE | CWE | Risk | Mitigation | Rule |\n");
@@ -130,11 +142,16 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     for e in &entries {
         md.push_str(&format!(
             "| {} | {} | {} | {} | {} | {} |\n",
-            md_escape(&e.threat), e.stride, e.cwe, e.risk_rating,
-            md_escape(&e.mitigation), e.source_rule
+            md_escape(&e.threat),
+            e.stride,
+            e.cwe,
+            e.risk_rating,
+            md_escape(&e.mitigation),
+            e.source_rule
         ));
     }
-    md.push_str(&format!("\n## Summary\n\n- Total: {}\n- HIGH: {}\n- MEDIUM: {}\n- LOW: {}\n",
+    md.push_str(&format!(
+        "\n## Summary\n\n- Total: {}\n- HIGH: {}\n- MEDIUM: {}\n- LOW: {}\n",
         entries.len(),
         entries.iter().filter(|e| e.risk_rating == "HIGH").count(),
         entries.iter().filter(|e| e.risk_rating == "MEDIUM").count(),
@@ -194,7 +211,8 @@ fn add_baseline_entries(entries: &mut Vec<TaraEntry>) {
         stride: "T",
         cwe: "CWE-345",
         risk_rating: "HIGH",
-        mitigation: "Use rsfusa sign on all evidence files and verify hashes in audit-pack".to_string(),
+        mitigation: "Use rsfusa sign on all evidence files and verify hashes in audit-pack"
+            .to_string(),
         source_rule: "BASELINE".to_string(),
     });
     entries.push(TaraEntry {
@@ -219,7 +237,11 @@ struct Opts {
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut opts = Opts { dir: None, json_output: None, md_output: None };
+    let mut opts = Opts {
+        dir: None,
+        json_output: None,
+        md_output: None,
+    };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
@@ -237,9 +259,11 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                else if let Some(v) = other.strip_prefix("--output=") { opts.json_output = Some(v.to_string()); }
-                else {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--output=") {
+                    opts.json_output = Some(v.to_string());
+                } else {
                     writeln!(stderr, "rsfusa tara: unknown flag: {other}").ok();
                     return None;
                 }

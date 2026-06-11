@@ -21,9 +21,9 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     // Parse Cargo.toml for package name and dependencies
     let (pkg_name, ext_deps) = parse_cargo_toml(&project_root);
@@ -31,18 +31,34 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     // Scan internal modules and their imports
     let module_imports = scan_module_imports(&project_root);
 
-    let dot_path = opts.dot_output.unwrap_or_else(|| project_root.join(BOUNDARY_DOT).to_string_lossy().into_owned());
-    let mermaid_path = opts.mermaid_output.unwrap_or_else(|| project_root.join(BOUNDARY_MERMAID).to_string_lossy().into_owned());
+    let dot_path = opts.dot_output.unwrap_or_else(|| {
+        project_root
+            .join(BOUNDARY_DOT)
+            .to_string_lossy()
+            .into_owned()
+    });
+    let mermaid_path = opts.mermaid_output.unwrap_or_else(|| {
+        project_root
+            .join(BOUNDARY_MERMAID)
+            .to_string_lossy()
+            .into_owned()
+    });
 
     // Generate DOT
     let mut dot = String::from("digraph boundary {\n");
     dot.push_str("  rankdir=LR;\n");
     dot.push_str("  node [shape=box];\n");
-    dot.push_str(&format!("  \"{pkg_name}\" [shape=ellipse style=filled fillcolor=lightblue];\n"));
+    dot.push_str(&format!(
+        "  \"{pkg_name}\" [shape=ellipse style=filled fillcolor=lightblue];\n"
+    ));
 
     for dep in &ext_deps {
         dot.push_str(&format!("  \"{}\" [style=dashed];\n", sanitise(dep)));
-        dot.push_str(&format!("  \"{}\" -> \"{}\";\n", sanitise(&pkg_name), sanitise(dep)));
+        dot.push_str(&format!(
+            "  \"{}\" -> \"{}\";\n",
+            sanitise(&pkg_name),
+            sanitise(dep)
+        ));
     }
 
     let mut seen_edges: HashSet<String> = HashSet::new();
@@ -72,7 +88,11 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
 
     for dep in &ext_deps {
         mermaid.push_str(&format!("  {}[\"{dep}\"]\n", mermaid_id(dep)));
-        mermaid.push_str(&format!("  {} --> {}\n", mermaid_id(&pkg_name), mermaid_id(dep)));
+        mermaid.push_str(&format!(
+            "  {} --> {}\n",
+            mermaid_id(&pkg_name),
+            mermaid_id(dep)
+        ));
     }
 
     let mut seen_edges: HashSet<String> = HashSet::new();
@@ -81,7 +101,11 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         for imp in imports {
             let edge = format!("{}->{imp}", mermaid_id(module));
             if seen_edges.insert(edge) {
-                mermaid.push_str(&format!("  {} --> {}\n", mermaid_id(module), mermaid_id(imp)));
+                mermaid.push_str(&format!(
+                    "  {} --> {}\n",
+                    mermaid_id(module),
+                    mermaid_id(imp)
+                ));
             }
         }
     }
@@ -94,8 +118,13 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         }
     };
 
-    writeln!(stdout, "Package: {pkg_name}  External deps: {}  Modules: {}",
-        ext_deps.len(), module_imports.len()).ok();
+    writeln!(
+        stdout,
+        "Package: {pkg_name}  External deps: {}  Modules: {}",
+        ext_deps.len(),
+        module_imports.len()
+    )
+    .ok();
     EXIT_OK
 }
 
@@ -111,7 +140,8 @@ fn parse_cargo_toml(root: &PathBuf) -> (String, Vec<String>) {
         Err(_) => return ("unknown".to_string(), vec![]),
     };
 
-    let pkg_name = parsed.get("package")
+    let pkg_name = parsed
+        .get("package")
         .and_then(|p| p.get("name"))
         .and_then(|n| n.as_str())
         .unwrap_or("unknown")
@@ -131,7 +161,11 @@ fn parse_cargo_toml(root: &PathBuf) -> (String, Vec<String>) {
 fn scan_module_imports(root: &PathBuf) -> HashMap<String, Vec<String>> {
     let mut result: HashMap<String, Vec<String>> = HashMap::new();
     let src_dir = root.join("src");
-    let scan_root = if src_dir.exists() { src_dir } else { root.clone() };
+    let scan_root = if src_dir.exists() {
+        src_dir
+    } else {
+        root.clone()
+    };
 
     for entry in WalkDir::new(&scan_root)
         .into_iter()
@@ -140,9 +174,13 @@ fn scan_module_imports(root: &PathBuf) -> HashMap<String, Vec<String>> {
         .filter(|e| e.path().extension().and_then(|s| s.to_str()) == Some("rs"))
     {
         let path = entry.path();
-        let rel = path.strip_prefix(root).unwrap_or(path)
-            .to_string_lossy().replace('\\', "/");
-        let module_name = rel.trim_end_matches(".rs")
+        let rel = path
+            .strip_prefix(root)
+            .unwrap_or(path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        let module_name = rel
+            .trim_end_matches(".rs")
             .replace("src/", "")
             .replace('/', "::");
 
@@ -155,7 +193,8 @@ fn scan_module_imports(root: &PathBuf) -> HashMap<String, Vec<String>> {
         for line in content.lines() {
             let trimmed = line.trim();
             if trimmed.starts_with("use crate::") {
-                let name = trimmed.trim_start_matches("use crate::")
+                let name = trimmed
+                    .trim_start_matches("use crate::")
                     .split(|c: char| c == ';' || c == ':' || c == '{' || c == ' ')
                     .next()
                     .unwrap_or("")
@@ -179,7 +218,13 @@ fn sanitise(s: &str) -> String {
 
 fn mermaid_id(s: &str) -> String {
     s.chars()
-        .map(|c| if c.is_alphanumeric() || c == '_' { c } else { '_' })
+        .map(|c| {
+            if c.is_alphanumeric() || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
         .collect()
 }
 
@@ -190,7 +235,11 @@ struct Opts {
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut opts = Opts { dir: None, dot_output: None, mermaid_output: None };
+    let mut opts = Opts {
+        dir: None,
+        dot_output: None,
+        mermaid_output: None,
+    };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
@@ -208,8 +257,9 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                else {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else {
                     writeln!(stderr, "rsfusa boundary: unknown flag: {other}").ok();
                     return None;
                 }

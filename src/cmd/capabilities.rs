@@ -4,7 +4,11 @@ use std::io::Write;
 pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     let format = parse_format(args);
     if format.as_deref() != Some("json") && format.is_some() && format.as_deref() != Some("") {
-        writeln!(stderr, "rsfusa capabilities: only --format json is supported").ok();
+        writeln!(
+            stderr,
+            "rsfusa capabilities: only --format json is supported"
+        )
+        .ok();
         return EXIT_USAGE;
     }
 

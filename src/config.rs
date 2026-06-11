@@ -221,8 +221,8 @@ pub struct ReqsFile {
 }
 
 pub fn load_reqs(path: &Path) -> Result<ReqsFile, String> {
-    let data = std::fs::read_to_string(path)
-        .map_err(|e| format!("read {}: {e}", path.display()))?;
+    let data =
+        std::fs::read_to_string(path).map_err(|e| format!("read {}: {e}", path.display()))?;
     let reqs: ReqsFile =
         serde_json::from_str(&data).map_err(|e| format!("parse {}: {e}", path.display()))?;
     Ok(reqs)

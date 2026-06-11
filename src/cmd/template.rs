@@ -11,17 +11,27 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     let out_dir = opts.out_dir.unwrap_or_else(|| {
-        project_root.join("docs").join("safety").to_string_lossy().into_owned()
+        project_root
+            .join("docs")
+            .join("safety")
+            .to_string_lossy()
+            .into_owned()
     });
 
     let cfg = load(&project_root.join(".fusa.json")).ok();
-    let project = cfg.as_ref().map(|c| c.project.name.as_str()).unwrap_or("project");
-    let standard = cfg.as_ref().map(|c| c.standard.as_str()).unwrap_or("generic");
+    let project = cfg
+        .as_ref()
+        .map(|c| c.project.name.as_str())
+        .unwrap_or("project");
+    let standard = cfg
+        .as_ref()
+        .map(|c| c.standard.as_str())
+        .unwrap_or("generic");
 
     if let Err(e) = std::fs::create_dir_all(&out_dir) {
         writeln!(stderr, "rsfusa template: create {out_dir}: {e}").ok();
@@ -45,7 +55,11 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     for (name, content) in &templates {
         let path = PathBuf::from(&out_dir).join(name);
         if path.exists() && !opts.force {
-            writeln!(stdout, "Skipping {name} (exists — use --force to overwrite)").ok();
+            writeln!(
+                stdout,
+                "Skipping {name} (exists — use --force to overwrite)"
+            )
+            .ok();
             continue;
         }
         match std::fs::write(&path, content) {
@@ -131,7 +145,8 @@ fn review_checklist_template() -> String {
      - [ ] `rsfusa check` exits 0 with no new findings\n\
      - [ ] Test coverage maintained\n\n\
      ## Sign-off\n\n\
-     Reviewer: _______________  Date: _______________\n".to_string()
+     Reviewer: _______________  Date: _______________\n"
+        .to_string()
 }
 
 fn incident_report_template() -> String {
@@ -144,7 +159,8 @@ fn incident_report_template() -> String {
      ## Impact\n\nTODO\n\n\
      ## Corrective Action\n\nTODO\n\n\
      ## Preventive Action\n\nTODO\n\n\
-     ## Status\n\nOpen / Closed — Date: ___________\n".to_string()
+     ## Status\n\nOpen / Closed — Date: ___________\n"
+        .to_string()
 }
 
 struct Opts {
@@ -155,7 +171,12 @@ struct Opts {
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut opts = Opts { dir: None, out_dir: None, kind: None, force: false };
+    let mut opts = Opts {
+        dir: None,
+        out_dir: None,
+        kind: None,
+        force: false,
+    };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
@@ -174,11 +195,15 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                else if let Some(v) = other.strip_prefix("--out-dir=") { opts.out_dir = Some(v.to_string()); }
-                else if let Some(v) = other.strip_prefix("--kind=") { opts.kind = Some(v.to_string()); }
-                else if !other.starts_with("--") { opts.kind = Some(other.to_string()); }
-                else {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--out-dir=") {
+                    opts.out_dir = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--kind=") {
+                    opts.kind = Some(v.to_string());
+                } else if !other.starts_with("--") {
+                    opts.kind = Some(other.to_string());
+                } else {
                     writeln!(stderr, "rsfusa template: unknown flag: {other}").ok();
                     return None;
                 }

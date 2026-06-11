@@ -14,14 +14,17 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     let cfg = match load(&project_root.join(".fusa.json")) {
         Ok(c) => c,
         Err(crate::config::ConfigError::NotFound(_)) => crate::config::FusaConfig::new(
-            project_root.file_name().and_then(|n| n.to_str()).unwrap_or("project"),
+            project_root
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("project"),
             "generic",
         ),
         Err(e) => {
@@ -64,12 +67,22 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         return EXIT_RUNTIME;
     }
 
-    let has_errors = report.findings.iter().any(|f| f.severity == crate::types::Severity::Error);
-    if has_errors { return EXIT_GATE_FAIL; }
+    let has_errors = report
+        .findings
+        .iter()
+        .any(|f| f.severity == crate::types::Severity::Error);
+    if has_errors {
+        return EXIT_GATE_FAIL;
+    }
     EXIT_OK
 }
 
-fn render_to<W: Write + ?Sized>(w: &mut W, report: &CheckReport, format: Option<&str>, color: bool) -> std::io::Result<()> {
+fn render_to<W: Write + ?Sized>(
+    w: &mut W,
+    report: &CheckReport,
+    format: Option<&str>,
+    color: bool,
+) -> std::io::Result<()> {
     match format {
         Some("json") => render_json(w, report),
         Some("sarif") => render_sarif(w, report),
@@ -86,7 +99,12 @@ struct Opts {
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut opts = Opts { dir: None, format: None, output: None, no_color: false };
+    let mut opts = Opts {
+        dir: None,
+        format: None,
+        output: None,
+        no_color: false,
+    };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
@@ -105,10 +123,13 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                else if let Some(v) = other.strip_prefix("--format=") { opts.format = Some(v.to_string()); }
-                else if let Some(v) = other.strip_prefix("--output=") { opts.output = Some(v.to_string()); }
-                else {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--format=") {
+                    opts.format = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--output=") {
+                    opts.output = Some(v.to_string());
+                } else {
                     writeln!(stderr, "rsfusa analyze: unknown flag: {other}").ok();
                     return None;
                 }

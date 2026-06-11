@@ -51,12 +51,16 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     let src_dir = project_root.join("src");
-    let scan_root = if src_dir.exists() { src_dir } else { project_root.clone() };
+    let scan_root = if src_dir.exists() {
+        src_dir
+    } else {
+        project_root.clone()
+    };
 
     let mut modules: Vec<ModuleInfo> = Vec::new();
     let mut module_imports: HashMap<String, Vec<String>> = HashMap::new();
@@ -68,9 +72,13 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         .filter(|e| e.path().extension().and_then(|s| s.to_str()) == Some("rs"))
     {
         let path = entry.path();
-        let rel = path.strip_prefix(&project_root).unwrap_or(path)
-            .to_string_lossy().replace('\\', "/");
-        let module_name = rel.trim_end_matches(".rs")
+        let rel = path
+            .strip_prefix(&project_root)
+            .unwrap_or(path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        let module_name = rel
+            .trim_end_matches(".rs")
             .replace('/', "::")
             .replace("src::", "");
 
@@ -85,7 +93,8 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         for line in content.lines() {
             let trimmed = line.trim();
             if trimmed.starts_with("use crate::") {
-                let import = trimmed.trim_start_matches("use crate::")
+                let import = trimmed
+                    .trim_start_matches("use crate::")
                     .split(|c| c == ';' || c == ':' || c == '{')
                     .next()
                     .unwrap_or("")
@@ -94,8 +103,10 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
                     imports.push(import);
                 }
             }
-            if trimmed.starts_with("pub fn ") || trimmed.starts_with("pub struct ")
-                || trimmed.starts_with("pub enum ") || trimmed.starts_with("pub type ")
+            if trimmed.starts_with("pub fn ")
+                || trimmed.starts_with("pub struct ")
+                || trimmed.starts_with("pub enum ")
+                || trimmed.starts_with("pub type ")
                 || trimmed.starts_with("pub const ")
             {
                 exported_items += 1;
@@ -123,13 +134,19 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
                 to: "(multiple)".to_string(),
                 coupling_type: "data".to_string(),
                 severity: "WARNING".to_string(),
-                note: format!("module imports {} other modules (threshold {})", m.import_count, HIGH_COUPLING_THRESHOLD),
+                note: format!(
+                    "module imports {} other modules (threshold {})",
+                    m.import_count, HIGH_COUPLING_THRESHOLD
+                ),
             });
         }
         // Circular coupling check: A imports B and B imports A
         for imported in &m.imports {
             if let Some(imported_imports) = module_imports.get(imported) {
-                if imported_imports.iter().any(|i| i == &m.name || m.name.ends_with(i)) {
+                if imported_imports
+                    .iter()
+                    .any(|i| i == &m.name || m.name.ends_with(i))
+                {
                     ctrl_findings.push(CouplingFinding {
                         from: m.name.clone(),
                         to: imported.clone(),
@@ -163,7 +180,10 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     };
 
     let out_path = opts.output.unwrap_or_else(|| {
-        project_root.join(COUPLING_FILE).to_string_lossy().into_owned()
+        project_root
+            .join(COUPLING_FILE)
+            .to_string_lossy()
+            .into_owned()
     });
 
     let json = serde_json::to_string_pretty(&report).expect("serialize coupling");
@@ -175,7 +195,12 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         }
     };
 
-    writeln!(stdout, "Modules: {}  High-coupling: {}", report.summary["modules"], report.summary["highCouplingCount"]).ok();
+    writeln!(
+        stdout,
+        "Modules: {}  High-coupling: {}",
+        report.summary["modules"], report.summary["highCouplingCount"]
+    )
+    .ok();
     EXIT_OK
 }
 
@@ -185,7 +210,10 @@ struct Opts {
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut opts = Opts { dir: None, output: None };
+    let mut opts = Opts {
+        dir: None,
+        output: None,
+    };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
@@ -202,9 +230,11 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                else if let Some(v) = other.strip_prefix("--output=") { opts.output = Some(v.to_string()); }
-                else {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--output=") {
+                    opts.output = Some(v.to_string());
+                } else {
                     writeln!(stderr, "rsfusa coupling: unknown flag: {other}").ok();
                     return None;
                 }

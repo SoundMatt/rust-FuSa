@@ -13,7 +13,9 @@
 use crate::config::{load, load_dispositions, DispositionEntry};
 use crate::engine::default_registry;
 use crate::report::{render_html, render_json, render_sarif, render_text, CheckReport};
-use crate::types::{Disposition, Finding, Severity, EXIT_GATE_FAIL, EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};
+use crate::types::{
+    Disposition, Finding, Severity, EXIT_GATE_FAIL, EXIT_OK, EXIT_RUNTIME, EXIT_USAGE,
+};
 use std::io::Write;
 use std::path::PathBuf;
 
@@ -24,31 +26,45 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
 pub fn run_report(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     // `report` is `check` with forced exit 0; --strict is a usage error.
     if args.iter().any(|a| a == "--strict") {
-        writeln!(stderr, "rsfusa report: --strict is not valid on report (always exits 0)").ok();
+        writeln!(
+            stderr,
+            "rsfusa report: --strict is not valid on report (always exits 0)"
+        )
+        .ok();
         return EXIT_USAGE;
     }
     let code = run_inner(args, stdout, stderr, false);
-    if code == EXIT_GATE_FAIL { EXIT_OK } else { code }
+    if code == EXIT_GATE_FAIL {
+        EXIT_OK
+    } else {
+        code
+    }
 }
 
-fn run_inner(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write, _report_mode: bool) -> i32 {
+fn run_inner(
+    args: &[String],
+    stdout: &mut dyn Write,
+    stderr: &mut dyn Write,
+    _report_mode: bool,
+) -> i32 {
     let opts = match parse(args, stderr) {
         Some(o) => o,
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     let cfg = match load(&project_root.join(".fusa.json")) {
         Ok(c) => c,
-        Err(crate::config::ConfigError::NotFound(_)) => {
-            crate::config::FusaConfig::new(
-                project_root.file_name().and_then(|n| n.to_str()).unwrap_or("project"),
-                "generic",
-            )
-        }
+        Err(crate::config::ConfigError::NotFound(_)) => crate::config::FusaConfig::new(
+            project_root
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("project"),
+            "generic",
+        ),
         Err(e) => {
             writeln!(stderr, "rsfusa check: {e}").ok();
             return EXIT_RUNTIME;
@@ -65,7 +81,10 @@ fn run_inner(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write, _r
     // Apply dispositions.
     let disp_path = project_root.join(".fusa-dispositions.json");
     let dispositions = load_dispositions(&disp_path);
-    let mut findings = apply_dispositions(result.findings, dispositions.as_ref().map(|d| d.dispositions.as_slice()));
+    let mut findings = apply_dispositions(
+        result.findings,
+        dispositions.as_ref().map(|d| d.dispositions.as_slice()),
+    );
 
     // Orphaned accepted/deferred warnings.
     if let Some(disp) = &dispositions {
@@ -81,9 +100,7 @@ fn run_inner(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write, _r
                     Severity::Warning,
                     format!(
                         "orphaned {} disposition: no matching finding for rule {:?} file {:?}",
-                        entry.status,
-                        entry.rule_id,
-                        entry.file
+                        entry.status, entry.rule_id, entry.file
                     ),
                     crate::types::Location::new(".fusa-dispositions.json"),
                     crate::types::Category::Config,
@@ -121,11 +138,17 @@ fn run_inner(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write, _r
 
     let has_open_errors = report.findings.iter().any(|f| {
         f.severity == Severity::Error
-            && !matches!(f.disposition, Some(Disposition::Accepted) | Some(Disposition::Deferred))
+            && !matches!(
+                f.disposition,
+                Some(Disposition::Accepted) | Some(Disposition::Deferred)
+            )
     });
     let has_open_warnings = report.findings.iter().any(|f| {
         f.severity == Severity::Warning
-            && !matches!(f.disposition, Some(Disposition::Accepted) | Some(Disposition::Deferred))
+            && !matches!(
+                f.disposition,
+                Some(Disposition::Accepted) | Some(Disposition::Deferred)
+            )
     });
 
     if has_open_errors {
@@ -137,7 +160,12 @@ fn run_inner(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write, _r
     EXIT_OK
 }
 
-fn render_to<W: Write + ?Sized>(w: &mut W, report: &CheckReport, format: Option<&str>, color: bool) -> std::io::Result<()> {
+fn render_to<W: Write + ?Sized>(
+    w: &mut W,
+    report: &CheckReport,
+    format: Option<&str>,
+    color: bool,
+) -> std::io::Result<()> {
     match format {
         Some("json") => render_json(w, report),
         Some("sarif") => render_sarif(w, report),
@@ -182,7 +210,11 @@ fn matches_disposition(f: &Finding, entry: &DispositionEntry) -> bool {
             if entry.file.is_none() && entry.line.is_none() {
                 return true; // rule-level match
             }
-            let file_ok = entry.file.as_deref().map(|ef| ef == f.location.file).unwrap_or(true);
+            let file_ok = entry
+                .file
+                .as_deref()
+                .map(|ef| ef == f.location.file)
+                .unwrap_or(true);
             let line_ok = entry.line.map(|el| el == f.location.line).unwrap_or(true);
             if file_ok && line_ok {
                 return true;
@@ -228,10 +260,13 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                else if let Some(v) = other.strip_prefix("--format=") { opts.format = Some(v.to_string()); }
-                else if let Some(v) = other.strip_prefix("--output=") { opts.output = Some(v.to_string()); }
-                else {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--format=") {
+                    opts.format = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--output=") {
+                    opts.output = Some(v.to_string());
+                } else {
                     writeln!(stderr, "rsfusa check: unknown flag: {other}").ok();
                     return None;
                 }

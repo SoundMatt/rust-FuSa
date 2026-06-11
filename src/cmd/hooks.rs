@@ -21,9 +21,8 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     let rest = if args.is_empty() { &[] } else { &args[1..] };
 
     let dir = parse_dir(rest);
-    let project_root = dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root =
+        dir.unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
     let hook_path = project_root.join(HOOK_PATH);
 
     match subcmd {
@@ -41,8 +40,12 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
 fn cmd_install(path: &PathBuf, stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     if let Some(parent) = path.parent() {
         if !parent.exists() {
-            writeln!(stderr, "rsfusa hooks install: {} not found — is this a git repository?",
-                parent.display()).ok();
+            writeln!(
+                stderr,
+                "rsfusa hooks install: {} not found — is this a git repository?",
+                parent.display()
+            )
+            .ok();
             return EXIT_RUNTIME;
         }
     }
@@ -51,18 +54,37 @@ fn cmd_install(path: &PathBuf, stdout: &mut dyn Write, stderr: &mut dyn Write) -
         // Check if it's already our hook
         let existing = std::fs::read_to_string(path).unwrap_or_default();
         if existing.contains("rsfusa") {
-            writeln!(stdout, "rust-FuSa hook already installed at {}", path.display()).ok();
+            writeln!(
+                stdout,
+                "rust-FuSa hook already installed at {}",
+                path.display()
+            )
+            .ok();
             return EXIT_OK;
         }
-        writeln!(stderr, "rsfusa hooks install: {} already exists (not installed by rsfusa)", path.display()).ok();
-        writeln!(stderr, "Use --force to overwrite, or manually add 'rsfusa check --strict' to your hook.").ok();
+        writeln!(
+            stderr,
+            "rsfusa hooks install: {} already exists (not installed by rsfusa)",
+            path.display()
+        )
+        .ok();
+        writeln!(
+            stderr,
+            "Use --force to overwrite, or manually add 'rsfusa check --strict' to your hook."
+        )
+        .ok();
         return EXIT_RUNTIME;
     }
 
     match std::fs::write(path, HOOK_SCRIPT) {
         Ok(_) => {}
         Err(e) => {
-            writeln!(stderr, "rsfusa hooks install: write {}: {e}", path.display()).ok();
+            writeln!(
+                stderr,
+                "rsfusa hooks install: write {}: {e}",
+                path.display()
+            )
+            .ok();
             return EXIT_RUNTIME;
         }
     }
@@ -79,7 +101,11 @@ fn cmd_install(path: &PathBuf, stdout: &mut dyn Write, stderr: &mut dyn Write) -
     }
 
     writeln!(stdout, "Hook installed at {}", path.display()).ok();
-    writeln!(stdout, "The hook will run 'rsfusa check --strict' before each commit.").ok();
+    writeln!(
+        stdout,
+        "The hook will run 'rsfusa check --strict' before each commit."
+    )
+    .ok();
     EXIT_OK
 }
 
@@ -91,8 +117,12 @@ fn cmd_remove(path: &PathBuf, stdout: &mut dyn Write, stderr: &mut dyn Write) ->
 
     let content = std::fs::read_to_string(path).unwrap_or_default();
     if !content.contains("rsfusa") {
-        writeln!(stderr, "rsfusa hooks remove: hook at {} was not installed by rsfusa",
-            path.display()).ok();
+        writeln!(
+            stderr,
+            "rsfusa hooks remove: hook at {} was not installed by rsfusa",
+            path.display()
+        )
+        .ok();
         return EXIT_RUNTIME;
     }
 
@@ -116,10 +146,17 @@ fn cmd_show(path: &PathBuf, stdout: &mut dyn Write) -> i32 {
     }
     let content = std::fs::read_to_string(path).unwrap_or_default();
     let managed = content.contains("rsfusa");
-    writeln!(stdout, "Pre-commit hook: {} ({})",
+    writeln!(
+        stdout,
+        "Pre-commit hook: {} ({})",
         path.display(),
-        if managed { "managed by rsfusa" } else { "not managed by rsfusa" }
-    ).ok();
+        if managed {
+            "managed by rsfusa"
+        } else {
+            "not managed by rsfusa"
+        }
+    )
+    .ok();
     writeln!(stdout, "\n--- content ---\n{content}--- end ---").ok();
     EXIT_OK
 }
@@ -127,8 +164,12 @@ fn cmd_show(path: &PathBuf, stdout: &mut dyn Write) -> i32 {
 fn parse_dir(args: &[String]) -> Option<PathBuf> {
     let mut i = 0;
     while i < args.len() {
-        if args[i] == "--dir" && i + 1 < args.len() { return Some(PathBuf::from(&args[i + 1])); }
-        if let Some(v) = args[i].strip_prefix("--dir=") { return Some(PathBuf::from(v)); }
+        if args[i] == "--dir" && i + 1 < args.len() {
+            return Some(PathBuf::from(&args[i + 1]));
+        }
+        if let Some(v) = args[i].strip_prefix("--dir=") {
+            return Some(PathBuf::from(v));
+        }
         i += 1;
     }
     None

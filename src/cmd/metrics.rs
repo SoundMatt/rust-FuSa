@@ -36,9 +36,8 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     let rest = if args.is_empty() { &[] } else { &args[1..] };
 
     let dir = parse_dir(rest);
-    let project_root = dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root =
+        dir.unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
     let metrics_path = project_root.join(METRICS_FILE);
 
     match subcmd {
@@ -52,7 +51,13 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     }
 }
 
-fn cmd_record(path: &PathBuf, args: &[String], root: &PathBuf, stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
+fn cmd_record(
+    path: &PathBuf,
+    args: &[String],
+    root: &PathBuf,
+    stdout: &mut dyn Write,
+    stderr: &mut dyn Write,
+) -> i32 {
     let label = parse_flag(args, "--label");
 
     // Collect current metrics from available report files
@@ -74,8 +79,12 @@ fn cmd_record(path: &PathBuf, args: &[String], root: &PathBuf, stdout: &mut dyn 
     let json = serde_json::to_string_pretty(&file_data).expect("serialize metrics");
     match std::fs::write(path, json + "\n") {
         Ok(_) => {
-            writeln!(stdout, "Metrics recorded: {} errors, {} warnings, {:.1}% coverage",
-                errors, warnings, coverage).ok();
+            writeln!(
+                stdout,
+                "Metrics recorded: {} errors, {} warnings, {:.1}% coverage",
+                errors, warnings, coverage
+            )
+            .ok();
             EXIT_OK
         }
         Err(e) => {
@@ -85,13 +94,22 @@ fn cmd_record(path: &PathBuf, args: &[String], root: &PathBuf, stdout: &mut dyn 
     }
 }
 
-fn cmd_show(path: &PathBuf, args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
+fn cmd_show(
+    path: &PathBuf,
+    args: &[String],
+    stdout: &mut dyn Write,
+    stderr: &mut dyn Write,
+) -> i32 {
     let format = parse_flag(args, "--format").unwrap_or_else(|| "text".to_string());
 
     let data = match std::fs::read_to_string(path) {
         Ok(d) => d,
         Err(_) => {
-            writeln!(stdout, "No metrics file. Run 'rsfusa metrics record' first.").ok();
+            writeln!(
+                stdout,
+                "No metrics file. Run 'rsfusa metrics record' first."
+            )
+            .ok();
             return EXIT_OK;
         }
     };
@@ -110,18 +128,25 @@ fn cmd_show(path: &PathBuf, args: &[String], stdout: &mut dyn Write, stderr: &mu
     };
 
     writeln!(stdout, "{} snapshots", file_data.snapshots.len()).ok();
-    writeln!(stdout, "{:<26} {:>6} {:>8} {:>8} {:>8} {}",
-        "Timestamp", "Errors", "Warnings", "Coverage", "Traced", "Label").ok();
+    writeln!(
+        stdout,
+        "{:<26} {:>6} {:>8} {:>8} {:>8} {}",
+        "Timestamp", "Errors", "Warnings", "Coverage", "Traced", "Label"
+    )
+    .ok();
     writeln!(stdout, "{}", "-".repeat(80)).ok();
     for s in &file_data.snapshots {
-        writeln!(stdout, "{:<26} {:>6} {:>8} {:>7.1}% {:>8} {}",
+        writeln!(
+            stdout,
+            "{:<26} {:>6} {:>8} {:>7.1}% {:>8} {}",
             &s.timestamp[..19],
             s.error_count,
             s.warning_count,
             s.coverage_pct,
             format!("{}/{}", s.traced_requirements, s.total_requirements),
             s.label.as_deref().unwrap_or(""),
-        ).ok();
+        )
+        .ok();
     }
     EXIT_OK
 }
@@ -181,8 +206,12 @@ fn parse_flag(args: &[String], flag: &str) -> Option<String> {
     let prefix = format!("{flag}=");
     let mut i = 0;
     while i < args.len() {
-        if args[i] == flag && i + 1 < args.len() { return Some(args[i + 1].clone()); }
-        if let Some(v) = args[i].strip_prefix(&prefix) { return Some(v.to_string()); }
+        if args[i] == flag && i + 1 < args.len() {
+            return Some(args[i + 1].clone());
+        }
+        if let Some(v) = args[i].strip_prefix(&prefix) {
+            return Some(v.to_string());
+        }
         i += 1;
     }
     None

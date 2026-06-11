@@ -9,9 +9,9 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     use std::io::IsTerminal;
     let is_tty = std::io::stdin().is_terminal();
@@ -27,7 +27,11 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     let standard = opts.standard.unwrap_or_else(|| "iso26262".to_string());
 
     if name.is_empty() && !is_tty {
-        writeln!(stderr, "rsfusa init: --name is required when stdin is not a TTY").ok();
+        writeln!(
+            stderr,
+            "rsfusa init: --name is required when stdin is not a TTY"
+        )
+        .ok();
         return EXIT_USAGE;
     }
 
@@ -38,7 +42,8 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
             stderr,
             "rsfusa init: {} already exists (use --force to overwrite)",
             config_path.display()
-        ).ok();
+        )
+        .ok();
     } else {
         let mut cfg = FusaConfig::new(&name, &standard);
         cfg.project.version = opts.project_version.unwrap_or_else(|| "0.1.0".to_string());
@@ -67,7 +72,8 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
             stderr,
             "rsfusa init: {} already exists (use --force to overwrite)",
             reqs_path.display()
-        ).ok();
+        )
+        .ok();
     } else {
         let reqs = r#"{"requirements":[]}
 "#;
@@ -132,14 +138,21 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(val) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(val)); }
-                else if let Some(val) = other.strip_prefix("--name=") { opts.name = Some(val.to_string()); }
-                else if let Some(val) = other.strip_prefix("--standard=") { opts.standard = Some(val.to_string()); }
-                else if let Some(val) = other.strip_prefix("--asil=") { opts.asil = Some(val.to_string()); }
-                else if let Some(val) = other.strip_prefix("--sil=") { opts.sil = Some(val.to_string()); }
-                else if let Some(val) = other.strip_prefix("--dal=") { opts.dal = Some(val.to_string()); }
-                else if let Some(val) = other.strip_prefix("--project-version=") { opts.project_version = Some(val.to_string()); }
-                else {
+                if let Some(val) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(val));
+                } else if let Some(val) = other.strip_prefix("--name=") {
+                    opts.name = Some(val.to_string());
+                } else if let Some(val) = other.strip_prefix("--standard=") {
+                    opts.standard = Some(val.to_string());
+                } else if let Some(val) = other.strip_prefix("--asil=") {
+                    opts.asil = Some(val.to_string());
+                } else if let Some(val) = other.strip_prefix("--sil=") {
+                    opts.sil = Some(val.to_string());
+                } else if let Some(val) = other.strip_prefix("--dal=") {
+                    opts.dal = Some(val.to_string());
+                } else if let Some(val) = other.strip_prefix("--project-version=") {
+                    opts.project_version = Some(val.to_string());
+                } else {
                     writeln!(stderr, "rsfusa init: unknown flag: {other}").ok();
                     return None;
                 }

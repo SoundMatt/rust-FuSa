@@ -40,9 +40,8 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     let rest = if args.is_empty() { &[] } else { &args[1..] };
 
     let dir = parse_dir(rest);
-    let project_root = dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root =
+        dir.unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
     let pr_path = project_root.join(PR_FILE);
 
     match subcmd {
@@ -81,18 +80,35 @@ fn cmd_add(args: &[String], path: &PathBuf, stdout: &mut dyn Write, stderr: &mut
         }
     };
 
-    let valid_phases = ["requirements", "design", "implementation", "testing", "integration", "operation"];
+    let valid_phases = [
+        "requirements",
+        "design",
+        "implementation",
+        "testing",
+        "integration",
+        "operation",
+    ];
     let valid_severities = ["critical", "major", "minor", "observation"];
 
     let phase = parse_flag(args, "--phase").unwrap_or_else(|| "implementation".to_string());
     let severity = parse_flag(args, "--severity").unwrap_or_else(|| "minor".to_string());
 
     if !valid_phases.contains(&phase.as_str()) {
-        writeln!(stderr, "rsfusa pr add: --phase must be one of: {}", valid_phases.join(", ")).ok();
+        writeln!(
+            stderr,
+            "rsfusa pr add: --phase must be one of: {}",
+            valid_phases.join(", ")
+        )
+        .ok();
         return EXIT_USAGE;
     }
     if !valid_severities.contains(&severity.as_str()) {
-        writeln!(stderr, "rsfusa pr add: --severity must be one of: {}", valid_severities.join(", ")).ok();
+        writeln!(
+            stderr,
+            "rsfusa pr add: --severity must be one of: {}",
+            valid_severities.join(", ")
+        )
+        .ok();
         return EXIT_USAGE;
     }
 
@@ -111,7 +127,10 @@ fn cmd_add(args: &[String], path: &PathBuf, stdout: &mut dyn Write, stderr: &mut
         assigned_to: parse_flag(args, "--assign"),
     });
 
-    if let Err(e) = std::fs::write(path, serde_json::to_string_pretty(&file_data).unwrap() + "\n") {
+    if let Err(e) = std::fs::write(
+        path,
+        serde_json::to_string_pretty(&file_data).unwrap() + "\n",
+    ) {
         writeln!(stderr, "rsfusa pr add: {e}").ok();
         return EXIT_RUNTIME;
     }
@@ -119,12 +138,21 @@ fn cmd_add(args: &[String], path: &PathBuf, stdout: &mut dyn Write, stderr: &mut
     EXIT_OK
 }
 
-fn cmd_list(path: &PathBuf, args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
+fn cmd_list(
+    path: &PathBuf,
+    args: &[String],
+    stdout: &mut dyn Write,
+    stderr: &mut dyn Write,
+) -> i32 {
     let format = parse_flag(args, "--format").unwrap_or_else(|| "text".to_string());
     let data = match std::fs::read_to_string(path) {
         Ok(d) => d,
         Err(_) => {
-            writeln!(stdout, "No problem reports file. Run 'rsfusa pr init' first.").ok();
+            writeln!(
+                stdout,
+                "No problem reports file. Run 'rsfusa pr init' first."
+            )
+            .ok();
             return EXIT_OK;
         }
     };
@@ -139,23 +167,49 @@ fn cmd_list(path: &PathBuf, args: &[String], stdout: &mut dyn Write, stderr: &mu
             return EXIT_RUNTIME;
         }
     };
-    let open: Vec<_> = file_data.problems.iter().filter(|p| p.status == "open").collect();
-    writeln!(stdout, "{} problems ({} open)", file_data.problems.len(), open.len()).ok();
-    writeln!(stdout, "{:<10} {:<8} {:<14} {:<8} {}", "ID", "Severity", "Phase", "Status", "Title").ok();
+    let open: Vec<_> = file_data
+        .problems
+        .iter()
+        .filter(|p| p.status == "open")
+        .collect();
+    writeln!(
+        stdout,
+        "{} problems ({} open)",
+        file_data.problems.len(),
+        open.len()
+    )
+    .ok();
+    writeln!(
+        stdout,
+        "{:<10} {:<8} {:<14} {:<8} {}",
+        "ID", "Severity", "Phase", "Status", "Title"
+    )
+    .ok();
     writeln!(stdout, "{}", "-".repeat(80)).ok();
     for p in &file_data.problems {
-        writeln!(stdout, "{:<10} {:<8} {:<14} {:<8} {}",
-            p.id, p.severity, p.phase, p.status,
+        writeln!(
+            stdout,
+            "{:<10} {:<8} {:<14} {:<8} {}",
+            p.id,
+            p.severity,
+            p.phase,
+            p.status,
             truncate(&p.title, 35)
-        ).ok();
+        )
+        .ok();
     }
     EXIT_OK
 }
 
-fn cmd_close(args: &[String], path: &PathBuf, stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
-    let id = match parse_flag(args, "--id").or_else(|| {
-        args.iter().find(|a| !a.starts_with("--")).cloned()
-    }) {
+fn cmd_close(
+    args: &[String],
+    path: &PathBuf,
+    stdout: &mut dyn Write,
+    stderr: &mut dyn Write,
+) -> i32 {
+    let id = match parse_flag(args, "--id")
+        .or_else(|| args.iter().find(|a| !a.starts_with("--")).cloned())
+    {
         Some(i) => i,
         None => {
             writeln!(stderr, "rsfusa pr close: --id <PR-XXXX> is required").ok();
@@ -177,7 +231,10 @@ fn cmd_close(args: &[String], path: &PathBuf, stdout: &mut dyn Write, stderr: &m
         writeln!(stderr, "rsfusa pr close: {id} not found").ok();
         return EXIT_RUNTIME;
     }
-    if let Err(e) = std::fs::write(path, serde_json::to_string_pretty(&file_data).unwrap() + "\n") {
+    if let Err(e) = std::fs::write(
+        path,
+        serde_json::to_string_pretty(&file_data).unwrap() + "\n",
+    ) {
         writeln!(stderr, "rsfusa pr close: {e}").ok();
         return EXIT_RUNTIME;
     }
@@ -213,14 +270,21 @@ fn parse_flag(args: &[String], flag: &str) -> Option<String> {
     let prefix = format!("{flag}=");
     let mut i = 0;
     while i < args.len() {
-        if args[i] == flag && i + 1 < args.len() { return Some(args[i + 1].clone()); }
-        if let Some(v) = args[i].strip_prefix(&prefix) { return Some(v.to_string()); }
+        if args[i] == flag && i + 1 < args.len() {
+            return Some(args[i + 1].clone());
+        }
+        if let Some(v) = args[i].strip_prefix(&prefix) {
+            return Some(v.to_string());
+        }
         i += 1;
     }
     None
 }
 
 fn truncate(s: &str, max: usize) -> String {
-    if s.len() <= max { s.to_string() }
-    else { format!("{}…", &s[..max - 1]) }
+    if s.len() <= max {
+        s.to_string()
+    } else {
+        format!("{}…", &s[..max - 1])
+    }
 }

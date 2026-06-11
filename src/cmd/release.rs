@@ -7,7 +7,10 @@
 //fusa:req REQ-RELEASE007
 //fusa:req REQ-RELEASE008
 use crate::auditpack::{pack, AUDIT_PACK_FILE};
-use crate::release::{build_manifest, build_provenance, build_sbom, save_json, MANIFEST_FILE, PROVENANCE_FILE, SBOM_FILE};
+use crate::release::{
+    build_manifest, build_provenance, build_sbom, save_json, MANIFEST_FILE, PROVENANCE_FILE,
+    SBOM_FILE,
+};
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};
 use std::io::Write;
 use std::path::PathBuf;
@@ -18,10 +21,14 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.clone().unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
-    let out_dir = opts.output_dir.clone().unwrap_or_else(|| project_root.clone());
+    let project_root = opts
+        .dir
+        .clone()
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
+    let out_dir = opts
+        .output_dir
+        .clone()
+        .unwrap_or_else(|| project_root.clone());
 
     if let Err(e) = std::fs::create_dir_all(&out_dir) {
         writeln!(stderr, "rsfusa release: create output dir: {e}").ok();
@@ -42,7 +49,12 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         writeln!(stderr, "rsfusa release: save SBOM: {e}").ok();
         return EXIT_RUNTIME;
     }
-    writeln!(stdout, "SBOM written to {} ({comp_count} components)", sbom_path.display()).ok();
+    writeln!(
+        stdout,
+        "SBOM written to {} ({comp_count} components)",
+        sbom_path.display()
+    )
+    .ok();
 
     // Provenance
     let prov = build_provenance(&project_root);
@@ -67,13 +79,24 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         writeln!(stderr, "rsfusa release: save manifest: {e}").ok();
         return EXIT_RUNTIME;
     }
-    writeln!(stdout, "Artifact manifest written to {} ({art_count} artifacts)", manifest_path.display()).ok();
+    writeln!(
+        stdout,
+        "Artifact manifest written to {} ({art_count} artifacts)",
+        manifest_path.display()
+    )
+    .ok();
 
     if opts.full {
         let pack_path = out_dir.join(AUDIT_PACK_FILE);
         match pack(&project_root, &pack_path) {
             Ok(m) => {
-                writeln!(stdout, "Audit pack written to {} ({} files)", pack_path.display(), m.files.len()).ok();
+                writeln!(
+                    stdout,
+                    "Audit pack written to {} ({} files)",
+                    pack_path.display(),
+                    m.files.len()
+                )
+                .ok();
             }
             Err(e) => {
                 writeln!(stderr, "rsfusa release --full: audit-pack: {e}").ok();
@@ -118,10 +141,13 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                else if let Some(v) = other.strip_prefix("--output-dir=") { opts.output_dir = Some(PathBuf::from(v)); }
-                else if let Some(v) = other.strip_prefix("--spdx-version=") { opts._spdx_version = v.to_string(); }
-                else {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--output-dir=") {
+                    opts.output_dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--spdx-version=") {
+                    opts._spdx_version = v.to_string();
+                } else {
                     writeln!(stderr, "rsfusa release: unknown flag: {other}").ok();
                     return None;
                 }

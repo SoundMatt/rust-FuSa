@@ -17,18 +17,19 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     let cfg = match load(&project_root.join(".fusa.json")) {
         Ok(c) => c,
-        Err(crate::config::ConfigError::NotFound(_)) => {
-            crate::config::FusaConfig::new(
-                project_root.file_name().and_then(|n| n.to_str()).unwrap_or("project"),
-                "generic",
-            )
-        }
+        Err(crate::config::ConfigError::NotFound(_)) => crate::config::FusaConfig::new(
+            project_root
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("project"),
+            "generic",
+        ),
         Err(e) => {
             writeln!(stderr, "rsfusa trace: {e}").ok();
             return EXIT_RUNTIME;
@@ -55,7 +56,9 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
             .map(|t| t.requirement_id.clone())
             .collect();
         matrix.requirements.retain(|r| !tested_ids.contains(&r.id));
-        matrix.tags.retain(|t| !tested_ids.contains(&t.requirement_id));
+        matrix
+            .tags
+            .retain(|t| !tested_ids.contains(&t.requirement_id));
         matrix.coverage = full_coverage;
     }
 
@@ -109,7 +112,8 @@ fn check_gates(cov: &Coverage, req_coverage: u32, sec_tested: u32, stderr: &mut 
             writeln!(
                 stderr,
                 "rsfusa trace: req-coverage gate failed: {pct}% < required {req_coverage}%"
-            ).ok();
+            )
+            .ok();
             fail = true;
         }
     }
@@ -119,11 +123,16 @@ fn check_gates(cov: &Coverage, req_coverage: u32, sec_tested: u32, stderr: &mut 
             writeln!(
                 stderr,
                 "rsfusa trace: sec-tested gate failed: {pct}% < required {sec_tested}%"
-            ).ok();
+            )
+            .ok();
             fail = true;
         }
     }
-    if fail { EXIT_GATE_FAIL } else { EXIT_OK }
+    if fail {
+        EXIT_GATE_FAIL
+    } else {
+        EXIT_OK
+    }
 }
 
 struct Opts {
@@ -152,8 +161,12 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
             "--gaps" => opts.gaps = true,
             "--strict" => {
                 opts.strict = true;
-                if opts.req_coverage == 0 { opts.req_coverage = 100; }
-                if opts.sec_tested == 0 { opts.sec_tested = 100; }
+                if opts.req_coverage == 0 {
+                    opts.req_coverage = 100;
+                }
+                if opts.sec_tested == 0 {
+                    opts.sec_tested = 100;
+                }
             }
             "--no-color" => {}
             flag @ ("--dir" | "--format" | "--output" | "--req-coverage" | "--sec-tested") => {
@@ -177,12 +190,17 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                else if let Some(v) = other.strip_prefix("--format=") { opts.format = Some(v.to_string()); }
-                else if let Some(v) = other.strip_prefix("--output=") { opts.output = Some(v.to_string()); }
-                else if let Some(v) = other.strip_prefix("--req-coverage=") { opts.req_coverage = v.parse().unwrap_or(0); }
-                else if let Some(v) = other.strip_prefix("--sec-tested=") { opts.sec_tested = v.parse().unwrap_or(0); }
-                else {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--format=") {
+                    opts.format = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--output=") {
+                    opts.output = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--req-coverage=") {
+                    opts.req_coverage = v.parse().unwrap_or(0);
+                } else if let Some(v) = other.strip_prefix("--sec-tested=") {
+                    opts.sec_tested = v.parse().unwrap_or(0);
+                } else {
                     writeln!(stderr, "rsfusa trace: unknown flag: {other}").ok();
                     return None;
                 }
@@ -192,8 +210,12 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
     }
     // --strict overrides individual gates only if they weren't explicitly set.
     if opts.strict {
-        if opts.req_coverage == 0 { opts.req_coverage = 100; }
-        if opts.sec_tested == 0 { opts.sec_tested = 100; }
+        if opts.req_coverage == 0 {
+            opts.req_coverage = 100;
+        }
+        if opts.sec_tested == 0 {
+            opts.sec_tested = 100;
+        }
     }
     Some(opts)
 }

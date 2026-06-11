@@ -17,9 +17,9 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     writeln!(stdout, "Running cargo test...").ok();
 
@@ -70,10 +70,16 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     });
 
     let out_path = opts.output.unwrap_or_else(|| {
-        project_root.join(EVIDENCE_FILE).to_string_lossy().into_owned()
+        project_root
+            .join(EVIDENCE_FILE)
+            .to_string_lossy()
+            .into_owned()
     });
 
-    match std::fs::write(&out_path, serde_json::to_string_pretty(&evidence).unwrap() + "\n") {
+    match std::fs::write(
+        &out_path,
+        serde_json::to_string_pretty(&evidence).unwrap() + "\n",
+    ) {
         Ok(_) => writeln!(stdout, "Evidence written to {out_path}").ok(),
         Err(e) => {
             writeln!(stderr, "rsfusa verify: write {out_path}: {e}").ok();
@@ -86,7 +92,11 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         return crate::types::EXIT_GATE_FAIL;
     }
 
-    writeln!(stdout, "Tests PASSED: {total} total, {passed} passed, {ignored} ignored").ok();
+    writeln!(
+        stdout,
+        "Tests PASSED: {total} total, {passed} passed, {ignored} ignored"
+    )
+    .ok();
     EXIT_OK
 }
 
@@ -106,10 +116,14 @@ fn extract_count(line: &str, label: &str) -> usize {
     let pattern = format!(" {label}");
     if let Some(pos) = line.find(&pattern) {
         let before = &line[..pos];
-        let num_str: String = before.chars().rev()
+        let num_str: String = before
+            .chars()
+            .rev()
             .take_while(|c| c.is_ascii_digit())
             .collect::<String>()
-            .chars().rev().collect();
+            .chars()
+            .rev()
+            .collect();
         return num_str.parse().unwrap_or(0);
     }
     0
@@ -121,7 +135,10 @@ struct Opts {
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut opts = Opts { dir: None, output: None };
+    let mut opts = Opts {
+        dir: None,
+        output: None,
+    };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
@@ -138,9 +155,11 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                else if let Some(v) = other.strip_prefix("--output=") { opts.output = Some(v.to_string()); }
-                else {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--output=") {
+                    opts.output = Some(v.to_string());
+                } else {
                     writeln!(stderr, "rsfusa verify: unknown flag: {other}").ok();
                     return None;
                 }

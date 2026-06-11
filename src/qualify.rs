@@ -57,14 +57,20 @@ impl Report {
 }
 
 static MINIMAL_BASE: &[(&str, &str)] = &[
-    (".fusa.json", r#"{
+    (
+        ".fusa.json",
+        r#"{
   "configVersion": "1.0",
   "project": {"name": "qualify-test", "version": "0.1.0"},
   "standard": "generic",
   "sourceDirs": ["."],
   "excludePatterns": ["target/**"]
-}"#),
-    ("Cargo.toml", "[package]\nname = \"qualify-test\"\nversion = \"0.1.0\"\nedition = \"2021\"\n"),
+}"#,
+    ),
+    (
+        "Cargo.toml",
+        "[package]\nname = \"qualify-test\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+    ),
     ("LICENSE", "Mozilla Public License 2.0\n"),
     ("README.md", "# qualify-test\n"),
     (".github/workflows/ci.yml", "name: CI\n"),
@@ -191,7 +197,10 @@ pub fn builtin_cases() -> Vec<Case> {
             expect_finding: true,
             files: merge_base({
                 let mut m = BTreeMap::new();
-                m.insert("src/lib.rs".to_string(), "pub fn foo() {\n    unsafe { let _ = 0; }\n}\n".to_string());
+                m.insert(
+                    "src/lib.rs".to_string(),
+                    "pub fn foo() {\n    unsafe { let _ = 0; }\n}\n".to_string(),
+                );
                 m
             }),
         },
@@ -214,7 +223,10 @@ pub fn builtin_cases() -> Vec<Case> {
             expect_finding: true,
             files: merge_base({
                 let mut m = BTreeMap::new();
-                m.insert("src/lib.rs".to_string(), "pub fn get() -> i32 { \"42\".parse().unwrap() }\n".to_string());
+                m.insert(
+                    "src/lib.rs".to_string(),
+                    "pub fn get() -> i32 { \"42\".parse().unwrap() }\n".to_string(),
+                );
                 m
             }),
         },
@@ -225,7 +237,10 @@ pub fn builtin_cases() -> Vec<Case> {
             expect_finding: false,
             files: merge_base({
                 let mut m = BTreeMap::new();
-                m.insert("src/lib.rs".to_string(), "pub fn get() -> i32 { 42 }\n".to_string());
+                m.insert(
+                    "src/lib.rs".to_string(),
+                    "pub fn get() -> i32 { 42 }\n".to_string(),
+                );
                 m
             }),
         },
@@ -237,7 +252,11 @@ pub fn builtin_cases() -> Vec<Case> {
             expect_finding: true,
             files: merge_base({
                 let mut m = BTreeMap::new();
-                m.insert("src/lib.rs".to_string(), "use std::mem;\npub fn cast(x: u32) -> i32 { unsafe { mem::transmute(x) } }\n".to_string());
+                m.insert(
+                    "src/lib.rs".to_string(),
+                    "use std::mem;\npub fn cast(x: u32) -> i32 { unsafe { mem::transmute(x) } }\n"
+                        .to_string(),
+                );
                 m
             }),
         },
@@ -337,8 +356,7 @@ fn write_case_files(dir: &Path, files: &BTreeMap<String, String>) -> Result<(), 
             std::fs::create_dir_all(parent)
                 .map_err(|e| format!("mkdir {}: {e}", parent.display()))?;
         }
-        std::fs::write(&path, content.as_bytes())
-            .map_err(|e| format!("write {rel}: {e}"))?;
+        std::fs::write(&path, content.as_bytes()).map_err(|e| format!("write {rel}: {e}"))?;
     }
     Ok(())
 }

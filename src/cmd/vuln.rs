@@ -7,7 +7,9 @@
 //fusa:req REQ-VULN005
 //fusa:req REQ-VULN006
 
-use crate::types::{EXIT_GATE_FAIL, EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
+use crate::types::{
+    EXIT_GATE_FAIL, EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION,
+};
 use std::io::Write;
 use std::path::PathBuf;
 
@@ -19,13 +21,13 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
-    let out_path = opts.output.unwrap_or_else(|| {
-        project_root.join(VULN_FILE).to_string_lossy().into_owned()
-    });
+    let out_path = opts
+        .output
+        .unwrap_or_else(|| project_root.join(VULN_FILE).to_string_lossy().into_owned());
 
     writeln!(stdout, "Scanning dependencies for vulnerabilities...").ok();
 
@@ -38,10 +40,20 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     match audit_result {
         Ok(output) => {
             let stdout_str = String::from_utf8_lossy(&output.stdout);
-            process_audit_json(&stdout_str, &out_path, output.status.success(), stdout, stderr)
+            process_audit_json(
+                &stdout_str,
+                &out_path,
+                output.status.success(),
+                stdout,
+                stderr,
+            )
         }
         Err(_) => {
-            writeln!(stderr, "rsfusa vuln: cargo-audit not found; install with: cargo install cargo-audit").ok();
+            writeln!(
+                stderr,
+                "rsfusa vuln: cargo-audit not found; install with: cargo install cargo-audit"
+            )
+            .ok();
             // Fall back to a lightweight Cargo.lock scan for known bad patterns
             scan_cargo_lock(&project_root, &out_path, stdout, stderr)
         }
@@ -59,26 +71,50 @@ fn process_audit_json(
     let findings: Vec<serde_json::Value>;
 
     if let Ok(audit) = serde_json::from_str::<serde_json::Value>(json_str) {
-        let vulns = audit.get("vulnerabilities")
+        let vulns = audit
+            .get("vulnerabilities")
             .and_then(|v| v.get("list"))
             .and_then(|v| v.as_array())
             .cloned()
             .unwrap_or_default();
         vuln_count = vulns.len();
-        findings = vulns.into_iter().map(|v| {
-            let id = v.get("advisory").and_then(|a| a.get("id")).and_then(|i| i.as_str()).unwrap_or("UNKNOWN");
-            let title = v.get("advisory").and_then(|a| a.get("title")).and_then(|t| t.as_str()).unwrap_or("");
-            let pkg = v.get("package").and_then(|p| p.get("name")).and_then(|n| n.as_str()).unwrap_or("");
-            let ver = v.get("package").and_then(|p| p.get("version")).and_then(|n| n.as_str()).unwrap_or("");
-            let url = v.get("advisory").and_then(|a| a.get("url")).and_then(|u| u.as_str()).unwrap_or("");
-            serde_json::json!({
-                "id": id,
-                "package": pkg,
-                "version": ver,
-                "title": title,
-                "url": url,
+        findings = vulns
+            .into_iter()
+            .map(|v| {
+                let id = v
+                    .get("advisory")
+                    .and_then(|a| a.get("id"))
+                    .and_then(|i| i.as_str())
+                    .unwrap_or("UNKNOWN");
+                let title = v
+                    .get("advisory")
+                    .and_then(|a| a.get("title"))
+                    .and_then(|t| t.as_str())
+                    .unwrap_or("");
+                let pkg = v
+                    .get("package")
+                    .and_then(|p| p.get("name"))
+                    .and_then(|n| n.as_str())
+                    .unwrap_or("");
+                let ver = v
+                    .get("package")
+                    .and_then(|p| p.get("version"))
+                    .and_then(|n| n.as_str())
+                    .unwrap_or("");
+                let url = v
+                    .get("advisory")
+                    .and_then(|a| a.get("url"))
+                    .and_then(|u| u.as_str())
+                    .unwrap_or("");
+                serde_json::json!({
+                    "id": id,
+                    "package": pkg,
+                    "version": ver,
+                    "title": title,
+                    "url": url,
+                })
             })
-        }).collect()
+            .collect()
     } else {
         vuln_count = 0;
         findings = vec![];
@@ -100,7 +136,10 @@ fn process_audit_json(
         }
     });
 
-    match std::fs::write(out_path, serde_json::to_string_pretty(&report).unwrap() + "\n") {
+    match std::fs::write(
+        out_path,
+        serde_json::to_string_pretty(&report).unwrap() + "\n",
+    ) {
         Ok(_) => writeln!(stdout, "Vulnerability report written to {out_path}").ok(),
         Err(e) => {
             writeln!(stderr, "rsfusa vuln: write {out_path}: {e}").ok();
@@ -109,7 +148,11 @@ fn process_audit_json(
     };
 
     if vuln_count > 0 {
-        writeln!(stdout, "Found {vuln_count} vulnerabilities — see {out_path}").ok();
+        writeln!(
+            stdout,
+            "Found {vuln_count} vulnerabilities — see {out_path}"
+        )
+        .ok();
         EXIT_GATE_FAIL
     } else {
         writeln!(stdout, "No known vulnerabilities found.").ok();
@@ -150,7 +193,10 @@ fn scan_cargo_lock(
         }
     });
 
-    match std::fs::write(out_path, serde_json::to_string_pretty(&report).unwrap() + "\n") {
+    match std::fs::write(
+        out_path,
+        serde_json::to_string_pretty(&report).unwrap() + "\n",
+    ) {
         Ok(_) => {
             writeln!(stdout, "Scanned {dep_count} packages (basic scan only — install cargo-audit for full results)").ok();
             writeln!(stdout, "Report written to {out_path}").ok();
@@ -170,7 +216,10 @@ struct Opts {
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut opts = Opts { dir: None, output: None };
+    let mut opts = Opts {
+        dir: None,
+        output: None,
+    };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
@@ -187,9 +236,11 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                else if let Some(v) = other.strip_prefix("--output=") { opts.output = Some(v.to_string()); }
-                else {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--output=") {
+                    opts.output = Some(v.to_string());
+                } else {
                     writeln!(stderr, "rsfusa vuln: unknown flag: {other}").ok();
                     return None;
                 }

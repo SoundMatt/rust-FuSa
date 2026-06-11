@@ -10,12 +10,15 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     let report_path = opts.report.unwrap_or_else(|| {
-        project_root.join("check-report.json").to_string_lossy().into_owned()
+        project_root
+            .join("check-report.json")
+            .to_string_lossy()
+            .into_owned()
     });
 
     let (errors, warnings, label) = if let Ok(data) = std::fs::read_to_string(&report_path) {
@@ -32,9 +35,15 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     };
 
     let (color, status) = if errors > 0 {
-        ("#e05d44", format!("{errors} error{}", if errors == 1 { "" } else { "s" }))
+        (
+            "#e05d44",
+            format!("{errors} error{}", if errors == 1 { "" } else { "s" }),
+        )
     } else if warnings > 0 {
-        ("#dfb317", format!("{warnings} warning{}", if warnings == 1 { "" } else { "s" }))
+        (
+            "#dfb317",
+            format!("{warnings} warning{}", if warnings == 1 { "" } else { "s" }),
+        )
     } else {
         ("#4c1", "passing".to_string())
     };
@@ -51,7 +60,9 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
                 }
             };
         }
-        None => { writeln!(stdout, "{svg}").ok(); }
+        None => {
+            writeln!(stdout, "{svg}").ok();
+        }
     }
 
     EXIT_OK
@@ -81,9 +92,15 @@ fn render_badge(left: &str, right: &str, color: &str, version: &str) -> String {
         "  <clipPath id=\"r\"><rect width=\"{total_w}\" height=\"20\" rx=\"3\" fill=\"white\"/></clipPath>\n"
     ));
     s.push_str("  <g clip-path=\"url(#r)\">\n");
-    s.push_str(&format!("    <rect width=\"{left_w}\" height=\"20\" fill=\"#555\"/>\n"));
-    s.push_str(&format!("    <rect x=\"{left_w}\" width=\"{right_w}\" height=\"20\" fill=\"{color}\"/>\n"));
-    s.push_str(&format!("    <rect width=\"{total_w}\" height=\"20\" fill=\"url(#s)\"/>\n"));
+    s.push_str(&format!(
+        "    <rect width=\"{left_w}\" height=\"20\" fill=\"#555\"/>\n"
+    ));
+    s.push_str(&format!(
+        "    <rect x=\"{left_w}\" width=\"{right_w}\" height=\"20\" fill=\"{color}\"/>\n"
+    ));
+    s.push_str(&format!(
+        "    <rect width=\"{total_w}\" height=\"20\" fill=\"url(#s)\"/>\n"
+    ));
     s.push_str("  </g>\n");
     s.push_str("  <g fill=\"white\" text-anchor=\"middle\" font-family=\"DejaVu Sans,Verdana,Geneva,sans-serif\" font-size=\"110\">\n");
     s.push_str(&format!("    <text x=\"{left_x}0\" y=\"150\" fill=\"#010101\" fill-opacity=\".3\" transform=\"scale(.1)\" textLength=\"{left_tw}\" lengthAdjust=\"spacing\">{left}</text>\n"));
@@ -102,7 +119,11 @@ struct Opts {
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut opts = Opts { dir: None, report: None, output: None };
+    let mut opts = Opts {
+        dir: None,
+        report: None,
+        output: None,
+    };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
@@ -121,9 +142,11 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
             }
             other => {
                 if other.starts_with("--") {
-                    if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                    else if let Some(v) = other.strip_prefix("--output=") { opts.output = Some(v.to_string()); }
-                    else {
+                    if let Some(v) = other.strip_prefix("--dir=") {
+                        opts.dir = Some(PathBuf::from(v));
+                    } else if let Some(v) = other.strip_prefix("--output=") {
+                        opts.output = Some(v.to_string());
+                    } else {
                         writeln!(stderr, "rsfusa badge: unknown flag: {other}").ok();
                         return None;
                     }

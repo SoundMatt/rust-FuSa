@@ -7,8 +7,10 @@
 //fusa:req REQ-TRACE006
 //fusa:req REQ-TRACE007
 
-use crate::config::{FusaConfig, Requirement, load_reqs};
-use crate::types::{Category, Finding, Location, Severity, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
+use crate::config::{load_reqs, FusaConfig, Requirement};
+use crate::types::{
+    Category, Finding, Location, Severity, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Write;
@@ -81,13 +83,19 @@ pub fn build(project_root: &Path, cfg: &FusaConfig) -> Result<(Matrix, Vec<Findi
     let (requirements, mut findings) = if reqs_path.exists() {
         let reqs = load_reqs(&reqs_path)?;
         let dups = crate::config::check_duplicate_ids(&reqs);
-        let dup_findings: Vec<Finding> = dups.into_iter().map(|id| Finding::new(
-            "REQ001", Severity::Error,
-            format!("duplicate requirement id: {id}"),
-            Location::new(".fusa-reqs.json"),
-            Category::Requirement,
-            "each requirement id must be unique within .fusa-reqs.json",
-        )).collect();
+        let dup_findings: Vec<Finding> = dups
+            .into_iter()
+            .map(|id| {
+                Finding::new(
+                    "REQ001",
+                    Severity::Error,
+                    format!("duplicate requirement id: {id}"),
+                    Location::new(".fusa-reqs.json"),
+                    Category::Requirement,
+                    "each requirement id must be unique within .fusa-reqs.json",
+                )
+            })
+            .collect();
         (reqs.requirements, dup_findings)
     } else {
         (vec![], vec![])
@@ -102,8 +110,12 @@ pub fn build(project_root: &Path, cfg: &FusaConfig) -> Result<(Matrix, Vec<Findi
     for tag in &tags {
         if !req_ids.contains_key(tag.requirement_id.as_str()) {
             findings.push(Finding::new(
-                "REQ002", Severity::Warning,
-                format!("annotation references unknown requirement id: {}", tag.requirement_id),
+                "REQ002",
+                Severity::Warning,
+                format!(
+                    "annotation references unknown requirement id: {}",
+                    tag.requirement_id
+                ),
                 Location::at(tag.file.clone(), tag.line),
                 Category::Requirement,
                 "add the requirement to .fusa-reqs.json or fix the id",
@@ -155,8 +167,7 @@ fn scan_annotations(
         if is_excluded(&rel, &cfg.exclude_patterns) {
             continue;
         }
-        let content = std::fs::read_to_string(path)
-            .map_err(|e| format!("read {rel}: {e}"))?;
+        let content = std::fs::read_to_string(path).map_err(|e| format!("read {rel}: {e}"))?;
         for (i, line) in content.lines().enumerate() {
             let lineno = (i + 1) as u32;
             if let Some(kind) = annotation_kind(line) {
@@ -168,7 +179,8 @@ fn scan_annotations(
                         kind: kind.clone(),
                     }),
                     Err(e) => findings.push(Finding::new(
-                        "REQ003", Severity::Warning,
+                        "REQ003",
+                        Severity::Warning,
                         format!("malformed //fusa:{} annotation: {e}", kind),
                         Location::at(rel.clone(), lineno),
                         Category::Requirement,
@@ -316,7 +328,10 @@ pub fn render_md<W: Write + ?Sized>(w: &mut W, matrix: &Matrix) -> std::io::Resu
         let tags = tags_by_req.get(req.id.as_str());
         let traced = tags.map(|t| !t.is_empty()).unwrap_or(false);
         let tested = tags
-            .map(|t| t.iter().any(|tt| tt.kind == TagKind::Test || tt.kind == TagKind::SecTest))
+            .map(|t| {
+                t.iter()
+                    .any(|tt| tt.kind == TagKind::Test || tt.kind == TagKind::SecTest)
+            })
             .unwrap_or(false);
         let title = req.title.as_deref().unwrap_or("");
         writeln!(

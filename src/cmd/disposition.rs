@@ -12,9 +12,8 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     let rest = if args.is_empty() { &[] } else { &args[1..] };
 
     let dir = parse_dir(rest);
-    let project_root = dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root =
+        dir.unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
     let disp_path = project_root.join(DISP_FILE);
 
     match subcmd {
@@ -37,13 +36,21 @@ fn cmd_add(args: &[String], path: &PathBuf, stdout: &mut dyn Write, stderr: &mut
     let by = parse_flag(args, "--by");
 
     if rule.is_none() {
-        writeln!(stderr, "rsfusa disposition add: --rule <RULE_ID> is required").ok();
+        writeln!(
+            stderr,
+            "rsfusa disposition add: --rule <RULE_ID> is required"
+        )
+        .ok();
         return EXIT_USAGE;
     }
 
     let valid_statuses = ["accepted", "deferred", "rejected"];
     if !valid_statuses.contains(&status.as_str()) {
-        writeln!(stderr, "rsfusa disposition add: --status must be accepted|deferred|rejected").ok();
+        writeln!(
+            stderr,
+            "rsfusa disposition add: --status must be accepted|deferred|rejected"
+        )
+        .ok();
         return EXIT_USAGE;
     }
 
@@ -63,7 +70,12 @@ fn cmd_add(args: &[String], path: &PathBuf, stdout: &mut dyn Write, stderr: &mut
     save_dispositions(path, &file_data, stdout, stderr)
 }
 
-fn cmd_list(path: &PathBuf, args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
+fn cmd_list(
+    path: &PathBuf,
+    args: &[String],
+    stdout: &mut dyn Write,
+    stderr: &mut dyn Write,
+) -> i32 {
     let format = parse_flag(args, "--format").unwrap_or_else(|| "text".to_string());
 
     let data = match std::fs::read_to_string(path) {
@@ -82,7 +94,12 @@ fn cmd_list(path: &PathBuf, args: &[String], stdout: &mut dyn Write, stderr: &mu
     let file_data: DispositionsFile = match serde_json::from_str(&data) {
         Ok(d) => d,
         Err(e) => {
-            writeln!(stderr, "rsfusa disposition list: parse {}: {e}", path.display()).ok();
+            writeln!(
+                stderr,
+                "rsfusa disposition list: parse {}: {e}",
+                path.display()
+            )
+            .ok();
             return EXIT_RUNTIME;
         }
     };
@@ -92,31 +109,51 @@ fn cmd_list(path: &PathBuf, args: &[String], stdout: &mut dyn Write, stderr: &mu
         return EXIT_OK;
     }
 
-    writeln!(stdout, "{:<12} {:<30} {:<10} {:<15} {}",
-        "Rule", "File", "Status", "By", "Note").ok();
+    writeln!(
+        stdout,
+        "{:<12} {:<30} {:<10} {:<15} {}",
+        "Rule", "File", "Status", "By", "Note"
+    )
+    .ok();
     writeln!(stdout, "{}", "-".repeat(80)).ok();
     for d in &file_data.dispositions {
-        writeln!(stdout, "{:<12} {:<30} {:<10} {:<15} {}",
+        writeln!(
+            stdout,
+            "{:<12} {:<30} {:<10} {:<15} {}",
             d.rule_id.as_deref().unwrap_or("*"),
             d.file.as_deref().unwrap_or("*"),
             d.status,
             d.by.as_deref().unwrap_or(""),
             d.note.as_deref().unwrap_or(""),
-        ).ok();
+        )
+        .ok();
     }
     writeln!(stdout, "\nTotal: {}", file_data.dispositions.len()).ok();
     EXIT_OK
 }
 
 fn load_or_empty(path: &PathBuf) -> DispositionsFile {
-    load_dispositions(path).unwrap_or(DispositionsFile { dispositions: vec![] })
+    load_dispositions(path).unwrap_or(DispositionsFile {
+        dispositions: vec![],
+    })
 }
 
-fn save_dispositions(path: &PathBuf, file_data: &DispositionsFile, stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
+fn save_dispositions(
+    path: &PathBuf,
+    file_data: &DispositionsFile,
+    stdout: &mut dyn Write,
+    stderr: &mut dyn Write,
+) -> i32 {
     let json = serde_json::to_string_pretty(file_data).expect("serialize dispositions");
     match std::fs::write(path, json + "\n") {
         Ok(_) => {
-            writeln!(stdout, "Saved {} dispositions to {}", file_data.dispositions.len(), path.display()).ok();
+            writeln!(
+                stdout,
+                "Saved {} dispositions to {}",
+                file_data.dispositions.len(),
+                path.display()
+            )
+            .ok();
             EXIT_OK
         }
         Err(e) => {
