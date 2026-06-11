@@ -1,0 +1,74 @@
+{
+  "requirements": [
+    {
+      "id": "REQ-FUSA001",
+      "title": "Configuration file present",
+      "text": "The tool shall verify that a .fusa.json configuration file exists in the project root.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-FUSA002",
+      "title": "Rust manifest present",
+      "text": "The tool shall verify that a Cargo.toml manifest exists, confirming the project is a Rust crate.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-FUSA003",
+      "title": "License declared",
+      "text": "The tool shall verify that a LICENSE file is present for IP clarity in safety submissions.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-FUSA004",
+      "title": "Project documentation present",
+      "text": "The tool shall verify that a README file is present for assessors and integrators.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-FUSA005",
+      "title": "Continuous integration configured",
+      "text": "The tool shall verify that a CI configuration is present for automated verification.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-LINT001",
+      "title": "Unsafe code justified",
+      "text": "The tool shall flag unsafe blocks that lack a //fusa:unsafe justification on the preceding line.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-LINT002",
+      "title": "No unexplained panics",
+      "text": "The tool shall flag .unwrap() calls in non-test code as they can cause unhandled process termination.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CLI001",
+      "title": "Exit code semantics",
+      "text": "The tool shall exit 0 on success, 1 on gate failure, 2 on usage error, 3 on runtime error.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CLI002",
+      "title": "JSON output conformance",
+      "text": "The tool shall emit x-FuSa spec v1.9 conformant JSON from all reporting commands.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CLI003",
+      "title": "Fingerprint computation",
+      "text": "The tool shall compute SHA-256 fingerprints per x-FuSa spec §4.2 for every finding.",
+      "standard": "iso26262",
+      "level": "HLR"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  rsfusa:
+    image: ghcr.io/soundmatt/rust-fusa:latest
+    volumes:
+      - .:/project
+    working_dir: /project
+
+  check:
+    image: ghcr.io/soundmatt/rust-fusa:latest
+    volumes:
+      - .:/project
+    working_dir: /project
+    command: check --format json --output check-report.json
+
+  qualify:
+    image: ghcr.io/soundmatt/rust-fusa:latest
+    volumes:
+      - .:/project
+    working_dir: /project
+    command: qualify
+
+  release:
+    image: ghcr.io/soundmatt/rust-fusa:latest
+    volumes:
+      - .:/project
+    working_dir: /project
+    command: release --full
