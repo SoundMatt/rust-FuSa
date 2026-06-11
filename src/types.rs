@@ -1,4 +1,12 @@
 // Core value types shared across all modules (§4, §2.4, §1.5).
+//fusa:req REQ-CLI001
+//fusa:req REQ-CLI003
+//fusa:req REQ-CLI004
+//fusa:req REQ-ENG004
+//fusa:req REQ-ENG005
+//fusa:req REQ-NF002
+//fusa:req REQ-RUNTIME004
+//fusa:req REQ-RUNTIME005
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};

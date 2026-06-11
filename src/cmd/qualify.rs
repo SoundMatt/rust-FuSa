@@ -1,3 +1,8 @@
+//fusa:req REQ-QUALIFY001
+//fusa:req REQ-QUALIFY002
+//fusa:req REQ-QUALIFY003
+//fusa:req REQ-QUALIFY004
+//fusa:req REQ-E2E001
 use crate::engine::default_registry;
 use crate::qualify::{builtin_cases, run as qualify_run, save, REPORT_FILE};
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};
@@ -32,7 +37,8 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
                     "  FAIL  {}: {}",
                     r.name,
                     r.error.as_deref().unwrap_or("")
-                ).ok();
+                )
+                .ok();
             }
         }
     }
@@ -47,7 +53,12 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     }
 
     match save(&out_path, &report) {
-        Ok(()) => writeln!(stdout, "Qualification report written to {}", out_path.display()).ok(),
+        Ok(()) => writeln!(
+            stdout,
+            "Qualification report written to {}",
+            out_path.display()
+        )
+        .ok(),
         Err(e) => {
             writeln!(stderr, "rsfusa qualify: save report: {e}").ok();
             return EXIT_RUNTIME;
@@ -66,7 +77,10 @@ struct Opts {
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut opts = Opts { output: None, format: None };
+    let mut opts = Opts {
+        output: None,
+        format: None,
+    };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
@@ -83,9 +97,11 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--output=") { opts.output = Some(v.to_string()); }
-                else if let Some(v) = other.strip_prefix("--format=") { opts.format = Some(v.to_string()); }
-                else {
+                if let Some(v) = other.strip_prefix("--output=") {
+                    opts.output = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--format=") {
+                    opts.format = Some(v.to_string());
+                } else {
                     writeln!(stderr, "rsfusa qualify: unknown flag: {other}").ok();
                     return None;
                 }

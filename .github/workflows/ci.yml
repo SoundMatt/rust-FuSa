@@ -43,12 +43,44 @@ jobs:
       - name: build release
         run: cargo build --release --locked
 
-      - name: self-check
+      - name: self-check (lint + analyze + check)
         run: |
-          ./target/release/rsfusa version
-          ./target/release/rsfusa capabilities --format json
+          ./target/release/rsfusa lint --dir . --format json --output lint-report.json || true
+          ./target/release/rsfusa analyze --dir . --format json --output analyze-report.json || true
           ./target/release/rsfusa check --dir . --format json --output check-report.json || true
-          ./target/release/rsfusa qualify
+
+      - name: self-check SARIF (GitHub code scanning)
+        run: |
+          ./target/release/rsfusa check --dir . --format sarif --output results.sarif || true
+
+      - name: qualify
+        run: ./target/release/rsfusa qualify
+
+      - name: trace (requirement traceability)
+        run: |
+          ./target/release/rsfusa trace --dir . --format json --output trace.json || true
+          ./target/release/rsfusa trace --dir . --format text || true
+
+      - name: safety documents
+        run: |
+          ./target/release/rsfusa fmea --dir . || true
+          ./target/release/rsfusa boundary --dir . || true
+          ./target/release/rsfusa hara show --dir . || true
+          ./target/release/rsfusa tara --dir . || true
+          ./target/release/rsfusa safety-case --dir . || true
+          ./target/release/rsfusa cyber --dir . --format json --output cyber-report.json || true
+
+      - name: release artifacts
+        run: |
+          ./target/release/rsfusa release --dir . || true
+
+      - name: docs version consistency
+        run: |
+          VERSION=$(./target/release/rsfusa version | head -1 | awk '{print $2}')
+          echo "Tool version: $VERSION"
+          if ! grep -q "$VERSION" README.md; then
+            echo "WARNING: $VERSION not found in README.md"
+          fi
 
       - name: Upload check report
         if: always()
@@ -64,6 +96,41 @@ jobs:
           name: qualify-report
           path: qualify-report.json
 
+      - name: Upload trace matrix
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trace-matrix
+          path: trace.json
+
+      - name: Upload SARIF to GitHub Code Scanning
+        if: always() && github.event_name != 'pull_request'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+        continue-on-error: true
+
+      - name: Upload safety evidence bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: safety-evidence
+          path: |
+            check-report.json
+            lint-report.json
+            analyze-report.json
+            cyber-report.json
+            trace.json
+            fmea.json
+            tara.json
+            boundary.mermaid
+            safety-case.json
+            qualify-report.json
+            sbom.json
+            provenance.json
+            artifact-manifest.json
+          if-no-files-found: warn
+
   cross-compile:
     name: Cross-compile (${{ matrix.target }})
     runs-on: ubuntu-latest
@@ -77,7 +144,32 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      - name: Install musl tools
-        run: sudo apt-get install -y musl-tools
+      - name: Install cross
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross
       - name: Build
-        run: cargo build --release --target ${{ matrix.target }} --locked
+        run: cross build --release --target ${{ matrix.target }} --locked
+
+  macos:
+    name: macOS build & test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: macos-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: test
+        run: cargo test --locked
+      - name: build release
+        run: cargo build --release --locked
+      - name: smoke test
+        run: |
+          ./target/release/rsfusa version
+          ./target/release/rsfusa capabilities --format json | python3 -c "import json,sys; d=json.load(sys.stdin); assert d['kind']=='capabilities'"

@@ -1,4 +1,11 @@
 // Rule execution engine — trait-based, mirrors go-FuSa's engine package.
+//fusa:req REQ-ENG001
+//fusa:req REQ-ENG002
+//fusa:req REQ-ENG003
+//fusa:req REQ-ENG004
+//fusa:req REQ-ENG005
+//fusa:req REQ-ENG006
+//fusa:req REQ-ENG007
 
 use crate::config::FusaConfig;
 use crate::types::Finding;

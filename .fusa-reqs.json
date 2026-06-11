@@ -1,4 +1,5 @@
 {
+  "schemaVersion": "1.0",
   "requirements": [
     {
       "id": "REQ-FUSA001",
@@ -36,17 +37,59 @@
       "level": "HLR"
     },
     {
-      "id": "REQ-LINT001",
-      "title": "Unsafe code justified",
-      "text": "The tool shall flag unsafe blocks that lack a //fusa:unsafe justification on the preceding line.",
+      "id": "REQ-CFG001",
+      "title": "Config schema version",
+      "text": "The .fusa.json configuration file shall include a configVersion field equal to '1.0'.",
       "standard": "iso26262",
       "level": "HLR"
     },
     {
-      "id": "REQ-LINT002",
-      "title": "No unexplained panics",
-      "text": "The tool shall flag .unwrap() calls in non-test code as they can cause unhandled process termination.",
+      "id": "REQ-CFG002",
+      "title": "Project name required",
+      "text": "The .fusa.json configuration file shall include a non-empty project.name field.",
       "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CFG003",
+      "title": "Safety standard declared",
+      "text": "The .fusa.json configuration file shall declare a standard field (e.g. iso26262, iec61508, do178c).",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CFG004",
+      "title": "Integrity level declared",
+      "text": "The .fusa.json configuration file shall declare one of asil, sil, or dal to specify the target integrity level.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CFG005",
+      "title": "Config version validated",
+      "text": "The tool shall reject configuration files with an unsupported configVersion and exit with code 3.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CFG006",
+      "title": "ASIL values validated",
+      "text": "The tool shall validate that the asil field, if present, contains one of QM, ASIL-A, ASIL-B, ASIL-C, ASIL-D.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CFG007",
+      "title": "SIL values validated",
+      "text": "The tool shall validate that the sil field, if present, contains one of SIL-1, SIL-2, SIL-3, SIL-4.",
+      "standard": "iec61508",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CFG008",
+      "title": "DAL values validated",
+      "text": "The tool shall validate that the dal field, if present, contains one of DAL-A, DAL-B, DAL-C, DAL-D.",
+      "standard": "do178c",
       "level": "HLR"
     },
     {
@@ -67,6 +110,930 @@
       "id": "REQ-CLI003",
       "title": "Fingerprint computation",
       "text": "The tool shall compute SHA-256 fingerprints per x-FuSa spec §4.2 for every finding.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CLI004",
+      "title": "Common header on all JSON documents",
+      "text": "All JSON documents produced by the tool shall include schemaVersion, kind, tool, toolVersion, language, generatedAt fields (x-FuSa spec §3.1).",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CLI005",
+      "title": "Format flag support",
+      "text": "All reporting commands shall support --format text|json as a minimum; check and report additionally support html, sarif, and md.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CLI006",
+      "title": "Output file flag",
+      "text": "All reporting commands shall support --output <file> to write results to a file.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CLI007",
+      "title": "Directory flag",
+      "text": "All file-scanning commands shall support --dir <path> to target a specific project root.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CLI008",
+      "title": "Strict mode gate",
+      "text": "Commands that support --strict shall exit 1 on WARNING findings in addition to ERROR findings.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CLI009",
+      "title": "Version command",
+      "text": "The version command shall print tool name, version, and spec version; with --format json shall emit a valid x-FuSa JSON document.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CLI010",
+      "title": "Capabilities command",
+      "text": "The capabilities command shall enumerate all supported commands, formats, rules, and standards in machine-readable JSON.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CLI011",
+      "title": "Help text present",
+      "text": "The tool shall print usage text when invoked without arguments or with help/--help/-h.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CLI012",
+      "title": "Unknown command error",
+      "text": "The tool shall exit with code 2 and print an error message when given an unknown subcommand.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ENG001",
+      "title": "Rule registry",
+      "text": "The engine shall maintain a registry of all active rules loadable at startup.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ENG002",
+      "title": "File scanning",
+      "text": "The engine shall recursively scan all .rs source files under the project src/ directory.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ENG003",
+      "title": "Finding deduplication",
+      "text": "The engine shall deduplicate findings by fingerprint within a single scan run.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ENG004",
+      "title": "Severity classification",
+      "text": "Every finding shall carry one of ERROR, WARNING, or INFO severity.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ENG005",
+      "title": "Category classification",
+      "text": "Every finding shall carry one of lint, style, safety, security, coverage, requirement, concurrency, supply-chain, config, or other category.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ENG006",
+      "title": "Disposition suppression",
+      "text": "Findings with an accepted or deferred disposition in .fusa-dispositions.json shall not count toward gate failure.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ENG007",
+      "title": "Scan excludes tests",
+      "text": "The engine shall exclude files matched by the excludePaths configuration key from scanning.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ERR001",
+      "title": "Error on missing config",
+      "text": "The tool shall print an actionable error message when .fusa.json is missing or malformed.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ERR002",
+      "title": "Error on file I/O failure",
+      "text": "The tool shall print the failing path and OS error when a file read or write fails, then exit 3.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ERR003",
+      "title": "Error on parse failure",
+      "text": "The tool shall print the failing file path and parse error when JSON or TOML parsing fails, then exit 3.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-LINT001",
+      "title": "Unsafe code justified",
+      "text": "The tool shall flag unsafe blocks that lack a //fusa:unsafe justification on the preceding line.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-LINT002",
+      "title": "No unexplained panics",
+      "text": "The tool shall flag .unwrap() calls in non-test code as they can cause unhandled process termination.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-LINT003",
+      "title": "No unexplained expect",
+      "text": "The tool shall flag .expect() calls in non-test code as they can cause unhandled process termination.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-LINT004",
+      "title": "No todo macro",
+      "text": "The tool shall flag todo!() and unimplemented!() macros that indicate incomplete safety-critical code.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-LINT005",
+      "title": "No transmute",
+      "text": "The tool shall flag std::mem::transmute usage as type-safety violation.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-LINT006",
+      "title": "No mem forget",
+      "text": "The tool shall flag std::mem::forget usage as a potential resource leak.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ANA001",
+      "title": "Function length limit",
+      "text": "The tool shall flag functions exceeding 60 lines as WARNING (ANA001).",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ANA002",
+      "title": "Nesting depth limit",
+      "text": "The tool shall flag code blocks with indentation exceeding 5 levels as WARNING (ANA002).",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ANA003",
+      "title": "Parameter count limit",
+      "text": "The tool shall flag functions with more than 7 parameters as WARNING (ANA003).",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ANA004",
+      "title": "Raw pointer dereference",
+      "text": "The tool shall flag raw pointer dereferences lacking //fusa:unsafe justification as WARNING (ANA004).",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ANA005",
+      "title": "Integer truncating cast",
+      "text": "The tool shall flag integer narrowing casts (as u8/i8/u16/i16) as WARNING (ANA005) per ISO 26262 6.4.6.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ANA006",
+      "title": "Multiple return points",
+      "text": "The tool shall flag functions with more than 3 explicit return statements as INFO (ANA006).",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER001",
+      "title": "Hardcoded credentials",
+      "text": "The tool shall flag hardcoded passwords, secrets, and API keys (CWE-798) as ERROR.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER002",
+      "title": "SQL injection",
+      "text": "The tool shall flag SQL string concatenation patterns (CWE-89) as ERROR.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER003",
+      "title": "Path traversal",
+      "text": "The tool shall flag path construction from user input (CWE-22) as ERROR.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER004",
+      "title": "Weak random",
+      "text": "The tool shall flag use of non-cryptographic random generators (CWE-330) as WARNING.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER005",
+      "title": "Unchecked arithmetic",
+      "text": "The tool shall flag integer overflow/underflow patterns (CWE-190) as WARNING.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER006",
+      "title": "Cleartext HTTP",
+      "text": "The tool shall flag non-TLS HTTP endpoints (CWE-319) as ERROR.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER007",
+      "title": "Command injection",
+      "text": "The tool shall flag shell command construction from variables (CWE-78) as ERROR.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER008",
+      "title": "Deprecated crypto",
+      "text": "The tool shall flag use of deprecated cryptographic algorithms (CWE-327) as ERROR.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER009",
+      "title": "Sensitive logging",
+      "text": "The tool shall flag logging of potential secrets and passwords (CWE-532) as WARNING.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER010",
+      "title": "Unvalidated deserialize",
+      "text": "The tool shall flag deserialize calls without preceding validation (CWE-502) as WARNING.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER011",
+      "title": "Unchecked slice index",
+      "text": "The tool shall flag direct slice indexing without bounds check (CWE-125) as WARNING.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER012",
+      "title": "Unbounded allocation",
+      "text": "The tool shall flag potential unbounded vector allocation (CWE-400) as WARNING.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER013",
+      "title": "TLS bypass",
+      "text": "The tool shall flag TLS certificate verification disable patterns (CWE-295) as ERROR.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER014",
+      "title": "TOCTOU check",
+      "text": "The tool shall flag time-of-check/time-of-use patterns (CWE-367) as WARNING.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER015",
+      "title": "Insecure file permissions",
+      "text": "The tool shall flag broad file permission settings (CWE-732) as WARNING.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER016",
+      "title": "Environment secret exposure",
+      "text": "The tool shall flag environment variable secret exposure (CWE-526) as WARNING.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER017",
+      "title": "Path from user input",
+      "text": "The tool shall flag path construction from user-controlled input (CWE-22) as ERROR.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER018",
+      "title": "ManuallyDrop usage",
+      "text": "The tool shall flag ManuallyDrop usage as potential use-after-free (CWE-415) as WARNING.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER019",
+      "title": "Format string from external",
+      "text": "The tool shall flag format string construction from external data (CWE-134) as WARNING.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER020",
+      "title": "Unchecked from_utf8",
+      "text": "The tool shall flag unchecked UTF-8 conversion (CWE-20) as WARNING.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TRACE001",
+      "title": "Requirement annotation scan",
+      "text": "The trace command shall scan source files for //fusa:req annotations and build a requirement-to-file mapping.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TRACE002",
+      "title": "Test annotation scan",
+      "text": "The trace command shall scan source files for //fusa:test annotations and record which requirements have test coverage.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TRACE003",
+      "title": "Sec-test annotation scan",
+      "text": "The trace command shall scan source files for //fusa:sec-test annotations and record security test coverage.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TRACE004",
+      "title": "Trace matrix output",
+      "text": "The trace command shall output a matrix with tracedRequirements, testedRequirements, and secTestedRequirements (x-FuSa spec §5).",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TRACE005",
+      "title": "Untested requirement detection",
+      "text": "The trace command with --strict shall exit 1 if any requirement in .fusa-reqs.json lacks a //fusa:test annotation.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TRACE006",
+      "title": "Untraced requirement detection",
+      "text": "The trace command shall report requirements that have no //fusa:req implementation annotation.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TRACE007",
+      "title": "Trace JSON schema",
+      "text": "The trace command shall produce a trace.json conforming to x-FuSa spec §5 schema.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-RPT001",
+      "title": "JSON report schema",
+      "text": "Check reports shall include findings[], summary.errors, summary.warnings, and summary.infos fields.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-RPT002",
+      "title": "SARIF output",
+      "text": "The check command shall produce SARIF 2.1.0 output with runs[0].tool.driver and results[] when --format sarif is specified.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-RPT003",
+      "title": "HTML report",
+      "text": "The report command shall produce a self-contained HTML report when --format html is specified.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-RPT004",
+      "title": "Markdown report",
+      "text": "The report command shall produce a Markdown report when --format md is specified.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-RPT005",
+      "title": "Report always exits 0",
+      "text": "The report command shall always exit 0 regardless of finding severity, unlike check which exits 1 on ERROR.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-QUALIFY001",
+      "title": "Tool qualification test suite",
+      "text": "The qualify command shall run a defined set of qualification test cases and report pass/fail for each.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-QUALIFY002",
+      "title": "Qualification report",
+      "text": "The qualify command shall write qualify-report.json with x-FuSa §3.1 header and per-case results.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-QUALIFY003",
+      "title": "Qualification gate",
+      "text": "The qualify command shall exit 1 if any qualification case fails.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-QUALIFY004",
+      "title": "Qualification hash",
+      "text": "The qualify command shall compute a deterministic hash over its results using RFC 8785 canonical JSON (x-FuSa spec §6).",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-RELEASE001",
+      "title": "SBOM generation",
+      "text": "The release command shall produce sbom.json listing all Cargo dependencies with their hashes.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-RELEASE002",
+      "title": "SBOM hash format",
+      "text": "Dependency hashes in sbom.json shall be formatted as algo:value (e.g. sha256:abc123) per x-FuSa spec §7.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-RELEASE003",
+      "title": "Provenance generation",
+      "text": "The release command shall produce provenance.json with build metadata including git commit, branch, and timestamp.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-RELEASE004",
+      "title": "Artifact manifest generation",
+      "text": "The release command shall produce artifact-manifest.json listing all evidence files with SHA-256 checksums.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-RELEASE005",
+      "title": "Cargo.lock integrity",
+      "text": "The release command shall verify that Cargo.lock is present and record its hash in the artifact manifest.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-RELEASE006",
+      "title": "SBOM module field",
+      "text": "The SBOM shall include a module field with the package name and version from Cargo.toml.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-RELEASE007",
+      "title": "SBOM component registry source",
+      "text": "SBOM components shall include the registry source URL where available.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-RELEASE008",
+      "title": "Provenance reproducibility",
+      "text": "The provenance document shall record the Rust toolchain version used at build time.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-AUDIT001",
+      "title": "Audit pack ZIP",
+      "text": "The audit-pack command shall produce a single ZIP file with all evidence files at the archive root.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-AUDIT002",
+      "title": "Audit pack manifest",
+      "text": "The audit pack shall include a manifest.json with bare-hex SHA-256 per entry (x-FuSa spec §8).",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-AUDIT003",
+      "title": "Audit pack listing",
+      "text": "The audit-pack command shall accept --list to enumerate archive contents without extraction.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-AUDIT004",
+      "title": "Audit pack exit code",
+      "text": "The audit-pack command shall exit 1 if no evidence files are found to bundle.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-VERIFY001",
+      "title": "Test execution via cargo",
+      "text": "The verify command shall invoke cargo test and capture pass/fail counts.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-VERIFY002",
+      "title": "Test evidence document",
+      "text": "The verify command shall write .fusa-evidence.json with x-FuSa §3.1 header and test run summary.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-VERIFY003",
+      "title": "Verify gate on failure",
+      "text": "The verify command shall exit 1 if any test fails.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-VERIFY004",
+      "title": "Test evidence timestamp",
+      "text": "The .fusa-evidence.json document shall record the timestamp at which verification was performed.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-VERIFY005",
+      "title": "Test evidence counts",
+      "text": "The .fusa-evidence.json document shall record passed, failed, and ignored test counts.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-FMEA001",
+      "title": "FMEA from source",
+      "text": "The fmea command shall derive FMEA entries from public functions declared in Rust source files.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-FMEA002",
+      "title": "Failure mode mapping",
+      "text": "The fmea command shall map function return types to potential failure modes and effects.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-FMEA003",
+      "title": "ASIL severity mapping",
+      "text": "The fmea command shall map configured ASIL level to failure severity ratings.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-FMEA004",
+      "title": "Risk classification",
+      "text": "The fmea command shall classify each failure as HIGH, MEDIUM, or LOW risk based on severity and detection rating.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-FMEA005",
+      "title": "FMEA JSON output",
+      "text": "The fmea command shall write fmea.json with x-FuSa §3.1 header and an entries[] array.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-FMEA006",
+      "title": "FMEA CSV output",
+      "text": "The fmea command shall write fmea.csv suitable for import into safety management tools.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-BOUNDARY001",
+      "title": "Boundary diagram generation",
+      "text": "The boundary command shall generate a dependency boundary diagram from Cargo.toml and source imports.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-BOUNDARY002",
+      "title": "Graphviz DOT output",
+      "text": "The boundary command shall write boundary.dot in Graphviz DOT format.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-BOUNDARY003",
+      "title": "Mermaid diagram output",
+      "text": "The boundary command shall write boundary.mermaid in Mermaid graph LR format.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-BOUNDARY004",
+      "title": "External dependency nodes",
+      "text": "The boundary diagram shall include all Cargo.toml dependencies as external nodes.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-BOUNDARY005",
+      "title": "Internal module nodes",
+      "text": "The boundary diagram shall include internal src/ modules as nodes connected by use crate:: imports.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-VULN001",
+      "title": "Vulnerability scan",
+      "text": "The vuln command shall scan Cargo.lock for known CVEs using cargo-audit or equivalent.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-VULN002",
+      "title": "Vulnerability JSON output",
+      "text": "The vuln command shall write vuln.json with x-FuSa §3.1 header and vulnerabilities[] array.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-VULN003",
+      "title": "Vulnerability gate",
+      "text": "The vuln command shall exit 1 if any vulnerabilities are found.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-VULN004",
+      "title": "CVE identifiers",
+      "text": "Each vulnerability entry shall include the CVE identifier where available.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-VULN005",
+      "title": "Severity level",
+      "text": "Each vulnerability entry shall include a severity level (critical, high, medium, low).",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-VULN006",
+      "title": "Cargo-audit fallback",
+      "text": "When cargo-audit is not installed, the vuln command shall scan Cargo.lock directly and advise installation.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TARA001",
+      "title": "STRIDE threat mapping",
+      "text": "The tara command shall map cyber findings to STRIDE threat categories per ISO 21434.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TARA002",
+      "title": "CWE mapping",
+      "text": "Each TARA entry shall include the CWE identifier corresponding to the threat.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TARA003",
+      "title": "Risk rating",
+      "text": "Each TARA entry shall include a risk rating (CRITICAL, HIGH, MEDIUM, LOW).",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TARA004",
+      "title": "TARA JSON output",
+      "text": "The tara command shall write tara.json with x-FuSa §3.1 header and threats[] array.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TARA005",
+      "title": "TARA Markdown output",
+      "text": "The tara command shall write tara.md with a human-readable threat register table.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SC001",
+      "title": "Safety case GSN",
+      "text": "The safety-case command shall generate a Goal Structuring Notation (GSN) safety argument.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SC002",
+      "title": "Safety case evidence check",
+      "text": "The safety-case command shall check for the presence of all required evidence files.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SC003",
+      "title": "Safety case JSON",
+      "text": "The safety-case command shall write safety-case.json with evidence status.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SC004",
+      "title": "Safety case Markdown",
+      "text": "The safety-case command shall write safety-case.md with a human-readable evidence summary.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SC005",
+      "title": "Safety case Mermaid",
+      "text": "The safety-case command shall write safety-case.mermaid with a graph TB GSN diagram.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-NF001",
+      "title": "Single binary",
+      "text": "The tool shall be distributed as a single statically-linked binary requiring no runtime dependencies.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-NF002",
+      "title": "Spec conformance",
+      "text": "The tool shall conform to x-FuSa spec version 1.9.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-NF003",
+      "title": "Deterministic output",
+      "text": "Given identical inputs, the tool shall produce byte-identical JSON output (excluding generatedAt timestamps).",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-HARA001",
+      "title": "HARA file management",
+      "text": "The hara command shall read and write .fusa-hara.json with hazard definitions including severity, exposure, controllability, and ASIL.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-HARA002",
+      "title": "ASIL derivation",
+      "text": "The hara asil subcommand shall derive ASIL level from severity, exposure, and controllability per ISO 26262 Part 3 Table 4.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-HARA003",
+      "title": "HARA init template",
+      "text": "The hara init subcommand shall create a .fusa-hara.json template with one example hazard if the file does not exist.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-HARA004",
+      "title": "HARA tabular display",
+      "text": "The hara show subcommand shall display hazards in a tabular format showing ID, description, S, E, C, and ASIL columns.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-HARA005",
+      "title": "HARA JSON header",
+      "text": "The .fusa-hara.json file shall include the x-FuSa §3.1 common header.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-HTML001",
+      "title": "HTML report self-contained",
+      "text": "HTML reports shall be self-contained (no external asset dependencies) for offline use in safety submissions.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-HTML002",
+      "title": "HTML findings table",
+      "text": "HTML reports shall include a findings table with rule ID, severity, file, line, and message columns.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-HTML003",
+      "title": "HTML summary section",
+      "text": "HTML reports shall include a summary section showing error, warning, and info counts.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-E2E001",
+      "title": "End-to-end qualification",
+      "text": "The tool qualification suite shall exercise all §9.1 MUST commands and verify correct exit codes and output schemas.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SAFETYCASE001",
+      "title": "Safety case completeness gate",
+      "text": "The safety-case command shall exit 1 when fewer than 50% of required evidence files are present.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-REQQ001",
+      "title": "Requirements file schema",
+      "text": "The .fusa-reqs.json file shall conform to the x-FuSa requirements schema with id, title, text, standard, and level fields.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-REQQ002",
+      "title": "Requirements unique IDs",
+      "text": "All requirement IDs in .fusa-reqs.json shall be unique within the file.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-REQQ003",
+      "title": "Requirements import/export",
+      "text": "The req command shall support import and export of requirements in JSON and CSV formats.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-RUNTIME001",
+      "title": "Scan performance",
+      "text": "The tool shall complete a full scan of a 100-file Rust project within 10 seconds on modern hardware.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-RUNTIME002",
+      "title": "Memory safety",
+      "text": "The tool shall be implemented in safe Rust, with all unsafe blocks explicitly justified.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-RUNTIME003",
+      "title": "No external process for core rules",
+      "text": "Core FUSA, LINT, and ANA rules shall not spawn external processes; only CYBER and VULN commands may shell out.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-RUNTIME004",
+      "title": "Unicode normalisation",
+      "text": "The fingerprint function shall apply NFC normalisation to message strings before hashing.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-RUNTIME005",
+      "title": "Digit normalisation in fingerprints",
+      "text": "The fingerprint function shall replace digit runs with '#' to make fingerprints stable across line number changes.",
       "standard": "iso26262",
       "level": "HLR"
     }

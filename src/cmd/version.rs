@@ -18,7 +18,11 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
             EXIT_OK
         }
         Some(other) => {
-            writeln!(stderr, "rsfusa version: unknown --format {other:?} (text or json)").ok();
+            writeln!(
+                stderr,
+                "rsfusa version: unknown --format {other:?} (text or json)"
+            )
+            .ok();
             EXIT_USAGE
         }
     }

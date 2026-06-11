@@ -1,4 +1,9 @@
 // `rsfusa hara [show|init|asil]` — Hazard Analysis and Risk Assessment management.
+//fusa:req REQ-HARA001
+//fusa:req REQ-HARA002
+//fusa:req REQ-HARA003
+//fusa:req REQ-HARA004
+//fusa:req REQ-HARA005
 
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use serde::{Deserialize, Serialize};
@@ -39,9 +44,8 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     let rest = if args.is_empty() { &[] } else { &args[1..] };
 
     let dir = parse_dir(rest);
-    let project_root = dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root =
+        dir.unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
     let hara_path = project_root.join(HARA_FILE);
 
     match subcmd {
@@ -68,18 +72,16 @@ fn cmd_init(path: &PathBuf, stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         tool_version: VERSION.to_string(),
         language: LANGUAGE.to_string(),
         generated_at: chrono::Utc::now().to_rfc3339(),
-        hazards: vec![
-            Hazard {
-                hazard_id: "HAZ-001".to_string(),
-                description: "Example: Software produces incorrect output under load".to_string(),
-                situation: Some("High-rate input processing".to_string()),
-                severity: "S2".to_string(),
-                exposure: "E3".to_string(),
-                controllability: "C2".to_string(),
-                asil: "ASIL-B".to_string(),
-                mitigation: Some("Input rate limiting and output validation".to_string()),
-            }
-        ],
+        hazards: vec![Hazard {
+            hazard_id: "HAZ-001".to_string(),
+            description: "Example: Software produces incorrect output under load".to_string(),
+            situation: Some("High-rate input processing".to_string()),
+            severity: "S2".to_string(),
+            exposure: "E3".to_string(),
+            controllability: "C2".to_string(),
+            asil: "ASIL-B".to_string(),
+            mitigation: Some("Input rate limiting and output validation".to_string()),
+        }],
     };
     let json = serde_json::to_string_pretty(&hara).unwrap();
     match std::fs::write(path, json + "\n") {
@@ -94,7 +96,12 @@ fn cmd_init(path: &PathBuf, stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     }
 }
 
-fn cmd_show(path: &PathBuf, args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
+fn cmd_show(
+    path: &PathBuf,
+    args: &[String],
+    stdout: &mut dyn Write,
+    stderr: &mut dyn Write,
+) -> i32 {
     let format = parse_format(args);
     let data = match std::fs::read_to_string(path) {
         Ok(d) => d,
@@ -118,14 +125,25 @@ fn cmd_show(path: &PathBuf, args: &[String], stdout: &mut dyn Write, stderr: &mu
     }
 
     writeln!(stdout, "HARA ({} hazards)", hara.hazards.len()).ok();
-    writeln!(stdout, "{:<10} {:<45} {:<3} {:<3} {:<3} {:<8}", "ID", "Description", "S", "E", "C", "ASIL").ok();
+    writeln!(
+        stdout,
+        "{:<10} {:<45} {:<3} {:<3} {:<3} {:<8}",
+        "ID", "Description", "S", "E", "C", "ASIL"
+    )
+    .ok();
     writeln!(stdout, "{}", "-".repeat(80)).ok();
     for h in &hara.hazards {
-        writeln!(stdout, "{:<10} {:<45} {:<3} {:<3} {:<3} {:<8}",
+        writeln!(
+            stdout,
+            "{:<10} {:<45} {:<3} {:<3} {:<3} {:<8}",
             h.hazard_id,
             truncate(&h.description, 44),
-            h.severity, h.exposure, h.controllability, h.asil
-        ).ok();
+            h.severity,
+            h.exposure,
+            h.controllability,
+            h.asil
+        )
+        .ok();
     }
     EXIT_OK
 }
@@ -220,6 +238,9 @@ fn parse_flag(args: &[String], flag: &str) -> Option<String> {
 }
 
 fn truncate(s: &str, max: usize) -> String {
-    if s.len() <= max { s.to_string() }
-    else { format!("{}…", &s[..max - 1]) }
+    if s.len() <= max {
+        s.to_string()
+    } else {
+        format!("{}…", &s[..max - 1])
+    }
 }

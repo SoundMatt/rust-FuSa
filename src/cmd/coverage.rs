@@ -1,8 +1,10 @@
 // `rsfusa coverage` — structural coverage report via cargo-tarpaulin or cargo-llvm-cov.
 
-use crate::types::{EXIT_GATE_FAIL, EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
+use crate::types::{
+    EXIT_GATE_FAIL, EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION,
+};
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     let opts = match parse(args, stderr) {
@@ -10,9 +12,9 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     // Try cargo-tarpaulin first, then llvm-cov
     let (coverage_pct, tool_used) = if let Some(pct) = try_tarpaulin(&project_root) {
@@ -21,7 +23,11 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         (pct, "cargo-llvm-cov")
     } else {
         writeln!(stderr, "rsfusa coverage: no coverage tool found.").ok();
-        writeln!(stderr, "  Install: cargo install cargo-tarpaulin  OR  cargo install cargo-llvm-cov").ok();
+        writeln!(
+            stderr,
+            "  Install: cargo install cargo-tarpaulin  OR  cargo install cargo-llvm-cov"
+        )
+        .ok();
         // Still produce a report indicating coverage is unknown
         ("0.0".to_string(), "none")
     };
@@ -55,7 +61,9 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     match opts.format.as_deref() {
         Some("json") | None if opts.output.is_some() => {
             let path = opts.output.as_deref().unwrap_or("coverage-report.json");
-            if let Err(e) = std::fs::write(path, serde_json::to_string_pretty(&report).unwrap() + "\n") {
+            if let Err(e) =
+                std::fs::write(path, serde_json::to_string_pretty(&report).unwrap() + "\n")
+            {
                 writeln!(stderr, "rsfusa coverage: write {path}: {e}").ok();
                 return EXIT_RUNTIME;
             }
@@ -65,15 +73,27 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
             writeln!(stdout, "{}", serde_json::to_string_pretty(&report).unwrap()).ok();
         }
         _ => {
-            writeln!(stdout, "Coverage: {coverage_f:.1}%  (required: {required:.1}%  DAL: {dal})").ok();
+            writeln!(
+                stdout,
+                "Coverage: {coverage_f:.1}%  (required: {required:.1}%  DAL: {dal})"
+            )
+            .ok();
             writeln!(stdout, "Tool: {tool_used}").ok();
             if !passes_gate && gate_pct > 0.0 {
-                writeln!(stdout, "GATE FAILED: {coverage_f:.1}% < minimum {gate_pct:.1}%").ok();
+                writeln!(
+                    stdout,
+                    "GATE FAILED: {coverage_f:.1}% < minimum {gate_pct:.1}%"
+                )
+                .ok();
             }
         }
     }
 
-    if !passes_gate && gate_pct > 0.0 { EXIT_GATE_FAIL } else { EXIT_OK }
+    if !passes_gate && gate_pct > 0.0 {
+        EXIT_GATE_FAIL
+    } else {
+        EXIT_OK
+    }
 }
 
 fn try_tarpaulin(root: &PathBuf) -> Option<String> {
@@ -94,7 +114,11 @@ fn try_tarpaulin(root: &PathBuf) -> Option<String> {
     for line in String::from_utf8_lossy(&output.stderr).lines() {
         if line.contains("% coverage") {
             if let Some(pct_str) = line.split('%').next() {
-                let pct_str = pct_str.trim().rsplit_once(' ').map(|(_, v)| v).unwrap_or(pct_str.trim());
+                let pct_str = pct_str
+                    .trim()
+                    .rsplit_once(' ')
+                    .map(|(_, v)| v)
+                    .unwrap_or(pct_str.trim());
                 if pct_str.parse::<f64>().is_ok() {
                     return Some(pct_str.to_string());
                 }
@@ -113,7 +137,8 @@ fn try_llvm_cov(root: &PathBuf) -> Option<String> {
 
     let text = String::from_utf8_lossy(&output.stdout);
     if let Ok(v) = serde_json::from_str::<serde_json::Value>(&text) {
-        if let Some(pct) = v.get("data")
+        if let Some(pct) = v
+            .get("data")
             .and_then(|d| d.as_array())
             .and_then(|a| a.first())
             .and_then(|d| d.get("totals"))
@@ -127,7 +152,7 @@ fn try_llvm_cov(root: &PathBuf) -> Option<String> {
     None
 }
 
-fn infer_dal(root: &PathBuf) -> &'static str {
+fn infer_dal(root: &Path) -> &'static str {
     if let Ok(data) = std::fs::read_to_string(root.join(".fusa.json")) {
         if let Ok(v) = serde_json::from_str::<serde_json::Value>(&data) {
             if let Some(dal) = v.get("dal").and_then(|d| d.as_str()) {
@@ -160,7 +185,12 @@ struct Opts {
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut opts = Opts { dir: None, format: None, output: None, min_coverage: None };
+    let mut opts = Opts {
+        dir: None,
+        format: None,
+        output: None,
+        min_coverage: None,
+    };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
@@ -179,11 +209,15 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                else if let Some(v) = other.strip_prefix("--format=") { opts.format = Some(v.to_string()); }
-                else if let Some(v) = other.strip_prefix("--output=") { opts.output = Some(v.to_string()); }
-                else if let Some(v) = other.strip_prefix("--min-coverage=") { opts.min_coverage = v.parse().ok(); }
-                else {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--format=") {
+                    opts.format = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--output=") {
+                    opts.output = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--min-coverage=") {
+                    opts.min_coverage = v.parse().ok();
+                } else {
                     writeln!(stderr, "rsfusa coverage: unknown flag: {other}").ok();
                     return None;
                 }

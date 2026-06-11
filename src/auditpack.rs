@@ -1,4 +1,8 @@
 // Evidence bundle: single ZIP with manifest.json (§8).
+//fusa:req REQ-AUDIT001
+//fusa:req REQ-AUDIT002
+//fusa:req REQ-AUDIT003
+//fusa:req REQ-AUDIT004
 
 use crate::types::{LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use serde::{Deserialize, Serialize};
@@ -67,8 +71,7 @@ pub fn pack(project_root: &Path, out_path: &Path) -> Result<AuditManifest, Strin
     let out_file = std::fs::File::create(out_path)
         .map_err(|e| format!("create {}: {e}", out_path.display()))?;
     let mut zip = zip::ZipWriter::new(out_file);
-    let opts = SimpleFileOptions::default()
-        .compression_method(zip::CompressionMethod::Deflated);
+    let opts = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
 
     let mut entries: Vec<ManifestEntry> = Vec::new();
 
@@ -87,8 +90,7 @@ pub fn pack(project_root: &Path, out_path: &Path) -> Result<AuditManifest, Strin
         if !path.exists() {
             continue;
         }
-        let data = std::fs::read(&path)
-            .map_err(|e| format!("read {name}: {e}"))?;
+        let data = std::fs::read(&path).map_err(|e| format!("read {name}: {e}"))?;
         let mut h = Sha256::new();
         h.update(&data);
         let sha = hex::encode(h.finalize());

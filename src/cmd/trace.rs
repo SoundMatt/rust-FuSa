@@ -1,27 +1,35 @@
+//fusa:req REQ-TRACE001
+//fusa:req REQ-TRACE002
+//fusa:req REQ-TRACE003
+//fusa:req REQ-TRACE004
+//fusa:req REQ-TRACE005
+//fusa:req REQ-TRACE006
+//fusa:req REQ-TRACE007
 use crate::config::load;
 use crate::trace::{build, render_md, render_text, Coverage};
 use crate::types::{EXIT_GATE_FAIL, EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};
 use std::io::Write;
 use std::path::PathBuf;
 
-pub fn run(args: &[String], _stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
+pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     let opts = match parse(args, stderr) {
         Some(o) => o,
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     let cfg = match load(&project_root.join(".fusa.json")) {
         Ok(c) => c,
-        Err(crate::config::ConfigError::NotFound(_)) => {
-            crate::config::FusaConfig::new(
-                project_root.file_name().and_then(|n| n.to_str()).unwrap_or("project"),
-                "generic",
-            )
-        }
+        Err(crate::config::ConfigError::NotFound(_)) => crate::config::FusaConfig::new(
+            project_root
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("project"),
+            "generic",
+        ),
         Err(e) => {
             writeln!(stderr, "rsfusa trace: {e}").ok();
             return EXIT_RUNTIME;
@@ -48,33 +56,39 @@ pub fn run(args: &[String], _stdout: &mut dyn Write, stderr: &mut dyn Write) -> 
             .map(|t| t.requirement_id.clone())
             .collect();
         matrix.requirements.retain(|r| !tested_ids.contains(&r.id));
-        matrix.tags.retain(|t| !tested_ids.contains(&t.requirement_id));
+        matrix
+            .tags
+            .retain(|t| !tested_ids.contains(&t.requirement_id));
         matrix.coverage = full_coverage;
     }
 
     let gate_code = check_gates(&matrix.coverage, opts.req_coverage, opts.sec_tested, stderr);
 
-    let w: Box<dyn Write> = match opts.output.as_deref() {
-        Some(path) => {
-            match std::fs::File::create(path) {
-                Ok(f) => Box::new(f),
-                Err(e) => {
-                    writeln!(stderr, "rsfusa trace: create output {path}: {e}").ok();
-                    return EXIT_RUNTIME;
-                }
+    let render_err = if let Some(path) = opts.output.as_deref() {
+        let mut f = match std::fs::File::create(path) {
+            Ok(f) => f,
+            Err(e) => {
+                writeln!(stderr, "rsfusa trace: create output {path}: {e}").ok();
+                return EXIT_RUNTIME;
             }
+        };
+        match opts.format.as_deref() {
+            Some("json") => {
+                let json = serde_json::to_string_pretty(&matrix).expect("serialize trace");
+                writeln!(f, "{json}").err()
+            }
+            Some("md") => render_md(&mut f, &matrix).err(),
+            _ => render_text(&mut f, &matrix).err(),
         }
-        None => Box::new(std::io::stdout()),
-    };
-    let mut w = w;
-
-    let render_err = match opts.format.as_deref() {
-        Some("json") => {
-            let json = serde_json::to_string_pretty(&matrix).expect("serialize trace");
-            writeln!(w, "{json}").err()
+    } else {
+        match opts.format.as_deref() {
+            Some("json") => {
+                let json = serde_json::to_string_pretty(&matrix).expect("serialize trace");
+                writeln!(stdout, "{json}").err()
+            }
+            Some("md") => render_md(stdout, &matrix).err(),
+            _ => render_text(stdout, &matrix).err(),
         }
-        Some("md") => render_md(&mut w, &matrix).err(),
-        _ => render_text(&mut w, &matrix).err(),
     };
 
     if let Some(e) = render_err {
@@ -98,7 +112,8 @@ fn check_gates(cov: &Coverage, req_coverage: u32, sec_tested: u32, stderr: &mut 
             writeln!(
                 stderr,
                 "rsfusa trace: req-coverage gate failed: {pct}% < required {req_coverage}%"
-            ).ok();
+            )
+            .ok();
             fail = true;
         }
     }
@@ -108,11 +123,16 @@ fn check_gates(cov: &Coverage, req_coverage: u32, sec_tested: u32, stderr: &mut 
             writeln!(
                 stderr,
                 "rsfusa trace: sec-tested gate failed: {pct}% < required {sec_tested}%"
-            ).ok();
+            )
+            .ok();
             fail = true;
         }
     }
-    if fail { EXIT_GATE_FAIL } else { EXIT_OK }
+    if fail {
+        EXIT_GATE_FAIL
+    } else {
+        EXIT_OK
+    }
 }
 
 struct Opts {
@@ -141,8 +161,12 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
             "--gaps" => opts.gaps = true,
             "--strict" => {
                 opts.strict = true;
-                if opts.req_coverage == 0 { opts.req_coverage = 100; }
-                if opts.sec_tested == 0 { opts.sec_tested = 100; }
+                if opts.req_coverage == 0 {
+                    opts.req_coverage = 100;
+                }
+                if opts.sec_tested == 0 {
+                    opts.sec_tested = 100;
+                }
             }
             "--no-color" => {}
             flag @ ("--dir" | "--format" | "--output" | "--req-coverage" | "--sec-tested") => {
@@ -166,12 +190,17 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                else if let Some(v) = other.strip_prefix("--format=") { opts.format = Some(v.to_string()); }
-                else if let Some(v) = other.strip_prefix("--output=") { opts.output = Some(v.to_string()); }
-                else if let Some(v) = other.strip_prefix("--req-coverage=") { opts.req_coverage = v.parse().unwrap_or(0); }
-                else if let Some(v) = other.strip_prefix("--sec-tested=") { opts.sec_tested = v.parse().unwrap_or(0); }
-                else {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--format=") {
+                    opts.format = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--output=") {
+                    opts.output = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--req-coverage=") {
+                    opts.req_coverage = v.parse().unwrap_or(0);
+                } else if let Some(v) = other.strip_prefix("--sec-tested=") {
+                    opts.sec_tested = v.parse().unwrap_or(0);
+                } else {
                     writeln!(stderr, "rsfusa trace: unknown flag: {other}").ok();
                     return None;
                 }
@@ -181,8 +210,12 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
     }
     // --strict overrides individual gates only if they weren't explicitly set.
     if opts.strict {
-        if opts.req_coverage == 0 { opts.req_coverage = 100; }
-        if opts.sec_tested == 0 { opts.sec_tested = 100; }
+        if opts.req_coverage == 0 {
+            opts.req_coverage = 100;
+        }
+        if opts.sec_tested == 0 {
+            opts.sec_tested = 100;
+        }
     }
     Some(opts)
 }

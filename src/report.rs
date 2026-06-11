@@ -54,18 +54,33 @@ impl CheckReport {
     ) -> Self {
         let summary = Summary {
             total: findings.len(),
-            errors: findings.iter().filter(|f| f.severity == Severity::Error).count(),
-            warnings: findings.iter().filter(|f| f.severity == Severity::Warning).count(),
-            infos: findings.iter().filter(|f| f.severity == Severity::Info).count(),
+            errors: findings
+                .iter()
+                .filter(|f| f.severity == Severity::Error)
+                .count(),
+            warnings: findings
+                .iter()
+                .filter(|f| f.severity == Severity::Warning)
+                .count(),
+            infos: findings
+                .iter()
+                .filter(|f| f.severity == Severity::Info)
+                .count(),
         };
         let (project, standard, asil, sil, dal) = if let Some(c) = cfg {
             let (ak, av, ad) = match c.integrity_level() {
-                Some((k, v)) if k == "asil" => (Some(v.to_string()), None::<String>, None::<String>),
-                Some((k, v)) if k == "sil"  => (None, Some(v.to_string()), None),
-                Some((k, v)) if k == "dal"  => (None, None, Some(v.to_string())),
+                Some(("asil", v)) => (Some(v.to_string()), None::<String>, None::<String>),
+                Some(("sil", v)) => (None, Some(v.to_string()), None),
+                Some(("dal", v)) => (None, None, Some(v.to_string())),
                 _ => (None, None, None),
             };
-            (Some(c.project.name.clone()), Some(c.standard.clone()), ak, av, ad)
+            (
+                Some(c.project.name.clone()),
+                Some(c.standard.clone()),
+                ak,
+                av,
+                ad,
+            )
         } else {
             (None, None, None, None, None)
         };
@@ -96,7 +111,11 @@ pub fn render_json<W: Write + ?Sized>(w: &mut W, report: &CheckReport) -> std::i
     writeln!(w, "{json}")
 }
 
-pub fn render_text<W: Write + ?Sized>(w: &mut W, report: &CheckReport, use_color: bool) -> std::io::Result<()> {
+pub fn render_text<W: Write + ?Sized>(
+    w: &mut W,
+    report: &CheckReport,
+    use_color: bool,
+) -> std::io::Result<()> {
     for f in &report.findings {
         let sev = severity_label(&f.severity, use_color);
         writeln!(
@@ -115,10 +134,7 @@ pub fn render_text<W: Write + ?Sized>(w: &mut W, report: &CheckReport, use_color
     writeln!(
         w,
         "Summary: {} total  {} errors  {} warnings  {} infos",
-        report.summary.total,
-        report.summary.errors,
-        report.summary.warnings,
-        report.summary.infos
+        report.summary.total, report.summary.errors, report.summary.warnings, report.summary.infos
     )
 }
 
@@ -205,10 +221,19 @@ pub fn render_sarif<W: Write + ?Sized>(w: &mut W, report: &CheckReport) -> std::
 
 pub fn render_html<W: Write + ?Sized>(w: &mut W, report: &CheckReport) -> std::io::Result<()> {
     writeln!(w, "<!DOCTYPE html><html lang=\"en\"><head>")?;
-    writeln!(w, "<meta charset=\"UTF-8\"><title>rust-FuSa Check Report</title>")?;
+    writeln!(
+        w,
+        "<meta charset=\"UTF-8\"><title>rust-FuSa Check Report</title>"
+    )?;
     writeln!(w, "<style>body{{font-family:monospace;margin:2rem}}table{{border-collapse:collapse;width:100%}}")?;
-    writeln!(w, "th,td{{border:1px solid #ccc;padding:4px 8px;text-align:left}}")?;
-    writeln!(w, ".ERROR{{color:#c00}}.WARNING{{color:#a60}}.INFO{{color:#066}}")?;
+    writeln!(
+        w,
+        "th,td{{border:1px solid #ccc;padding:4px 8px;text-align:left}}"
+    )?;
+    writeln!(
+        w,
+        ".ERROR{{color:#c00}}.WARNING{{color:#a60}}.INFO{{color:#066}}"
+    )?;
     writeln!(w, "</style></head><body>")?;
     writeln!(w, "<h1>rust-FuSa Check Report</h1>")?;
     writeln!(
@@ -216,8 +241,11 @@ pub fn render_html<W: Write + ?Sized>(w: &mut W, report: &CheckReport) -> std::i
         "<p>Generated: {}</p>",
         report.generated_at.format("%Y-%m-%dT%H:%M:%SZ")
     )?;
-    writeln!(w, "<p>Summary: {} total &mdash; {} errors, {} warnings, {} infos</p>",
-        report.summary.total, report.summary.errors, report.summary.warnings, report.summary.infos)?;
+    writeln!(
+        w,
+        "<p>Summary: {} total &mdash; {} errors, {} warnings, {} infos</p>",
+        report.summary.total, report.summary.errors, report.summary.warnings, report.summary.infos
+    )?;
     writeln!(w, "<table><tr><th>Severity</th><th>Rule</th><th>File</th><th>Line</th><th>Message</th><th>Remediation</th></tr>")?;
     for f in &report.findings {
         writeln!(

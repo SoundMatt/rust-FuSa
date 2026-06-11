@@ -9,12 +9,13 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
-    let out_path = opts.output.map(PathBuf::from).unwrap_or_else(|| {
-        project_root.join(AUDIT_PACK_FILE)
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
+    let out_path = opts
+        .output
+        .map(PathBuf::from)
+        .unwrap_or_else(|| project_root.join(AUDIT_PACK_FILE));
 
     if let Some(parent) = out_path.parent() {
         if let Err(e) = std::fs::create_dir_all(parent) {
@@ -46,7 +47,10 @@ struct Opts {
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut opts = Opts { dir: None, output: None };
+    let mut opts = Opts {
+        dir: None,
+        output: None,
+    };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
@@ -63,9 +67,11 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                else if let Some(v) = other.strip_prefix("--output=") { opts.output = Some(v.to_string()); }
-                else {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--output=") {
+                    opts.output = Some(v.to_string());
+                } else {
                     writeln!(stderr, "rsfusa audit-pack: unknown flag: {other}").ok();
                     return None;
                 }

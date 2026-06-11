@@ -16,14 +16,17 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     let cfg = match load(&project_root.join(".fusa.json")) {
         Ok(c) => c,
         Err(crate::config::ConfigError::NotFound(_)) => crate::config::FusaConfig::new(
-            project_root.file_name().and_then(|n| n.to_str()).unwrap_or("project"),
+            project_root
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("project"),
             "generic",
         ),
         Err(e) => {
@@ -41,11 +44,14 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     }
 
     let report = CheckReport::new(&project_root, result.findings, Some(&cfg));
-    let has_errors = report.findings.iter().any(|f| f.severity == crate::types::Severity::Error);
+    let has_errors = report
+        .findings
+        .iter()
+        .any(|f| f.severity == crate::types::Severity::Error);
 
-    let out_path = opts.output.unwrap_or_else(|| {
-        project_root.join(CYBER_FILE).to_string_lossy().into_owned()
-    });
+    let out_path = opts
+        .output
+        .unwrap_or_else(|| project_root.join(CYBER_FILE).to_string_lossy().into_owned());
 
     let mut file = match std::fs::File::create(&out_path) {
         Ok(f) => f,
@@ -67,7 +73,11 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
 
     writeln!(stdout, "Cybersecurity report written to {out_path}").ok();
 
-    if has_errors { EXIT_GATE_FAIL } else { EXIT_OK }
+    if has_errors {
+        EXIT_GATE_FAIL
+    } else {
+        EXIT_OK
+    }
 }
 
 struct Opts {
@@ -77,7 +87,11 @@ struct Opts {
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut opts = Opts { dir: None, format: None, output: None };
+    let mut opts = Opts {
+        dir: None,
+        format: None,
+        output: None,
+    };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
@@ -95,10 +109,13 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                else if let Some(v) = other.strip_prefix("--format=") { opts.format = Some(v.to_string()); }
-                else if let Some(v) = other.strip_prefix("--output=") { opts.output = Some(v.to_string()); }
-                else {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--format=") {
+                    opts.format = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--output=") {
+                    opts.output = Some(v.to_string());
+                } else {
                     writeln!(stderr, "rsfusa cyber: unknown flag: {other}").ok();
                     return None;
                 }

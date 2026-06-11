@@ -1,10 +1,16 @@
 // `rsfusa fmea` — Design Failure Mode and Effects Analysis from pub fn declarations.
 // Writes fmea.json and fmea.csv.
+//fusa:req REQ-FMEA001
+//fusa:req REQ-FMEA002
+//fusa:req REQ-FMEA003
+//fusa:req REQ-FMEA004
+//fusa:req REQ-FMEA005
+//fusa:req REQ-FMEA006
 
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use serde::Serialize;
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 pub const FMEA_JSON: &str = "fmea.json";
@@ -30,15 +36,19 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     let asil_level = read_asil(&project_root);
     let mut entries: Vec<FmeaEntry> = Vec::new();
 
     let src_dir = project_root.join("src");
-    let scan_root = if src_dir.exists() { src_dir } else { project_root.clone() };
+    let scan_root = if src_dir.exists() {
+        src_dir
+    } else {
+        project_root.clone()
+    };
 
     for entry in WalkDir::new(&scan_root)
         .into_iter()
@@ -47,8 +57,11 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         .filter(|e| e.path().extension().and_then(|s| s.to_str()) == Some("rs"))
     {
         let path = entry.path();
-        let rel = path.strip_prefix(&project_root).unwrap_or(path)
-            .to_string_lossy().replace('\\', "/");
+        let rel = path
+            .strip_prefix(&project_root)
+            .unwrap_or(path)
+            .to_string_lossy()
+            .replace('\\', "/");
         let content = match std::fs::read_to_string(path) {
             Ok(c) => c,
             Err(_) => continue,
@@ -57,7 +70,9 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         let lines: Vec<&str> = content.lines().collect();
         for (i, line) in lines.iter().enumerate() {
             let trimmed = line.trim();
-            if !is_pub_fn(trimmed) { continue; }
+            if !is_pub_fn(trimmed) {
+                continue;
+            }
 
             let fn_name = extract_fn_name(trimmed).unwrap_or_else(|| "unknown".to_string());
             if fn_name == "main" || fn_name.starts_with("test_") || fn_name.starts_with("bench_") {
@@ -102,15 +117,19 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
 
     if entries.is_empty() {
         writeln!(stdout, "No public functions found for FMEA analysis.").ok();
-        writeln!(stdout, "Annotate public functions with //fusa:req <ID> for traceability.").ok();
+        writeln!(
+            stdout,
+            "Annotate public functions with //fusa:req <ID> for traceability."
+        )
+        .ok();
     }
 
-    let json_path = opts.json_output.unwrap_or_else(|| {
-        project_root.join(FMEA_JSON).to_string_lossy().into_owned()
-    });
-    let csv_path = opts.csv_output.unwrap_or_else(|| {
-        project_root.join(FMEA_CSV).to_string_lossy().into_owned()
-    });
+    let json_path = opts
+        .json_output
+        .unwrap_or_else(|| project_root.join(FMEA_JSON).to_string_lossy().into_owned());
+    let csv_path = opts
+        .csv_output
+        .unwrap_or_else(|| project_root.join(FMEA_CSV).to_string_lossy().into_owned());
 
     let report = serde_json::json!({
         "schemaVersion": SPEC_VERSION,
@@ -124,7 +143,10 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         "summary": { "functions": entries.len() }
     });
 
-    match std::fs::write(&json_path, serde_json::to_string_pretty(&report).unwrap() + "\n") {
+    match std::fs::write(
+        &json_path,
+        serde_json::to_string_pretty(&report).unwrap() + "\n",
+    ) {
         Ok(_) => writeln!(stdout, "FMEA written to {json_path}").ok(),
         Err(e) => {
             writeln!(stderr, "rsfusa fmea: write {json_path}: {e}").ok();
@@ -133,11 +155,19 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     };
 
     // Write CSV
-    let mut csv = String::from("Function,Module,FailureMode,Effect,Severity,DetectionMethod,Risk,Requirements\n");
+    let mut csv = String::from(
+        "Function,Module,FailureMode,Effect,Severity,DetectionMethod,Risk,Requirements\n",
+    );
     if let Some(arr) = report["entries"].as_array() {
         for e in arr {
-            let reqs = e["requirements"].as_array()
-                .map(|a| a.iter().filter_map(|v| v.as_str()).collect::<Vec<_>>().join("|"))
+            let reqs = e["requirements"]
+                .as_array()
+                .map(|a| {
+                    a.iter()
+                        .filter_map(|v| v.as_str())
+                        .collect::<Vec<_>>()
+                        .join("|")
+                })
                 .unwrap_or_default();
             csv.push_str(&format!(
                 "{},{},{},{},{},{},{},{}\n",
@@ -165,25 +195,42 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
 }
 
 fn is_pub_fn(line: &str) -> bool {
-    line.starts_with("pub fn ") || line.starts_with("pub async fn ")
-        || line.starts_with("pub unsafe fn ") || line.starts_with("pub extern ")
+    line.starts_with("pub fn ")
+        || line.starts_with("pub async fn ")
+        || line.starts_with("pub unsafe fn ")
+        || line.starts_with("pub extern ")
 }
 
 fn extract_fn_name(line: &str) -> Option<String> {
     let after = line.find("fn ")?;
     let rest = &line[after + 3..];
-    let name: String = rest.chars().take_while(|c| c.is_alphanumeric() || *c == '_').collect();
-    if name.is_empty() { None } else { Some(name) }
+    let name: String = rest
+        .chars()
+        .take_while(|c| c.is_alphanumeric() || *c == '_')
+        .collect();
+    if name.is_empty() {
+        None
+    } else {
+        Some(name)
+    }
 }
 
 fn extract_return_type(line: &str) -> String {
-    if line.contains("-> Result<") { return "Result".to_string(); }
-    if line.contains("-> Option<") { return "Option".to_string(); }
-    if line.contains("-> bool") { return "bool".to_string(); }
+    if line.contains("-> Result<") {
+        return "Result".to_string();
+    }
+    if line.contains("-> Option<") {
+        return "Option".to_string();
+    }
+    if line.contains("-> bool") {
+        return "bool".to_string();
+    }
     if line.contains("-> i32") || line.contains("-> i64") || line.contains("-> usize") {
         return "integer".to_string();
     }
-    if line.contains("-> String") || line.contains("-> &str") { return "string".to_string(); }
+    if line.contains("-> String") || line.contains("-> &str") {
+        return "string".to_string();
+    }
     "void".to_string()
 }
 
@@ -232,7 +279,11 @@ fn asil_to_severity(asil: &str) -> String {
 }
 
 fn compute_risk(severity: &str, detection: &str) -> String {
-    let d_score = if detection.contains("Requirement") { 1 } else { 2 };
+    let d_score = if detection.contains("Requirement") {
+        1
+    } else {
+        2
+    };
     let s_score = match severity {
         "S4" => 4,
         "S3" => 3,
@@ -249,7 +300,7 @@ fn compute_risk(severity: &str, detection: &str) -> String {
 fn extract_req_ids(line: &str) -> Vec<String> {
     let mut ids = Vec::new();
     if let Some(pos) = line.find("//fusa:req") {
-        let rest = &line[pos + 10..].trim_start_matches(|c| c == ':' || c == ' ');
+        let rest = &line[pos + 10..].trim_start_matches([':', ' ']);
         for id in rest.split_whitespace() {
             ids.push(id.to_string());
         }
@@ -257,7 +308,7 @@ fn extract_req_ids(line: &str) -> Vec<String> {
     ids
 }
 
-fn read_asil(root: &PathBuf) -> String {
+fn read_asil(root: &Path) -> String {
     if let Ok(data) = std::fs::read_to_string(root.join(".fusa.json")) {
         if let Ok(v) = serde_json::from_str::<serde_json::Value>(&data) {
             if let Some(a) = v.get("asil").and_then(|v| v.as_str()) {
@@ -283,7 +334,11 @@ struct Opts {
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut opts = Opts { dir: None, json_output: None, csv_output: None };
+    let mut opts = Opts {
+        dir: None,
+        json_output: None,
+        csv_output: None,
+    };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
@@ -301,10 +356,13 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                else if let Some(v) = other.strip_prefix("--output=") { opts.json_output = Some(v.to_string()); }
-                else if let Some(v) = other.strip_prefix("--csv=") { opts.csv_output = Some(v.to_string()); }
-                else {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--output=") {
+                    opts.json_output = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--csv=") {
+                    opts.csv_output = Some(v.to_string());
+                } else {
                     writeln!(stderr, "rsfusa fmea: unknown flag: {other}").ok();
                     return None;
                 }

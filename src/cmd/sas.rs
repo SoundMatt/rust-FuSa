@@ -1,4 +1,5 @@
 // `rsfusa sas` — Software Accomplishment Summary (DO-178C §11.20).
+//fusa:req REQ-SC002
 
 use crate::config::load;
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
@@ -14,20 +15,76 @@ struct EvidenceItem {
 }
 
 const EVIDENCE: &[EvidenceItem] = &[
-    EvidenceItem { category: "Planning",       description: "Safety configuration",         file: ".fusa.json" },
-    EvidenceItem { category: "Requirements",   description: "Requirements specification",   file: ".fusa-reqs.json" },
-    EvidenceItem { category: "Design",         description: "Architecture/boundary diagram",file: "boundary.mermaid" },
-    EvidenceItem { category: "Implementation", description: "Safety check report",          file: "check-report.json" },
-    EvidenceItem { category: "Verification",   description: "Test evidence",                file: ".fusa-evidence.json" },
-    EvidenceItem { category: "Coverage",       description: "Structural coverage report",   file: "coverage-report.json" },
-    EvidenceItem { category: "Traceability",   description: "Requirements trace matrix",    file: "trace.json" },
-    EvidenceItem { category: "QM",             description: "Tool qualification report",    file: "qualify-report.json" },
-    EvidenceItem { category: "Configuration",  description: "SBOM",                         file: "sbom.json" },
-    EvidenceItem { category: "Configuration",  description: "SCI",                          file: "sci.json" },
-    EvidenceItem { category: "Safety",         description: "FMEA",                         file: "fmea.json" },
-    EvidenceItem { category: "Security",       description: "TARA",                         file: "tara.json" },
-    EvidenceItem { category: "Security",       description: "Vulnerability scan",           file: "vuln.json" },
-    EvidenceItem { category: "Delivery",       description: "Audit pack",                   file: "audit-pack.zip" },
+    EvidenceItem {
+        category: "Planning",
+        description: "Safety configuration",
+        file: ".fusa.json",
+    },
+    EvidenceItem {
+        category: "Requirements",
+        description: "Requirements specification",
+        file: ".fusa-reqs.json",
+    },
+    EvidenceItem {
+        category: "Design",
+        description: "Architecture/boundary diagram",
+        file: "boundary.mermaid",
+    },
+    EvidenceItem {
+        category: "Implementation",
+        description: "Safety check report",
+        file: "check-report.json",
+    },
+    EvidenceItem {
+        category: "Verification",
+        description: "Test evidence",
+        file: ".fusa-evidence.json",
+    },
+    EvidenceItem {
+        category: "Coverage",
+        description: "Structural coverage report",
+        file: "coverage-report.json",
+    },
+    EvidenceItem {
+        category: "Traceability",
+        description: "Requirements trace matrix",
+        file: "trace.json",
+    },
+    EvidenceItem {
+        category: "QM",
+        description: "Tool qualification report",
+        file: "qualify-report.json",
+    },
+    EvidenceItem {
+        category: "Configuration",
+        description: "SBOM",
+        file: "sbom.json",
+    },
+    EvidenceItem {
+        category: "Configuration",
+        description: "SCI",
+        file: "sci.json",
+    },
+    EvidenceItem {
+        category: "Safety",
+        description: "FMEA",
+        file: "fmea.json",
+    },
+    EvidenceItem {
+        category: "Security",
+        description: "TARA",
+        file: "tara.json",
+    },
+    EvidenceItem {
+        category: "Security",
+        description: "Vulnerability scan",
+        file: "vuln.json",
+    },
+    EvidenceItem {
+        category: "Delivery",
+        description: "Audit pack",
+        file: "audit-pack.zip",
+    },
 ];
 
 pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
@@ -36,15 +93,26 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     let cfg = load(&project_root.join(".fusa.json")).ok();
-    let project = cfg.as_ref().map(|c| c.project.name.as_str()).unwrap_or("unknown");
-    let version = cfg.as_ref().map(|c| c.project.version.as_str()).unwrap_or("0.0.0");
-    let standard = cfg.as_ref().map(|c| c.standard.as_str()).unwrap_or("generic");
-    let dal = cfg.as_ref().and_then(|c| c.dal.as_deref())
+    let project = cfg
+        .as_ref()
+        .map(|c| c.project.name.as_str())
+        .unwrap_or("unknown");
+    let version = cfg
+        .as_ref()
+        .map(|c| c.project.version.as_str())
+        .unwrap_or("0.0.0");
+    let standard = cfg
+        .as_ref()
+        .map(|c| c.standard.as_str())
+        .unwrap_or("generic");
+    let dal = cfg
+        .as_ref()
+        .and_then(|c| c.dal.as_deref())
         .or_else(|| cfg.as_ref().and_then(|c| c.asil.as_deref()))
         .unwrap_or("unclassified");
 
@@ -52,7 +120,9 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     let mut rows = Vec::new();
     for ev in EVIDENCE {
         let present = project_root.join(ev.file).exists();
-        if present { present_count += 1; }
+        if present {
+            present_count += 1;
+        }
         rows.push((ev.category, ev.description, ev.file, present));
     }
 
@@ -70,14 +140,20 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
          | Generated | {} |\n\
          | Tool | {} {} (spec {}) |\n\n",
         now.format("%Y-%m-%dT%H:%M:%SZ"),
-        TOOL_NAME, VERSION, SPEC_VERSION
+        TOOL_NAME,
+        VERSION,
+        SPEC_VERSION
     );
 
     md.push_str("## Software Life Cycle Data\n\n");
     md.push_str("| Category | Description | Evidence File | Status |\n");
     md.push_str("|----------|-------------|---------------|--------|\n");
     for (cat, desc, file, present) in &rows {
-        let status = if *present { ":white_check_mark: Present" } else { ":x: Missing" };
+        let status = if *present {
+            ":white_check_mark: Present"
+        } else {
+            ":x: Missing"
+        };
         md.push_str(&format!("| {cat} | {desc} | `{file}` | {status} |\n"));
     }
 
@@ -89,7 +165,10 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         EVIDENCE.len()
     ));
 
-    let out_path = opts.output.clone().unwrap_or_else(|| project_root.join(SAS_FILE).to_string_lossy().into_owned());
+    let out_path = opts
+        .output
+        .clone()
+        .unwrap_or_else(|| project_root.join(SAS_FILE).to_string_lossy().into_owned());
 
     if opts.format.as_deref() == Some("json") {
         let rows_json: Vec<serde_json::Value> = rows.iter().map(|(cat, desc, file, present)| {
@@ -110,7 +189,10 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
             "summary": { "total": EVIDENCE.len(), "present": present_count },
         });
         let path_str = opts.output.as_deref().unwrap_or("sas.json");
-        if let Err(e) = std::fs::write(path_str, serde_json::to_string_pretty(&report).unwrap() + "\n") {
+        if let Err(e) = std::fs::write(
+            path_str,
+            serde_json::to_string_pretty(&report).unwrap() + "\n",
+        ) {
             writeln!(stderr, "rsfusa sas: write {path_str}: {e}").ok();
             return EXIT_RUNTIME;
         }
@@ -121,7 +203,12 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
             return EXIT_RUNTIME;
         }
         writeln!(stdout, "SAS written to {out_path}").ok();
-        writeln!(stdout, "Evidence: {present_count}/{} present", EVIDENCE.len()).ok();
+        writeln!(
+            stdout,
+            "Evidence: {present_count}/{} present",
+            EVIDENCE.len()
+        )
+        .ok();
     }
 
     EXIT_OK
@@ -134,7 +221,11 @@ struct Opts {
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut opts = Opts { dir: None, format: None, output: None };
+    let mut opts = Opts {
+        dir: None,
+        format: None,
+        output: None,
+    };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
@@ -152,10 +243,13 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                else if let Some(v) = other.strip_prefix("--format=") { opts.format = Some(v.to_string()); }
-                else if let Some(v) = other.strip_prefix("--output=") { opts.output = Some(v.to_string()); }
-                else {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--format=") {
+                    opts.format = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--output=") {
+                    opts.output = Some(v.to_string());
+                } else {
                     writeln!(stderr, "rsfusa sas: unknown flag: {other}").ok();
                     return None;
                 }

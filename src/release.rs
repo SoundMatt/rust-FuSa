@@ -1,4 +1,12 @@
 // SBOM, provenance, and artifact manifest generation (§7).
+//fusa:req REQ-RELEASE001
+//fusa:req REQ-RELEASE002
+//fusa:req REQ-RELEASE003
+//fusa:req REQ-RELEASE004
+//fusa:req REQ-RELEASE005
+//fusa:req REQ-RELEASE006
+//fusa:req REQ-RELEASE007
+//fusa:req REQ-RELEASE008
 
 use crate::types::{LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use serde::{Deserialize, Serialize};
@@ -71,10 +79,11 @@ fn scan_cargo_deps(root: &Path) -> Result<Vec<Component>, String> {
     if !lock_path.exists() {
         return Ok(vec![]);
     }
-    let content = std::fs::read_to_string(&lock_path)
-        .map_err(|e| format!("read Cargo.lock: {e}"))?;
-    let val: toml::Value =
-        content.parse().map_err(|e| format!("parse Cargo.lock: {e}"))?;
+    let content =
+        std::fs::read_to_string(&lock_path).map_err(|e| format!("read Cargo.lock: {e}"))?;
+    let val: toml::Value = content
+        .parse()
+        .map_err(|e| format!("parse Cargo.lock: {e}"))?;
 
     let mut components = Vec::new();
     if let Some(packages) = val.get("package").and_then(|v| v.as_array()) {
@@ -98,7 +107,11 @@ fn scan_cargo_deps(root: &Path) -> Result<Vec<Component>, String> {
                 format!("sha256:{}", hex::encode(h.finalize()))
             };
             if !name.is_empty() {
-                components.push(Component { name, version, hash });
+                components.push(Component {
+                    name,
+                    version,
+                    hash,
+                });
             }
         }
     }
@@ -217,7 +230,10 @@ pub fn build_manifest(paths: &[&Path], base_dir: &Path) -> Result<ArtifactManife
             .unwrap_or(p)
             .to_string_lossy()
             .replace('\\', "/");
-        artifacts.push(ArtifactEntry { path: rel, sha256: sha });
+        artifacts.push(ArtifactEntry {
+            path: rel,
+            sha256: sha,
+        });
     }
     Ok(ArtifactManifest {
         schema_version: SPEC_VERSION.to_string(),

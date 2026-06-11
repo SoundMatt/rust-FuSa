@@ -1,5 +1,11 @@
 // `rsfusa safety-case` — assemble GSN safety case from evidence files.
 // Writes safety-case.json, safety-case.md, safety-case.mermaid.
+//fusa:req REQ-SC001
+//fusa:req REQ-SC002
+//fusa:req REQ-SC003
+//fusa:req REQ-SC004
+//fusa:req REQ-SC005
+//fusa:req REQ-SAFETYCASE001
 
 use crate::config::load;
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
@@ -17,18 +23,66 @@ struct Evidence {
 }
 
 const EVIDENCE_ITEMS: &[Evidence] = &[
-    Evidence { description: "Safety check report", file: "check-report.json", required: true },
-    Evidence { description: "Requirements trace matrix", file: "trace.json", required: true },
-    Evidence { description: "Test evidence bundle", file: ".fusa-evidence.json", required: true },
-    Evidence { description: "Qualification report", file: "qualify-report.json", required: true },
-    Evidence { description: "SBOM", file: "sbom.json", required: true },
-    Evidence { description: "FMEA", file: "fmea.json", required: false },
-    Evidence { description: "TARA / threat analysis", file: "tara.json", required: false },
-    Evidence { description: "Vulnerability scan", file: "vuln.json", required: false },
-    Evidence { description: "Coupling analysis", file: "coupling-report.json", required: false },
-    Evidence { description: "Cybersecurity analysis", file: "cyber-report.json", required: false },
-    Evidence { description: "Requirements file", file: ".fusa-reqs.json", required: true },
-    Evidence { description: "Dispositions file", file: ".fusa-dispositions.json", required: false },
+    Evidence {
+        description: "Safety check report",
+        file: "check-report.json",
+        required: true,
+    },
+    Evidence {
+        description: "Requirements trace matrix",
+        file: "trace.json",
+        required: true,
+    },
+    Evidence {
+        description: "Test evidence bundle",
+        file: ".fusa-evidence.json",
+        required: true,
+    },
+    Evidence {
+        description: "Qualification report",
+        file: "qualify-report.json",
+        required: true,
+    },
+    Evidence {
+        description: "SBOM",
+        file: "sbom.json",
+        required: true,
+    },
+    Evidence {
+        description: "FMEA",
+        file: "fmea.json",
+        required: false,
+    },
+    Evidence {
+        description: "TARA / threat analysis",
+        file: "tara.json",
+        required: false,
+    },
+    Evidence {
+        description: "Vulnerability scan",
+        file: "vuln.json",
+        required: false,
+    },
+    Evidence {
+        description: "Coupling analysis",
+        file: "coupling-report.json",
+        required: false,
+    },
+    Evidence {
+        description: "Cybersecurity analysis",
+        file: "cyber-report.json",
+        required: false,
+    },
+    Evidence {
+        description: "Requirements file",
+        file: ".fusa-reqs.json",
+        required: true,
+    },
+    Evidence {
+        description: "Dispositions file",
+        file: ".fusa-dispositions.json",
+        required: false,
+    },
 ];
 
 pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
@@ -37,13 +91,19 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let project_root = opts.dir.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     let cfg = load(&project_root.join(".fusa.json")).ok();
-    let standard = cfg.as_ref().map(|c| c.standard.as_str()).unwrap_or("generic");
-    let project = cfg.as_ref().map(|c| c.project.name.as_str()).unwrap_or("unknown");
+    let standard = cfg
+        .as_ref()
+        .map(|c| c.standard.as_str())
+        .unwrap_or("generic");
+    let project = cfg
+        .as_ref()
+        .map(|c| c.project.name.as_str())
+        .unwrap_or("unknown");
 
     let mut evidence_list: Vec<serde_json::Value> = Vec::new();
     let mut present_count = 0usize;
@@ -52,8 +112,12 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     for ev in EVIDENCE_ITEMS {
         let path = project_root.join(ev.file);
         let present = path.exists();
-        if present { present_count += 1; }
-        if ev.required && !present { required_missing += 1; }
+        if present {
+            present_count += 1;
+        }
+        if ev.required && !present {
+            required_missing += 1;
+        }
         evidence_list.push(serde_json::json!({
             "description": ev.description,
             "file": ev.file,
@@ -62,9 +126,8 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         }));
     }
 
-    let goal = format!(
-        "The {project} software is free from unacceptable risk according to {standard}"
-    );
+    let goal =
+        format!("The {project} software is free from unacceptable risk according to {standard}");
     let complete = required_missing == 0;
 
     let report = serde_json::json!({
@@ -87,11 +150,20 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         }
     });
 
-    let json_path = opts.json_output.unwrap_or_else(|| project_root.join(SC_JSON).to_string_lossy().into_owned());
-    let md_path = opts.md_output.unwrap_or_else(|| project_root.join(SC_MD).to_string_lossy().into_owned());
-    let mermaid_path = opts.mermaid_output.unwrap_or_else(|| project_root.join(SC_MERMAID).to_string_lossy().into_owned());
+    let json_path = opts
+        .json_output
+        .unwrap_or_else(|| project_root.join(SC_JSON).to_string_lossy().into_owned());
+    let md_path = opts
+        .md_output
+        .unwrap_or_else(|| project_root.join(SC_MD).to_string_lossy().into_owned());
+    let mermaid_path = opts
+        .mermaid_output
+        .unwrap_or_else(|| project_root.join(SC_MERMAID).to_string_lossy().into_owned());
 
-    match std::fs::write(&json_path, serde_json::to_string_pretty(&report).unwrap() + "\n") {
+    match std::fs::write(
+        &json_path,
+        serde_json::to_string_pretty(&report).unwrap() + "\n",
+    ) {
         Ok(_) => writeln!(stdout, "Safety case written to {json_path}").ok(),
         Err(e) => {
             writeln!(stderr, "rsfusa safety-case: write {json_path}: {e}").ok();
@@ -115,15 +187,23 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     md.push_str("|-------------|------|----------|--------|\n");
     for ev in EVIDENCE_ITEMS {
         let path = project_root.join(ev.file);
-        let status = if path.exists() { ":white_check_mark: present" } else { ":x: missing" };
-        md.push_str(&format!("| {} | `{}` | {} | {} |\n",
-            ev.description, ev.file,
+        let status = if path.exists() {
+            ":white_check_mark: present"
+        } else {
+            ":x: missing"
+        };
+        md.push_str(&format!(
+            "| {} | `{}` | {} | {} |\n",
+            ev.description,
+            ev.file,
             if ev.required { "yes" } else { "no" },
             status
         ));
     }
     if !complete {
-        md.push_str(&format!("\n> :warning: **{required_missing} required evidence items are missing.**\n"));
+        md.push_str(&format!(
+            "\n> :warning: **{required_missing} required evidence items are missing.**\n"
+        ));
     }
 
     match std::fs::write(&md_path, md) {
@@ -142,8 +222,11 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     ));
     for (i, ev) in EVIDENCE_ITEMS.iter().enumerate() {
         let path = project_root.join(ev.file);
-        let shape = if path.exists() { format!("E{}([\"{}\"])", i, ev.description) }
-                    else { format!("E{}{{\"MISSING: {}\"}}", i, ev.description) };
+        let shape = if path.exists() {
+            format!("E{}([\"{}\"])", i, ev.description)
+        } else {
+            format!("E{}{{\"MISSING: {}\"}}", i, ev.description)
+        };
         mermaid.push_str(&format!("  S1 --> {shape}\n"));
     }
 
@@ -156,7 +239,11 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     };
 
     if !complete {
-        writeln!(stdout, "WARNING: {required_missing} required evidence item(s) missing").ok();
+        writeln!(
+            stdout,
+            "WARNING: {required_missing} required evidence item(s) missing"
+        )
+        .ok();
     }
     EXIT_OK
 }
@@ -169,7 +256,12 @@ struct Opts {
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut opts = Opts { dir: None, json_output: None, md_output: None, mermaid_output: None };
+    let mut opts = Opts {
+        dir: None,
+        json_output: None,
+        md_output: None,
+        mermaid_output: None,
+    };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
@@ -188,9 +280,11 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                 }
             }
             other => {
-                if let Some(v) = other.strip_prefix("--dir=") { opts.dir = Some(PathBuf::from(v)); }
-                else if let Some(v) = other.strip_prefix("--output=") { opts.json_output = Some(v.to_string()); }
-                else {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--output=") {
+                    opts.json_output = Some(v.to_string());
+                } else {
                     writeln!(stderr, "rsfusa safety-case: unknown flag: {other}").ok();
                     return None;
                 }

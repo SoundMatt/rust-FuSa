@@ -2,6 +2,8 @@
 audit-pack.zip
 check-report.json
 qualify-report.json
+lint-report.json
+analyze-report.json
 sbom.json
 provenance.json
 artifact-manifest.json
@@ -10,11 +12,7 @@ fmea.csv
 vuln.json
 cyber-report.json
 tara.json
-tara.md
-boundary.dot
-boundary.mermaid
 safety-case.json
-safety-case.md
-safety-case.mermaid
 coupling-report.json
+sci.json
 *.html
