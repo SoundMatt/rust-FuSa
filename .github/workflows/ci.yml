@@ -144,10 +144,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      - name: Install musl tools
-        run: sudo apt-get install -y musl-tools
+      - name: Install cross
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross
       - name: Build
-        run: cargo build --release --target ${{ matrix.target }} --locked
+        run: cross build --release --target ${{ matrix.target }} --locked
 
   macos:
     name: macOS build & test
