@@ -1,6 +1,6 @@
 [package]
 name = "rsfusa"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 description = "rust-FuSa: functional safety toolkit for Rust projects"
 license = "MPL-2.0"
@@ -26,6 +26,7 @@ zip = "2"
 unicode-normalization = "0.1"
 toml = "0.8"
 tempfile = "3"
+hmac = "0.12"
 
 [dev-dependencies]
 

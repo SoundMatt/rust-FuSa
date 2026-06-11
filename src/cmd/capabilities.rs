@@ -16,17 +16,45 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         "language": LANGUAGE,
         "generatedAt": chrono::Utc::now().to_rfc3339(),
         "specVersion": SPEC_VERSION,
-        "commands": [
-            "version", "capabilities", "init", "check", "trace",
-            "qualify", "release", "audit-pack", "report"
-        ],
-        "formats": {
-            "check":  ["text", "json", "html", "sarif"],
-            "report": ["text", "json", "html", "sarif"],
-            "trace":  ["text", "json", "md"],
-            "qualify": ["text", "json"]
+        "commands": {
+            "must": ["version", "capabilities", "init", "check", "report", "trace", "qualify", "release", "audit-pack"],
+            "should": ["lint", "analyze", "diff", "verify", "vuln", "cyber", "coverage", "coupling", "fmea", "tara", "safety-case", "boundary", "hara"],
+            "may": ["iso26262", "iec61508", "do178c", "do178", "iso21434", "unece", "misra", "disposition", "badge", "sas", "sci", "impact", "metrics", "fix", "sign", "req", "pr", "template", "hooks"]
         },
-        "standards": ["iso26262", "iec61508", "do178c", "iso21434"]
+        "formats": {
+            "check":       ["text", "json", "html", "sarif"],
+            "report":      ["text", "json", "html", "sarif"],
+            "lint":        ["text", "json", "html", "sarif"],
+            "analyze":     ["text", "json", "html", "sarif"],
+            "trace":       ["text", "json", "md"],
+            "qualify":     ["text", "json"],
+            "cyber":       ["text", "json"],
+            "coverage":    ["text", "json"],
+            "diff":        ["text", "json"],
+            "fix":         ["text", "json"],
+            "iso26262":    ["text", "json"],
+            "iec61508":    ["text", "json"],
+            "do178c":      ["text", "json"],
+            "iso21434":    ["text", "json"],
+            "unece":       ["text", "json"],
+            "misra":       ["text", "json"],
+            "sci":         ["json", "md"],
+            "sas":         ["md", "json"]
+        },
+        "standards": [
+            "iso26262", "iec61508", "do178c", "iso21434",
+            "iec62443-4-1", "iec62443-4-2", "unece-r155", "unece-r156",
+            "misra-c", "misra-cpp", "autosar-cpp14", "cert-c", "cert-cpp", "generic"
+        ],
+        "rules": {
+            "fusa": ["FUSA001", "FUSA002", "FUSA003", "FUSA004", "FUSA005", "FUSA006", "FUSA007"],
+            "lint": ["LINT001", "LINT002", "LINT003", "LINT004", "LINT005", "LINT006"],
+            "analyze": ["ANA001", "ANA002", "ANA003", "ANA004", "ANA005", "ANA006"],
+            "cyber": ["CYBER001", "CYBER002", "CYBER003", "CYBER004", "CYBER005",
+                      "CYBER006", "CYBER007", "CYBER008", "CYBER009", "CYBER010",
+                      "CYBER011", "CYBER012", "CYBER013", "CYBER014", "CYBER015",
+                      "CYBER016", "CYBER017", "CYBER018", "CYBER019", "CYBER020"]
+        }
     });
 
     writeln!(stdout, "{}", serde_json::to_string_pretty(&cap).unwrap()).ok();

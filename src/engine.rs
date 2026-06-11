@@ -79,5 +79,7 @@ pub fn default_registry() -> Registry {
     let mut reg = Registry::new();
     crate::rules::register_all(&mut reg);
     crate::lint::register_all(&mut reg);
+    crate::analyze::register_all(&mut reg);
+    crate::cyber::register_all(&mut reg);
     reg
 }
