@@ -73,6 +73,8 @@ fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
         "iso21434" => cmd::standards::run_iso21434(rest, stdout, stderr),
         "unece" => cmd::standards::run_unece(rest, stdout, stderr),
         "misra" => cmd::standards::run_misra(rest, stdout, stderr),
+        "iec62443" => cmd::standards::run_iec62443(rest, stdout, stderr),
+        "slsa" => cmd::standards::run_slsa(rest, stdout, stderr),
 
         // §9.3 MAY commands — tool management
         "disposition" => cmd::disposition::run(rest, stdout, stderr),
@@ -186,6 +188,8 @@ fn print_help(w: &mut dyn Write) {
     writeln!(w, "    iso21434      ISO 21434 gap report").ok();
     writeln!(w, "    unece         UN R.155 gap report").ok();
     writeln!(w, "    misra         MISRA C:2023 coverage mapping").ok();
+    writeln!(w, "    iec62443      IEC 62443 IACS security gap report").ok();
+    writeln!(w, "    slsa          SLSA supply-chain levels gap report").ok();
     writeln!(w, "    disposition   Manage .fusa-dispositions.json").ok();
     writeln!(w, "    badge         Generate SVG status badge").ok();
     writeln!(
@@ -879,5 +883,69 @@ mod tests {
             .iter()
             .any(|f| f["ruleId"].as_str() == Some("CYBER006"));
         assert!(has_cyber006, "CYBER006 should fire on http:// URL");
+    }
+
+    //fusa:test REQ-FUSA043
+    #[test]
+    fn iec62443_gap_report_runs() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::write(dir.path().join(".fusa-reqs.json"), "{\"requirements\":[]}").unwrap();
+        let a = args(&format!("rsfusa iec62443 --dir {}", dir.path().display()));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert!(code == 0 || code == 1, "iec62443 exits 0 or 1");
+        let text = String::from_utf8(out).unwrap();
+        assert!(
+            text.contains("IEC 62443"),
+            "output should mention IEC 62443"
+        );
+    }
+
+    //fusa:test REQ-FUSA044
+    #[test]
+    fn iec62443_gap_report_json() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!(
+            "rsfusa iec62443 --dir {} --format json",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert!(code == 0 || code == 1);
+        let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
+        assert_eq!(v["kind"].as_str(), Some("gap-report"));
+        assert_eq!(v["standard"].as_str(), Some("iec62443"));
+    }
+
+    //fusa:test REQ-FUSA045
+    #[test]
+    fn slsa_gap_report_runs() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!("rsfusa slsa --dir {}", dir.path().display()));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert!(code == 0 || code == 1, "slsa exits 0 or 1");
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("SLSA"), "output should mention SLSA");
+    }
+
+    //fusa:test REQ-FUSA046
+    #[test]
+    fn slsa_gap_report_json() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!(
+            "rsfusa slsa --dir {} --format json",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert!(code == 0 || code == 1);
+        let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
+        assert_eq!(v["kind"].as_str(), Some("gap-report"));
+        assert_eq!(v["standard"].as_str(), Some("slsa"));
     }
 }

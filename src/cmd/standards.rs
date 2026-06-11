@@ -1,4 +1,4 @@
-// Standards gap reports: iso26262, iec61508, do178c, iso21434, unece, misra.
+// Standards gap reports: iso26262, iec61508, do178c, iso21434, unece, misra, iec62443, slsa.
 // Each maps evidence files to standard requirements and reports gaps.
 
 use crate::types::{
@@ -330,6 +330,120 @@ const MISRA_REQS: &[Requirement] = &[
     ),
 ];
 
+const IEC62443_REQS: &[Requirement] = &[
+    req!(
+        "IEC62443-2-1.4.3.5",
+        "Threat and risk analysis",
+        Some("tara.json"),
+        true
+    ),
+    req!(
+        "IEC62443-2-4.3.1",
+        "Security requirements specification",
+        Some(".fusa-reqs.json"),
+        true
+    ),
+    req!(
+        "IEC62443-3-2.5.4",
+        "Security risk assessment",
+        Some("tara.json"),
+        true
+    ),
+    req!(
+        "IEC62443-3-3.SR1.1",
+        "Security design (component boundary)",
+        Some("boundary.mermaid"),
+        true
+    ),
+    req!(
+        "IEC62443-4-1.SM5",
+        "Security testing",
+        Some(".fusa-evidence.json"),
+        true
+    ),
+    req!(
+        "IEC62443-4-1.SM7",
+        "Vulnerability management",
+        Some("vuln.json"),
+        true
+    ),
+    req!(
+        "IEC62443-4-1.SM8",
+        "Patch management (SBOM)",
+        Some("sbom.json"),
+        true
+    ),
+    req!(
+        "IEC62443-4-1.SVV4",
+        "Static code analysis",
+        Some("check-report.json"),
+        true
+    ),
+    req!(
+        "IEC62443-4-2.CR1.1",
+        "Credential management (cyber scan)",
+        Some("cyber-report.json"),
+        true
+    ),
+    req!(
+        "IEC62443-4-2.CR7.1",
+        "Audit log capability",
+        Some("audit-pack.zip"),
+        false
+    ),
+];
+
+const SLSA_REQS: &[Requirement] = &[
+    req!(
+        "SLSA-L1.provenance",
+        "Build provenance document",
+        Some("provenance.json"),
+        true
+    ),
+    req!(
+        "SLSA-L1.build-process",
+        "Documented build process (CI workflow)",
+        Some(".github/workflows/ci.yml"),
+        true
+    ),
+    req!(
+        "SLSA-L2.version-control",
+        "Version-controlled source",
+        Some(".git"),
+        true
+    ),
+    req!(
+        "SLSA-L2.hosted-build",
+        "Hosted CI (GitHub Actions)",
+        Some(".github/workflows/ci.yml"),
+        true
+    ),
+    req!(
+        "SLSA-L3.hermetic",
+        "Hermetic build (locked dependencies)",
+        Some("Cargo.lock"),
+        true
+    ),
+    req!(
+        "SLSA-L3.sbom",
+        "SBOM for supply-chain transparency",
+        Some("sbom.json"),
+        true
+    ),
+    req!(
+        "SLSA-L3.audit-pack",
+        "Signed audit evidence archive",
+        Some("audit-pack.zip"),
+        false
+    ),
+    req!(
+        "SLSA-L3.vuln-scan",
+        "Dependency vulnerability scan",
+        Some("vuln.json"),
+        true
+    ),
+];
+
 pub fn run_iso26262(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     run_gap_report(
         "iso26262",
@@ -376,6 +490,28 @@ pub fn run_misra(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write
         "misra",
         "MISRA C:2023 / Rust safety rules",
         MISRA_REQS,
+        args,
+        stdout,
+        stderr,
+    )
+}
+
+pub fn run_iec62443(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
+    run_gap_report(
+        "iec62443",
+        "IEC 62443 IACS Security",
+        IEC62443_REQS,
+        args,
+        stdout,
+        stderr,
+    )
+}
+
+pub fn run_slsa(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
+    run_gap_report(
+        "slsa",
+        "SLSA Supply-chain Levels",
+        SLSA_REQS,
         args,
         stdout,
         stderr,
