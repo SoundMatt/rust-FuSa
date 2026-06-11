@@ -1,4 +1,9 @@
 // `rsfusa hara [show|init|asil]` — Hazard Analysis and Risk Assessment management.
+//fusa:req REQ-HARA001
+//fusa:req REQ-HARA002
+//fusa:req REQ-HARA003
+//fusa:req REQ-HARA004
+//fusa:req REQ-HARA005
 
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use serde::{Deserialize, Serialize};

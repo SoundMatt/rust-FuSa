@@ -1,0 +1,130 @@
+{
+  "generatedAt": "2026-06-11T19:06:56.985201+00:00",
+  "items": [
+    {
+      "category": "Planning",
+      "file": ".fusa.json",
+      "hash": "sha256:a02e7609a22f7dbc096df56c1429b7f0ffdce2f37fa0daa2fcf32e0d8aedc3e6",
+      "name": "Safety Plan",
+      "present": true,
+      "required": true
+    },
+    {
+      "category": "Requirements",
+      "file": ".fusa-reqs.json",
+      "hash": "sha256:57b45b9ee2de2979cc26c02f3e0b4c0fbfa1edb1c9efb92148b8b9afc01c18f5",
+      "name": "Software Requirements",
+      "present": true,
+      "required": true
+    },
+    {
+      "category": "Design",
+      "file": "boundary.mermaid",
+      "hash": "sha256:ad8abe1b77c3875105351c9fc46441c0310b76bcf149449ed36e97916f198b8f",
+      "name": "Architecture Description",
+      "present": true,
+      "required": false
+    },
+    {
+      "category": "Implementation",
+      "file": "src/",
+      "hash": "",
+      "name": "Source Code",
+      "present": true,
+      "required": true
+    },
+    {
+      "category": "Build",
+      "file": "Cargo.toml",
+      "hash": "sha256:eafbb109f43385d0726408369f9f5d0c3c0bb325c5065a86237d7a3ff37878dd",
+      "name": "Build Instructions",
+      "present": true,
+      "required": true
+    },
+    {
+      "category": "Build",
+      "file": "Cargo.lock",
+      "hash": "sha256:b3f439173c1972181031d65e464105bfa9e0f2b8c0383171dd0a8a0e78c388e1",
+      "name": "Cargo Lock",
+      "present": true,
+      "required": true
+    },
+    {
+      "category": "Verification",
+      "file": "check-report.json",
+      "hash": "sha256:eb1a993d6fe5ab65634df27fcfcc1ed57749eb79a5084417fb89a839022a4f61",
+      "name": "Check Report",
+      "present": true,
+      "required": false
+    },
+    {
+      "category": "Testing",
+      "file": ".fusa-evidence.json",
+      "hash": "",
+      "name": "Test Evidence",
+      "present": false,
+      "required": true
+    },
+    {
+      "category": "Traceability",
+      "file": "trace.json",
+      "hash": "sha256:fcfec0b7378acce3da7c9d9e8f0a1b27dd40e1e5c5d346c56688a7941285992a",
+      "name": "Trace Matrix",
+      "present": true,
+      "required": false
+    },
+    {
+      "category": "Qualification",
+      "file": "qualify-report.json",
+      "hash": "sha256:e99a3eb983d03dcc97169a13da10093c427c29b28da3dbfeec2f26db7375b527",
+      "name": "Qualification Report",
+      "present": true,
+      "required": true
+    },
+    {
+      "category": "Configuration",
+      "file": "sbom.json",
+      "hash": "sha256:252a942f90aa35e8adb3f94176c3885cae0f6fcc6e121ba4285a29e8b80e7815",
+      "name": "SBOM",
+      "present": true,
+      "required": true
+    },
+    {
+      "category": "Safety",
+      "file": "fmea.json",
+      "hash": "sha256:08558936c88d1e4101bb7ab46b0bdfb7e74d74f3d3cf2f4554795d9e6623a9b3",
+      "name": "FMEA",
+      "present": true,
+      "required": false
+    },
+    {
+      "category": "Review",
+      "file": ".fusa-dispositions.json",
+      "hash": "",
+      "name": "Dispositions",
+      "present": false,
+      "required": false
+    },
+    {
+      "category": "Delivery",
+      "file": "audit-pack.zip",
+      "hash": "",
+      "name": "Audit Pack",
+      "present": false,
+      "required": false
+    }
+  ],
+  "kind": "sci",
+  "language": "rust",
+  "project": "rust-FuSa",
+  "projectVersion": "0.1.0",
+  "schemaVersion": "1.9",
+  "summary": {
+    "missing": 3,
+    "present": 11,
+    "requiredMissing": 1,
+    "total": 14
+  },
+  "tool": "rust-FuSa",
+  "toolVersion": "0.2.0"
+}

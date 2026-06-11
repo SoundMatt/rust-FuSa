@@ -1,5 +1,11 @@
 // `rsfusa vuln` — dependency vulnerability scan via cargo-audit.
 // Writes vuln.json. Exits 1 if vulnerabilities are found.
+//fusa:req REQ-VULN001
+//fusa:req REQ-VULN002
+//fusa:req REQ-VULN003
+//fusa:req REQ-VULN004
+//fusa:req REQ-VULN005
+//fusa:req REQ-VULN006
 
 use crate::types::{EXIT_GATE_FAIL, EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use std::io::Write;

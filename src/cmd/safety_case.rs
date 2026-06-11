@@ -1,5 +1,11 @@
 // `rsfusa safety-case` — assemble GSN safety case from evidence files.
 // Writes safety-case.json, safety-case.md, safety-case.mermaid.
+//fusa:req REQ-SC001
+//fusa:req REQ-SC002
+//fusa:req REQ-SC003
+//fusa:req REQ-SC004
+//fusa:req REQ-SC005
+//fusa:req REQ-SAFETYCASE001
 
 use crate::config::load;
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};

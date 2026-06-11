@@ -1,10 +1,17 @@
+//fusa:req REQ-TRACE001
+//fusa:req REQ-TRACE002
+//fusa:req REQ-TRACE003
+//fusa:req REQ-TRACE004
+//fusa:req REQ-TRACE005
+//fusa:req REQ-TRACE006
+//fusa:req REQ-TRACE007
 use crate::config::load;
 use crate::trace::{build, render_md, render_text, Coverage};
 use crate::types::{EXIT_GATE_FAIL, EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};
 use std::io::Write;
 use std::path::PathBuf;
 
-pub fn run(args: &[String], _stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
+pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     let opts = match parse(args, stderr) {
         Some(o) => o,
         None => return EXIT_USAGE,
@@ -54,27 +61,31 @@ pub fn run(args: &[String], _stdout: &mut dyn Write, stderr: &mut dyn Write) -> 
 
     let gate_code = check_gates(&matrix.coverage, opts.req_coverage, opts.sec_tested, stderr);
 
-    let w: Box<dyn Write> = match opts.output.as_deref() {
-        Some(path) => {
-            match std::fs::File::create(path) {
-                Ok(f) => Box::new(f),
-                Err(e) => {
-                    writeln!(stderr, "rsfusa trace: create output {path}: {e}").ok();
-                    return EXIT_RUNTIME;
-                }
+    let render_err = if let Some(path) = opts.output.as_deref() {
+        let mut f = match std::fs::File::create(path) {
+            Ok(f) => f,
+            Err(e) => {
+                writeln!(stderr, "rsfusa trace: create output {path}: {e}").ok();
+                return EXIT_RUNTIME;
             }
+        };
+        match opts.format.as_deref() {
+            Some("json") => {
+                let json = serde_json::to_string_pretty(&matrix).expect("serialize trace");
+                writeln!(f, "{json}").err()
+            }
+            Some("md") => render_md(&mut f, &matrix).err(),
+            _ => render_text(&mut f, &matrix).err(),
         }
-        None => Box::new(std::io::stdout()),
-    };
-    let mut w = w;
-
-    let render_err = match opts.format.as_deref() {
-        Some("json") => {
-            let json = serde_json::to_string_pretty(&matrix).expect("serialize trace");
-            writeln!(w, "{json}").err()
+    } else {
+        match opts.format.as_deref() {
+            Some("json") => {
+                let json = serde_json::to_string_pretty(&matrix).expect("serialize trace");
+                writeln!(stdout, "{json}").err()
+            }
+            Some("md") => render_md(stdout, &matrix).err(),
+            _ => render_text(stdout, &matrix).err(),
         }
-        Some("md") => render_md(&mut w, &matrix).err(),
-        _ => render_text(&mut w, &matrix).err(),
     };
 
     if let Some(e) = render_err {

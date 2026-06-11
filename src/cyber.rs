@@ -1,4 +1,24 @@
 // CWE-mapped cybersecurity rules: CYBER001–CYBER020
+//fusa:req REQ-CYBER001
+//fusa:req REQ-CYBER002
+//fusa:req REQ-CYBER003
+//fusa:req REQ-CYBER004
+//fusa:req REQ-CYBER005
+//fusa:req REQ-CYBER006
+//fusa:req REQ-CYBER007
+//fusa:req REQ-CYBER008
+//fusa:req REQ-CYBER009
+//fusa:req REQ-CYBER010
+//fusa:req REQ-CYBER011
+//fusa:req REQ-CYBER012
+//fusa:req REQ-CYBER013
+//fusa:req REQ-CYBER014
+//fusa:req REQ-CYBER015
+//fusa:req REQ-CYBER016
+//fusa:req REQ-CYBER017
+//fusa:req REQ-CYBER018
+//fusa:req REQ-CYBER019
+//fusa:req REQ-CYBER020
 
 use crate::config::FusaConfig;
 use crate::engine::{Registry, Rule};

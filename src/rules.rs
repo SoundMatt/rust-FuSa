@@ -1,5 +1,10 @@
 // Built-in FUSA* structural safety rules for Rust projects.
 // Analogous to go-FuSa's engine/rules.go.
+//fusa:req REQ-FUSA001
+//fusa:req REQ-FUSA002
+//fusa:req REQ-FUSA003
+//fusa:req REQ-FUSA004
+//fusa:req REQ-FUSA005
 
 use crate::config::FusaConfig;
 use crate::engine::{Registry, Rule};

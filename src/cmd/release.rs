@@ -1,3 +1,11 @@
+//fusa:req REQ-RELEASE001
+//fusa:req REQ-RELEASE002
+//fusa:req REQ-RELEASE003
+//fusa:req REQ-RELEASE004
+//fusa:req REQ-RELEASE005
+//fusa:req REQ-RELEASE006
+//fusa:req REQ-RELEASE007
+//fusa:req REQ-RELEASE008
 use crate::auditpack::{pack, AUDIT_PACK_FILE};
 use crate::release::{build_manifest, build_provenance, build_sbom, save_json, MANIFEST_FILE, PROVENANCE_FILE, SBOM_FILE};
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};

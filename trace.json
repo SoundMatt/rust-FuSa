@@ -1,5 +1,13 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.9",
+  "kind": "trace-matrix",
+  "tool": "rust-FuSa",
+  "toolVersion": "0.2.0",
+  "language": "rust",
+  "generatedAt": "2026-06-11T19:06:56.097535Z",
+  "projectRoot": ".",
+  "project": "rust-FuSa",
+  "standard": "iso26262",
   "requirements": [
     {
       "id": "REQ-FUSA001",
@@ -1037,5 +1045,1489 @@
       "standard": "iso26262",
       "level": "HLR"
     }
-  ]
+  ],
+  "tags": [
+    {
+      "requirementId": "REQ-FUSA001",
+      "file": "src/rules.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-FUSA002",
+      "file": "src/rules.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-FUSA003",
+      "file": "src/rules.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-FUSA004",
+      "file": "src/rules.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-FUSA005",
+      "file": "src/rules.rs",
+      "line": 7,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TARA001",
+      "file": "src/cmd/tara.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TARA002",
+      "file": "src/cmd/tara.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TARA003",
+      "file": "src/cmd/tara.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TARA004",
+      "file": "src/cmd/tara.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TARA005",
+      "file": "src/cmd/tara.rs",
+      "line": 7,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-SC001",
+      "file": "src/cmd/safety_case.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-SC002",
+      "file": "src/cmd/safety_case.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-SC003",
+      "file": "src/cmd/safety_case.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-SC004",
+      "file": "src/cmd/safety_case.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-SC005",
+      "file": "src/cmd/safety_case.rs",
+      "line": 7,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-SAFETYCASE001",
+      "file": "src/cmd/safety_case.rs",
+      "line": 8,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RPT001",
+      "file": "src/cmd/check.rs",
+      "line": 1,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RPT002",
+      "file": "src/cmd/check.rs",
+      "line": 2,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RPT003",
+      "file": "src/cmd/check.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RPT004",
+      "file": "src/cmd/check.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RPT005",
+      "file": "src/cmd/check.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CLI005",
+      "file": "src/cmd/check.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CLI006",
+      "file": "src/cmd/check.rs",
+      "line": 7,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CLI008",
+      "file": "src/cmd/check.rs",
+      "line": 8,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-ENG006",
+      "file": "src/cmd/check.rs",
+      "line": 9,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-HTML001",
+      "file": "src/cmd/check.rs",
+      "line": 10,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-HTML002",
+      "file": "src/cmd/check.rs",
+      "line": 11,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-HTML003",
+      "file": "src/cmd/check.rs",
+      "line": 12,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-HARA001",
+      "file": "src/cmd/hara.rs",
+      "line": 2,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-HARA002",
+      "file": "src/cmd/hara.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-HARA003",
+      "file": "src/cmd/hara.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-HARA004",
+      "file": "src/cmd/hara.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-HARA005",
+      "file": "src/cmd/hara.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RELEASE001",
+      "file": "src/cmd/release.rs",
+      "line": 1,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RELEASE002",
+      "file": "src/cmd/release.rs",
+      "line": 2,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RELEASE003",
+      "file": "src/cmd/release.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RELEASE004",
+      "file": "src/cmd/release.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RELEASE005",
+      "file": "src/cmd/release.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RELEASE006",
+      "file": "src/cmd/release.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RELEASE007",
+      "file": "src/cmd/release.rs",
+      "line": 7,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RELEASE008",
+      "file": "src/cmd/release.rs",
+      "line": 8,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-SC002",
+      "file": "src/cmd/sas.rs",
+      "line": 2,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TRACE001",
+      "file": "src/cmd/trace.rs",
+      "line": 1,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TRACE002",
+      "file": "src/cmd/trace.rs",
+      "line": 2,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TRACE003",
+      "file": "src/cmd/trace.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TRACE004",
+      "file": "src/cmd/trace.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TRACE005",
+      "file": "src/cmd/trace.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TRACE006",
+      "file": "src/cmd/trace.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TRACE007",
+      "file": "src/cmd/trace.rs",
+      "line": 7,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-BOUNDARY001",
+      "file": "src/cmd/boundary.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-BOUNDARY002",
+      "file": "src/cmd/boundary.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-BOUNDARY003",
+      "file": "src/cmd/boundary.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-BOUNDARY004",
+      "file": "src/cmd/boundary.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-BOUNDARY005",
+      "file": "src/cmd/boundary.rs",
+      "line": 7,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-QUALIFY001",
+      "file": "src/cmd/qualify.rs",
+      "line": 1,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-QUALIFY002",
+      "file": "src/cmd/qualify.rs",
+      "line": 2,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-QUALIFY003",
+      "file": "src/cmd/qualify.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-QUALIFY004",
+      "file": "src/cmd/qualify.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-E2E001",
+      "file": "src/cmd/qualify.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-VERIFY001",
+      "file": "src/cmd/verify.rs",
+      "line": 2,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-VERIFY002",
+      "file": "src/cmd/verify.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-VERIFY003",
+      "file": "src/cmd/verify.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-VERIFY004",
+      "file": "src/cmd/verify.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-VERIFY005",
+      "file": "src/cmd/verify.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-FMEA001",
+      "file": "src/cmd/fmea.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-FMEA002",
+      "file": "src/cmd/fmea.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-FMEA003",
+      "file": "src/cmd/fmea.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-FMEA004",
+      "file": "src/cmd/fmea.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-FMEA005",
+      "file": "src/cmd/fmea.rs",
+      "line": 7,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-FMEA006",
+      "file": "src/cmd/fmea.rs",
+      "line": 8,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-VULN001",
+      "file": "src/cmd/vuln.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-VULN002",
+      "file": "src/cmd/vuln.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-VULN003",
+      "file": "src/cmd/vuln.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-VULN004",
+      "file": "src/cmd/vuln.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-VULN005",
+      "file": "src/cmd/vuln.rs",
+      "line": 7,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-VULN006",
+      "file": "src/cmd/vuln.rs",
+      "line": 8,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CFG001",
+      "file": "src/cmd/sci.rs",
+      "line": 2,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "<REQ-ID>`\\n\\n\\",
+      "file": "src/cmd/template.rs",
+      "line": 103,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI001",
+      "file": "src/types.rs",
+      "line": 2,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CLI003",
+      "file": "src/types.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CLI004",
+      "file": "src/types.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-ENG004",
+      "file": "src/types.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-ENG005",
+      "file": "src/types.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-NF002",
+      "file": "src/types.rs",
+      "line": 7,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RUNTIME004",
+      "file": "src/types.rs",
+      "line": 8,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RUNTIME005",
+      "file": "src/types.rs",
+      "line": 9,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RELEASE001",
+      "file": "src/release.rs",
+      "line": 2,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RELEASE002",
+      "file": "src/release.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RELEASE003",
+      "file": "src/release.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RELEASE004",
+      "file": "src/release.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RELEASE005",
+      "file": "src/release.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RELEASE006",
+      "file": "src/release.rs",
+      "line": 7,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RELEASE007",
+      "file": "src/release.rs",
+      "line": 8,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-RELEASE008",
+      "file": "src/release.rs",
+      "line": 9,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-AUDIT001",
+      "file": "src/auditpack.rs",
+      "line": 2,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-AUDIT002",
+      "file": "src/auditpack.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-AUDIT003",
+      "file": "src/auditpack.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-AUDIT004",
+      "file": "src/auditpack.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TRACE001",
+      "file": "src/trace.rs",
+      "line": 2,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TRACE002",
+      "file": "src/trace.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TRACE003",
+      "file": "src/trace.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TRACE004",
+      "file": "src/trace.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TRACE005",
+      "file": "src/trace.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TRACE006",
+      "file": "src/trace.rs",
+      "line": 7,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-TRACE007",
+      "file": "src/trace.rs",
+      "line": 8,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "\",",
+      "file": "src/trace.rs",
+      "line": 202,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "\",",
+      "file": "src/trace.rs",
+      "line": 203,
+      "kind": "test"
+    },
+    {
+      "requirementId": "\",",
+      "file": "src/trace.rs",
+      "line": 204,
+      "kind": "sec-test"
+    },
+    {
+      "requirementId": "REQ-QUALIFY001",
+      "file": "src/qualify.rs",
+      "line": 2,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-QUALIFY002",
+      "file": "src/qualify.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-QUALIFY003",
+      "file": "src/qualify.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-QUALIFY004",
+      "file": "src/qualify.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-E2E001",
+      "file": "src/qualify.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-LINT001",
+      "file": "src/lint.rs",
+      "line": 2,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-LINT002",
+      "file": "src/lint.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-LINT003",
+      "file": "src/lint.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-LINT004",
+      "file": "src/lint.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-LINT005",
+      "file": "src/lint.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-LINT006",
+      "file": "src/lint.rs",
+      "line": 7,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-ANA001",
+      "file": "src/analyze.rs",
+      "line": 2,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-ANA002",
+      "file": "src/analyze.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-ANA003",
+      "file": "src/analyze.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-ANA004",
+      "file": "src/analyze.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-ANA005",
+      "file": "src/analyze.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-ANA006",
+      "file": "src/analyze.rs",
+      "line": 7,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-NF001",
+      "file": "src/main.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-NF002",
+      "file": "src/main.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CLI001",
+      "file": "src/main.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CLI011",
+      "file": "src/main.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CLI012",
+      "file": "src/main.rs",
+      "line": 7,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CLI009",
+      "file": "src/main.rs",
+      "line": 175,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-NF001",
+      "file": "src/main.rs",
+      "line": 176,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI009",
+      "file": "src/main.rs",
+      "line": 187,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI004",
+      "file": "src/main.rs",
+      "line": 188,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI002",
+      "file": "src/main.rs",
+      "line": 189,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI010",
+      "file": "src/main.rs",
+      "line": 201,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI004",
+      "file": "src/main.rs",
+      "line": 202,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI012",
+      "file": "src/main.rs",
+      "line": 214,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI001",
+      "file": "src/main.rs",
+      "line": 215,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI003",
+      "file": "src/main.rs",
+      "line": 224,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-RUNTIME004",
+      "file": "src/main.rs",
+      "line": 225,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-NF003",
+      "file": "src/main.rs",
+      "line": 226,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-RUNTIME005",
+      "file": "src/main.rs",
+      "line": 235,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI003",
+      "file": "src/main.rs",
+      "line": 236,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-ENG002",
+      "file": "src/main.rs",
+      "line": 244,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI001",
+      "file": "src/main.rs",
+      "line": 245,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CFG001",
+      "file": "src/main.rs",
+      "line": 256,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CFG002",
+      "file": "src/main.rs",
+      "line": 257,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CFG003",
+      "file": "src/main.rs",
+      "line": 258,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-REQQ001",
+      "file": "src/main.rs",
+      "line": 259,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI001",
+      "file": "src/main.rs",
+      "line": 275,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI012",
+      "file": "src/main.rs",
+      "line": 276,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI011",
+      "file": "src/main.rs",
+      "line": 285,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI011",
+      "file": "src/main.rs",
+      "line": 296,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI001",
+      "file": "src/main.rs",
+      "line": 297,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-QUALIFY001",
+      "file": "src/main.rs",
+      "line": 306,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-QUALIFY002",
+      "file": "src/main.rs",
+      "line": 307,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-QUALIFY003",
+      "file": "src/main.rs",
+      "line": 308,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-QUALIFY004",
+      "file": "src/main.rs",
+      "line": 309,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-E2E001",
+      "file": "src/main.rs",
+      "line": 310,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-HARA002",
+      "file": "src/main.rs",
+      "line": 321,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-HARA004",
+      "file": "src/main.rs",
+      "line": 322,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-HARA003",
+      "file": "src/main.rs",
+      "line": 337,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-HARA005",
+      "file": "src/main.rs",
+      "line": 338,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-RPT001",
+      "file": "src/main.rs",
+      "line": 350,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-RPT002",
+      "file": "src/main.rs",
+      "line": 351,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI004",
+      "file": "src/main.rs",
+      "line": 352,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-RPT005",
+      "file": "src/main.rs",
+      "line": 371,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI008",
+      "file": "src/main.rs",
+      "line": 385,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-RELEASE001",
+      "file": "src/main.rs",
+      "line": 402,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-RELEASE002",
+      "file": "src/main.rs",
+      "line": 403,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-RELEASE003",
+      "file": "src/main.rs",
+      "line": 404,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-RELEASE004",
+      "file": "src/main.rs",
+      "line": 405,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-AUDIT001",
+      "file": "src/main.rs",
+      "line": 424,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-AUDIT002",
+      "file": "src/main.rs",
+      "line": 425,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-AUDIT003",
+      "file": "src/main.rs",
+      "line": 426,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-AUDIT004",
+      "file": "src/main.rs",
+      "line": 427,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-TRACE001",
+      "file": "src/main.rs",
+      "line": 439,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-TRACE002",
+      "file": "src/main.rs",
+      "line": 440,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-TRACE004",
+      "file": "src/main.rs",
+      "line": 441,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-TRACE007",
+      "file": "src/main.rs",
+      "line": 442,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI003",
+      "file": "src/main.rs",
+      "line": 465,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-NF003",
+      "file": "src/main.rs",
+      "line": 466,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-ENG004",
+      "file": "src/main.rs",
+      "line": 477,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-ENG005",
+      "file": "src/main.rs",
+      "line": 478,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-FMEA001",
+      "file": "src/main.rs",
+      "line": 504,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-FMEA005",
+      "file": "src/main.rs",
+      "line": 505,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-FMEA006",
+      "file": "src/main.rs",
+      "line": 506,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-BOUNDARY001",
+      "file": "src/main.rs",
+      "line": 524,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-BOUNDARY002",
+      "file": "src/main.rs",
+      "line": 525,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-BOUNDARY003",
+      "file": "src/main.rs",
+      "line": 526,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-VERIFY001",
+      "file": "src/main.rs",
+      "line": 543,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-VERIFY002",
+      "file": "src/main.rs",
+      "line": 544,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-VERIFY003",
+      "file": "src/main.rs",
+      "line": 545,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-VERIFY004",
+      "file": "src/main.rs",
+      "line": 546,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-VERIFY005",
+      "file": "src/main.rs",
+      "line": 547,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-SC001",
+      "file": "src/main.rs",
+      "line": 565,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-SC002",
+      "file": "src/main.rs",
+      "line": 566,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-SC003",
+      "file": "src/main.rs",
+      "line": 567,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-SC004",
+      "file": "src/main.rs",
+      "line": 568,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-SC005",
+      "file": "src/main.rs",
+      "line": 569,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-TARA001",
+      "file": "src/main.rs",
+      "line": 583,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-TARA004",
+      "file": "src/main.rs",
+      "line": 584,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-TARA005",
+      "file": "src/main.rs",
+      "line": 585,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-NF001",
+      "file": "src/main.rs",
+      "line": 600,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI009",
+      "file": "src/main.rs",
+      "line": 601,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CLI010",
+      "file": "src/main.rs",
+      "line": 613,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CYBER001",
+      "file": "src/main.rs",
+      "line": 614,
+      "kind": "sec-test"
+    },
+    {
+      "requirementId": "REQ-ENG001",
+      "file": "src/main.rs",
+      "line": 630,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-ENG002",
+      "file": "src/main.rs",
+      "line": 631,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-ENG003",
+      "file": "src/main.rs",
+      "line": 632,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-LINT001",
+      "file": "src/main.rs",
+      "line": 656,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-LINT002",
+      "file": "src/main.rs",
+      "line": 657,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-ANA001",
+      "file": "src/main.rs",
+      "line": 683,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-ANA005",
+      "file": "src/main.rs",
+      "line": 684,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CYBER001",
+      "file": "src/main.rs",
+      "line": 710,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CYBER001",
+      "file": "src/main.rs",
+      "line": 711,
+      "kind": "sec-test"
+    },
+    {
+      "requirementId": "REQ-CYBER006",
+      "file": "src/main.rs",
+      "line": 738,
+      "kind": "test"
+    },
+    {
+      "requirementId": "REQ-CYBER006",
+      "file": "src/main.rs",
+      "line": 739,
+      "kind": "sec-test"
+    },
+    {
+      "requirementId": "REQ-CYBER001",
+      "file": "src/cyber.rs",
+      "line": 2,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER002",
+      "file": "src/cyber.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER003",
+      "file": "src/cyber.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER004",
+      "file": "src/cyber.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER005",
+      "file": "src/cyber.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER006",
+      "file": "src/cyber.rs",
+      "line": 7,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER007",
+      "file": "src/cyber.rs",
+      "line": 8,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER008",
+      "file": "src/cyber.rs",
+      "line": 9,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER009",
+      "file": "src/cyber.rs",
+      "line": 10,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER010",
+      "file": "src/cyber.rs",
+      "line": 11,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER011",
+      "file": "src/cyber.rs",
+      "line": 12,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER012",
+      "file": "src/cyber.rs",
+      "line": 13,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER013",
+      "file": "src/cyber.rs",
+      "line": 14,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER014",
+      "file": "src/cyber.rs",
+      "line": 15,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER015",
+      "file": "src/cyber.rs",
+      "line": 16,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER016",
+      "file": "src/cyber.rs",
+      "line": 17,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER017",
+      "file": "src/cyber.rs",
+      "line": 18,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER018",
+      "file": "src/cyber.rs",
+      "line": 19,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER019",
+      "file": "src/cyber.rs",
+      "line": 20,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-CYBER020",
+      "file": "src/cyber.rs",
+      "line": 21,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-ENG001",
+      "file": "src/engine.rs",
+      "line": 2,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-ENG002",
+      "file": "src/engine.rs",
+      "line": 3,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-ENG003",
+      "file": "src/engine.rs",
+      "line": 4,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-ENG004",
+      "file": "src/engine.rs",
+      "line": 5,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-ENG005",
+      "file": "src/engine.rs",
+      "line": 6,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-ENG006",
+      "file": "src/engine.rs",
+      "line": 7,
+      "kind": "impl"
+    },
+    {
+      "requirementId": "REQ-ENG007",
+      "file": "src/engine.rs",
+      "line": 8,
+      "kind": "impl"
+    }
+  ],
+  "coverage": {
+    "totalRequirements": 148,
+    "tracedRequirements": 134,
+    "testedRequirements": 71,
+    "secTestedRequirements": 2
+  }
 }

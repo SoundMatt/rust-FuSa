@@ -1,4 +1,9 @@
 // `rsfusa verify` — run cargo test and save test evidence bundle.
+//fusa:req REQ-VERIFY001
+//fusa:req REQ-VERIFY002
+//fusa:req REQ-VERIFY003
+//fusa:req REQ-VERIFY004
+//fusa:req REQ-VERIFY005
 
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use std::io::Write;

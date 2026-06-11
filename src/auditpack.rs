@@ -1,4 +1,8 @@
 // Evidence bundle: single ZIP with manifest.json (§8).
+//fusa:req REQ-AUDIT001
+//fusa:req REQ-AUDIT002
+//fusa:req REQ-AUDIT003
+//fusa:req REQ-AUDIT004
 
 use crate::types::{LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use serde::{Deserialize, Serialize};

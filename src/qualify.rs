@@ -1,4 +1,9 @@
 // Tool qualification suite (§6). Each rule has a positive and negative case.
+//fusa:req REQ-QUALIFY001
+//fusa:req REQ-QUALIFY002
+//fusa:req REQ-QUALIFY003
+//fusa:req REQ-QUALIFY004
+//fusa:req REQ-E2E001
 
 use crate::engine::{Registry, RunResult};
 use crate::types::{LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};

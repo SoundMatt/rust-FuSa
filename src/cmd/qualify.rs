@@ -1,3 +1,8 @@
+//fusa:req REQ-QUALIFY001
+//fusa:req REQ-QUALIFY002
+//fusa:req REQ-QUALIFY003
+//fusa:req REQ-QUALIFY004
+//fusa:req REQ-E2E001
 use crate::engine::default_registry;
 use crate::qualify::{builtin_cases, run as qualify_run, save, REPORT_FILE};
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};

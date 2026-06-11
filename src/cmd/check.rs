@@ -1,3 +1,15 @@
+//fusa:req REQ-RPT001
+//fusa:req REQ-RPT002
+//fusa:req REQ-RPT003
+//fusa:req REQ-RPT004
+//fusa:req REQ-RPT005
+//fusa:req REQ-CLI005
+//fusa:req REQ-CLI006
+//fusa:req REQ-CLI008
+//fusa:req REQ-ENG006
+//fusa:req REQ-HTML001
+//fusa:req REQ-HTML002
+//fusa:req REQ-HTML003
 use crate::config::{load, load_dispositions, DispositionEntry};
 use crate::engine::default_registry;
 use crate::report::{render_html, render_json, render_sarif, render_text, CheckReport};

@@ -1,4 +1,12 @@
 // SBOM, provenance, and artifact manifest generation (§7).
+//fusa:req REQ-RELEASE001
+//fusa:req REQ-RELEASE002
+//fusa:req REQ-RELEASE003
+//fusa:req REQ-RELEASE004
+//fusa:req REQ-RELEASE005
+//fusa:req REQ-RELEASE006
+//fusa:req REQ-RELEASE007
+//fusa:req REQ-RELEASE008
 
 use crate::types::{LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use serde::{Deserialize, Serialize};

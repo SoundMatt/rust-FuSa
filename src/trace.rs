@@ -1,4 +1,11 @@
 // Requirement traceability matrix (§5).
+//fusa:req REQ-TRACE001
+//fusa:req REQ-TRACE002
+//fusa:req REQ-TRACE003
+//fusa:req REQ-TRACE004
+//fusa:req REQ-TRACE005
+//fusa:req REQ-TRACE006
+//fusa:req REQ-TRACE007
 
 use crate::config::{FusaConfig, Requirement, load_reqs};
 use crate::types::{Category, Finding, Location, Severity, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
@@ -263,7 +270,7 @@ fn compute_coverage(requirements: &[Requirement], tags: &[Tag]) -> Coverage {
     }
 }
 
-pub fn render_text<W: Write>(w: &mut W, matrix: &Matrix) -> std::io::Result<()> {
+pub fn render_text<W: Write + ?Sized>(w: &mut W, matrix: &Matrix) -> std::io::Result<()> {
     writeln!(w, "Requirement Traceability Matrix")?;
     writeln!(w, "================================")?;
     writeln!(w)?;
@@ -291,7 +298,7 @@ pub fn render_text<W: Write>(w: &mut W, matrix: &Matrix) -> std::io::Result<()> 
     Ok(())
 }
 
-pub fn render_md<W: Write>(w: &mut W, matrix: &Matrix) -> std::io::Result<()> {
+pub fn render_md<W: Write + ?Sized>(w: &mut W, matrix: &Matrix) -> std::io::Result<()> {
     writeln!(w, "# Requirement Traceability Matrix")?;
     writeln!(w)?;
     writeln!(w, "| ID | Title | Traced | Tested |")?;

@@ -1,5 +1,10 @@
 // `rsfusa tara` — Threat Analysis and Risk Assessment per ISO 21434 Ch. 9.
 // Maps CYBER findings to STRIDE and writes tara.json + tara.md.
+//fusa:req REQ-TARA001
+//fusa:req REQ-TARA002
+//fusa:req REQ-TARA003
+//fusa:req REQ-TARA004
+//fusa:req REQ-TARA005
 
 use crate::config::load;
 use crate::cyber;

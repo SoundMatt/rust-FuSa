@@ -1,5 +1,11 @@
 // `rsfusa fmea` — Design Failure Mode and Effects Analysis from pub fn declarations.
 // Writes fmea.json and fmea.csv.
+//fusa:req REQ-FMEA001
+//fusa:req REQ-FMEA002
+//fusa:req REQ-FMEA003
+//fusa:req REQ-FMEA004
+//fusa:req REQ-FMEA005
+//fusa:req REQ-FMEA006
 
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use serde::Serialize;

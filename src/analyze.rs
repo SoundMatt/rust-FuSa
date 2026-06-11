@@ -1,4 +1,10 @@
 // Static analysis rules: ANA001–ANA006
+//fusa:req REQ-ANA001
+//fusa:req REQ-ANA002
+//fusa:req REQ-ANA003
+//fusa:req REQ-ANA004
+//fusa:req REQ-ANA005
+//fusa:req REQ-ANA006
 
 use crate::config::FusaConfig;
 use crate::engine::{Registry, Rule};

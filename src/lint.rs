@@ -1,4 +1,10 @@
 // Rust-specific LINT* rules: unsafe usage, unwrap, TODO, transmute, etc.
+//fusa:req REQ-LINT001
+//fusa:req REQ-LINT002
+//fusa:req REQ-LINT003
+//fusa:req REQ-LINT004
+//fusa:req REQ-LINT005
+//fusa:req REQ-LINT006
 
 use crate::config::FusaConfig;
 use crate::engine::{Registry, Rule};

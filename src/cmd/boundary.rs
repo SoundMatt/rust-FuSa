@@ -1,5 +1,10 @@
 // `rsfusa boundary` — component boundary diagram from Cargo.toml + module graph.
 // Writes boundary.dot and boundary.mermaid.
+//fusa:req REQ-BOUNDARY001
+//fusa:req REQ-BOUNDARY002
+//fusa:req REQ-BOUNDARY003
+//fusa:req REQ-BOUNDARY004
+//fusa:req REQ-BOUNDARY005
 
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};
 use std::collections::{HashMap, HashSet};
