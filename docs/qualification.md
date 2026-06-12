@@ -21,7 +21,7 @@ The qualification suite verifies:
 - All §9.1 MUST commands respond to correct input with exit code 0
 - Error inputs produce exit code 1 or 2 as appropriate
 - JSON output from `version --format json` conforms to §3.1 schema
-- `capabilities --format json` lists all 41 commands and all rule IDs
+- `capabilities --format json` lists all 43 commands and all rule IDs
 - `check` detects known-bad patterns (FUSA001–FUSA005, LINT001–LINT002)
 - Fingerprint computation is deterministic (digit normalisation, NFC)
 - `release` generates `sbom.json`, `provenance.json`, `artifact-manifest.json`

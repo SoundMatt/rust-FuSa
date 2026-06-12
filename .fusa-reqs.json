@@ -1036,6 +1036,76 @@
       "text": "The fingerprint function shall replace digit runs with '#' to make fingerprints stable across line number changes.",
       "standard": "iso26262",
       "level": "HLR"
+    },
+    {
+      "id": "REQ-IEC62443001",
+      "title": "IEC 62443 gap report command",
+      "text": "The tool shall provide an 'iec62443' subcommand that generates a gap report mapping project evidence artefacts to IEC 62443 parts 2-1, 2-4, 3-2, 3-3, 4-1, and 4-2 requirements.",
+      "standard": "iec62443",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-IEC62443002",
+      "title": "IEC 62443 evidence mapping",
+      "text": "The iec62443 gap report shall map at least the following evidence files: tara.json, .fusa-reqs.json, boundary.mermaid, .fusa-evidence.json, vuln.json, sbom.json, check-report.json, cyber-report.json.",
+      "standard": "iec62443",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-IEC62443003",
+      "title": "IEC 62443 JSON output",
+      "text": "The iec62443 subcommand shall support --format json output with kind 'gap-report' conforming to §3.1 common header.",
+      "standard": "iec62443",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-IEC62443004",
+      "title": "IEC 62443 required vs optional gaps",
+      "text": "The iec62443 gap report shall distinguish required (shall) from optional (should/may) requirements and report required gaps separately.",
+      "standard": "iec62443",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-IEC62443005",
+      "title": "IEC 62443 exit code",
+      "text": "The iec62443 subcommand shall exit 1 when required gaps exist and exit 0 when all required evidence is present.",
+      "standard": "iec62443",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SLSA001",
+      "title": "SLSA gap report command",
+      "text": "The tool shall provide a 'slsa' subcommand that generates a gap report mapping project evidence artefacts to SLSA supply-chain levels L1 through L3.",
+      "standard": "slsa",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SLSA002",
+      "title": "SLSA evidence mapping",
+      "text": "The slsa gap report shall map at least: provenance.json (L1), .github/workflows/ci.yml (L1/L2), .git (L2), Cargo.lock (L3), sbom.json (L3), vuln.json (L3), audit-pack.zip (L3).",
+      "standard": "slsa",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SLSA003",
+      "title": "SLSA JSON output",
+      "text": "The slsa subcommand shall support --format json output with kind 'gap-report' conforming to §3.1 common header.",
+      "standard": "slsa",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SLSA004",
+      "title": "SLSA required vs optional gaps",
+      "text": "The slsa gap report shall distinguish required from optional SLSA evidence and report required gaps separately.",
+      "standard": "slsa",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SLSA005",
+      "title": "SLSA exit code",
+      "text": "The slsa subcommand shall exit 1 when required gaps exist and exit 0 when all required evidence is present.",
+      "standard": "slsa",
+      "level": "HLR"
     }
   ]
 }
