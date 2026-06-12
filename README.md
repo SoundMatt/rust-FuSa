@@ -1,6 +1,6 @@
 # rust-FuSa
 
-**Version 0.2.0** · x-FuSa spec v1.9 · language: rust · binary: `rsfusa`
+**Version 0.2.1** · x-FuSa spec v1.9 · language: rust · binary: `rsfusa`
 
 A functional safety enablement toolkit for Rust projects. rust-FuSa provides static checks, coding rules, traceability helpers, CI evidence bundles, reproducible build metadata, HARA, FMEA, TARA, boundary diagrams, and tool qualification support to help teams build safety cases under ISO 26262, IEC 61508, ISO 21434, DO-178C, and MISRA.
 
@@ -103,7 +103,7 @@ rsfusa hooks install
 
 ---
 
-## All 41 commands
+## All 43 commands
 
 ### §9.1 MUST (required by x-FuSa spec)
 
@@ -159,6 +159,8 @@ rsfusa hooks install
 | `pr` | Software problem reports |
 | `template` | Safety documentation templates |
 | `hooks` | Manage git pre-commit hooks |
+| `iec62443` | IEC 62443 IACS security gap report |
+| `slsa` | SLSA supply-chain levels gap report |
 
 ---
 

@@ -7,6 +7,23 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.2.1] — 2026-06-12
+
+### Added
+
+- **`iec62443`** (§9.3 MAY) — IEC 62443 IACS security gap report covering parts 2-1, 2-4, 3-2, 3-3, 4-1, and 4-2 (10 requirements)
+- **`slsa`** (§9.3 MAY) — SLSA supply-chain levels gap report covering L1 provenance, L2 hosted build/VCS, L3 hermetic build, SBOM, and vulnerability scan (8 requirements)
+- `docs/standards/iec62443.md` and `docs/standards/slsa.md` reference documentation
+- Requirements REQ-IEC62443001–REQ-IEC62443005 and REQ-SLSA001–REQ-SLSA005 added to `.fusa-reqs.json`
+
+### Changed
+
+- Version bumped to **0.2.1**
+- `capabilities` output updated to list all **43 commands** (was 41)
+- README and docs updated to reflect 43-command surface
+
+---
+
 ## [0.2.0] — 2026-06-11
 
 ### Added

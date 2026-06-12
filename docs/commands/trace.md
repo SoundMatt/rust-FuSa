@@ -35,7 +35,7 @@ The trace command produces a matrix with three counts per requirement:
   "schemaVersion": "1.9",
   "kind": "trace",
   "tool": "rust-FuSa",
-  "toolVersion": "0.2.0",
+  "toolVersion": "0.2.1",
   "language": "rust",
   "generatedAt": "2026-06-11T00:00:00Z",
   "tracedRequirements": 42,

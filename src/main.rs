@@ -702,8 +702,8 @@ mod tests {
         assert_eq!(code, 0);
         let text = String::from_utf8(out).unwrap();
         assert!(
-            text.contains("0.2.0"),
-            "version string should contain 0.2.0"
+            text.contains("0.2.1"),
+            "version string should contain 0.2.1"
         );
         assert!(
             text.contains("rust-FuSa"),

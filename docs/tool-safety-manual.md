@@ -1,6 +1,6 @@
 # rust-FuSa Tool Safety Manual
 
-**Version**: 0.2.0  
+**Version**: 0.2.1  
 **Spec**: x-FuSa v1.9  
 **Language**: Rust  
 **Binary**: `rsfusa`
@@ -9,7 +9,7 @@
 
 ## 1. Purpose
 
-rust-FuSa is a functional safety enablement toolkit for Rust projects. It provides static analysis, traceability, evidence generation, and CI integration to support certification activities under ISO 26262, IEC 61508, DO-178C, ISO 21434, and MISRA.
+rust-FuSa is a functional safety enablement toolkit for Rust projects. It provides static analysis, traceability, evidence generation, and CI integration to support certification activities under ISO 26262, IEC 61508, DO-178C, ISO 21434, IEC 62443, SLSA, and MISRA.
 
 This document serves as the Tool Safety Manual required by ISO 26262-8 §11 for tool qualification. It describes the tool's intended use, limitations, validation evidence, and known anomalies.
 
