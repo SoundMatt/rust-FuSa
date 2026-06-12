@@ -1,7 +1,7 @@
 # rust-FuSa Tool Safety Manual
 
-**Version**: 0.2.3  
-**Spec**: x-FuSa v1.9  
+**Version**: 0.2.4  
+**Spec**: x-FuSa v1.10  
 **Language**: Rust  
 **Binary**: `rsfusa`
 

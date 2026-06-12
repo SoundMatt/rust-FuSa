@@ -15,25 +15,36 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         None => return EXIT_USAGE,
     };
 
-    let out_path = opts.output.map(PathBuf::from).unwrap_or_else(|| {
-        std::env::current_dir()
-            .unwrap_or_else(|_| PathBuf::from("."))
-            .join(REPORT_FILE)
-    });
+    let project_root = opts
+        .dir
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
+
+    let out_path = opts
+        .output
+        .map(PathBuf::from)
+        .unwrap_or_else(|| project_root.join(REPORT_FILE));
+
+    let is_json = opts.format.as_deref() == Some("json");
 
     let cases = builtin_cases();
-    writeln!(stdout, "Running {} qualification case(s)...", cases.len()).ok();
+    // Progress always to stderr so stdout is clean for --format json.
+    writeln!(stderr, "rsfusa qualify: running {} case(s)...", cases.len()).ok();
 
     let registry = default_registry();
     let report = qualify_run(&registry, &cases);
 
-    writeln!(stdout, "Results: {}/{} passed", report.passed, report.total).ok();
+    writeln!(
+        stderr,
+        "rsfusa qualify: {}/{} passed",
+        report.passed, report.total
+    )
+    .ok();
     if report.has_failures() {
-        writeln!(stdout, "  {} case(s) failed:", report.failed).ok();
+        writeln!(stderr, "rsfusa qualify: {} case(s) failed:", report.failed).ok();
         for r in &report.results {
             if r.result == "FAIL" {
                 writeln!(
-                    stdout,
+                    stderr,
                     "  FAIL  {}: {}",
                     r.name,
                     r.error.as_deref().unwrap_or("")
@@ -44,18 +55,19 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     }
 
     if let Some(h) = &report.hash {
-        writeln!(stdout, "Integrity hash: {h}").ok();
+        writeln!(stderr, "rsfusa qualify: integrity hash: {h}").ok();
     }
 
-    if opts.format.as_deref() == Some("json") {
+    // §2.2: when --output is given, write to file only; otherwise write to stdout if --format json.
+    if is_json && !opts.output_given {
         let json = serde_json::to_string_pretty(&report).expect("serialize qualify");
         writeln!(stdout, "{json}").ok();
     }
 
     match save(&out_path, &report) {
         Ok(()) => writeln!(
-            stdout,
-            "Qualification report written to {}",
+            stderr,
+            "rsfusa qualify: report written to {}",
             out_path.display()
         )
         .ok(),
@@ -72,35 +84,46 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
 }
 
 struct Opts {
+    dir: Option<PathBuf>,
     output: Option<String>,
+    output_given: bool,
     format: Option<String>,
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
     let mut opts = Opts {
+        dir: None,
         output: None,
+        output_given: false,
         format: None,
     };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
-            flag @ ("--output" | "--format") => {
+            flag @ ("--output" | "--format" | "--dir") => {
                 if i + 1 >= args.len() {
                     writeln!(stderr, "rsfusa qualify: {flag} requires an argument").ok();
                     return None;
                 }
                 i += 1;
                 match flag {
-                    "--output" => opts.output = Some(args[i].clone()),
+                    "--output" => {
+                        opts.output = Some(args[i].clone());
+                        opts.output_given = true;
+                    }
                     "--format" => opts.format = Some(args[i].clone()),
+                    "--dir" => opts.dir = Some(PathBuf::from(&args[i])),
                     _ => {}
                 }
             }
             other => {
                 if let Some(v) = other.strip_prefix("--output=") {
                     opts.output = Some(v.to_string());
+                    opts.output_given = true;
                 } else if let Some(v) = other.strip_prefix("--format=") {
                     opts.format = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
                 } else {
                     writeln!(stderr, "rsfusa qualify: unknown flag: {other}").ok();
                     return None;

@@ -69,21 +69,23 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
 
     let violations: usize = all.iter().filter(|f| f.complexity > threshold).count();
     let max_complexity = all.iter().map(|f| f.complexity).max().unwrap_or(0);
+    let total_functions = all.len();
 
-    let items: Vec<serde_json::Value> = all
+    // §13 canonical shape: top-level totalFunctions/violations, results[] with name field.
+    let results: Vec<serde_json::Value> = all
         .iter()
         .map(|f| {
             serde_json::json!({
                 "file": f.file,
                 "line": f.line,
-                "function": f.name,
+                "name": f.name,
                 "complexity": f.complexity,
                 "exceedsThreshold": f.complexity > threshold,
             })
         })
         .collect();
 
-    let report = serde_json::json!({
+    let mut report = serde_json::json!({
         "schemaVersion": SPEC_VERSION,
         "kind": "comp-report",
         "tool": TOOL_NAME,
@@ -91,68 +93,57 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         "language": LANGUAGE,
         "generatedAt": chrono::Utc::now().to_rfc3339(),
         "threshold": threshold,
-        "functions": items,
-        "summary": {
-            "totalFunctions": all.len(),
-            "violations": violations,
-            "maxComplexity": max_complexity,
-        }
+        "totalFunctions": total_functions,
+        "violations": violations,
+        "maxComplexity": max_complexity,
+        "results": results,
     });
+
+    // MAY: include dal field when threshold was set via a DAL preset.
+    if let Some(dal) = opts.dal_label.as_deref() {
+        report["dal"] = serde_json::Value::String(dal.to_string());
+    }
 
     let json = serde_json::to_string_pretty(&report).unwrap();
 
-    if opts.format == "json" {
-        match opts.output.as_deref() {
-            Some(p) => {
-                if let Err(e) = std::fs::write(p, format!("{json}\n")) {
-                    writeln!(stderr, "rsfusa comp: write {p}: {e}").ok();
-                    return EXIT_RUNTIME;
-                }
-                writeln!(stdout, "Complexity report written to {p}").ok();
-            }
-            None => {
-                writeln!(stdout, "{json}").ok();
-            }
-        }
-    } else {
-        writeln!(
-            stdout,
-            "Cyclomatic Complexity Report  (threshold: {threshold})"
-        )
-        .ok();
-        writeln!(stdout, "{}", "=".repeat(70)).ok();
-        writeln!(stdout, "{:<45} {:>5}  Status", "Function", "V(G)").ok();
-        writeln!(stdout, "{}", "-".repeat(70)).ok();
-        for f in &all {
-            let status = if f.complexity > threshold {
-                "VIOLATION"
-            } else {
-                "ok"
-            };
-            writeln!(
-                stdout,
-                "{:<45} {:>5}  {}",
-                trunc(&format!("{}:{}", f.file, f.name), 44),
-                f.complexity,
-                status
-            )
-            .ok();
-        }
-        writeln!(stdout, "{}", "-".repeat(70)).ok();
-        writeln!(
-            stdout,
-            "Functions: {}  Violations: {}  Max V(G): {}",
-            all.len(),
-            violations,
-            max_complexity
-        )
-        .ok();
-        if let Some(p) = opts.output.as_deref() {
+    // §2.2: --output redirects the report; nothing goes to stdout when --output is given.
+    match (opts.format.as_str(), opts.output.as_deref()) {
+        ("json", Some(p)) => {
             if let Err(e) = std::fs::write(p, format!("{json}\n")) {
                 writeln!(stderr, "rsfusa comp: write {p}: {e}").ok();
                 return EXIT_RUNTIME;
             }
-            writeln!(stdout, "Report written to {p}").ok();
+            writeln!(stderr, "rsfusa comp: report written to {p}").ok();
+        }
+        ("json", None) => {
+            writeln!(stdout, "{json}").ok();
+        }
+        (_, Some(p)) => {
+            // Text format to file.
+            match write_text_report(
+                p,
+                &all,
+                threshold,
+                total_functions,
+                violations,
+                max_complexity,
+            ) {
+                Ok(()) => writeln!(stderr, "rsfusa comp: report written to {p}").ok(),
+                Err(e) => {
+                    writeln!(stderr, "rsfusa comp: write {p}: {e}").ok();
+                    return EXIT_RUNTIME;
+                }
+            };
+        }
+        (_, None) => {
+            emit_text_report(
+                stdout,
+                &all,
+                threshold,
+                total_functions,
+                violations,
+                max_complexity,
+            );
         }
     }
 
@@ -161,6 +152,54 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     } else {
         EXIT_OK
     }
+}
+
+fn emit_text_report(
+    w: &mut dyn Write,
+    all: &[FnComplexity],
+    threshold: usize,
+    total: usize,
+    violations: usize,
+    max: usize,
+) {
+    writeln!(w, "Cyclomatic Complexity Report  (threshold: {threshold})").ok();
+    writeln!(w, "{}", "=".repeat(70)).ok();
+    writeln!(w, "{:<45} {:>5}  Status", "Function", "V(G)").ok();
+    writeln!(w, "{}", "-".repeat(70)).ok();
+    for f in all {
+        let status = if f.complexity > threshold {
+            "VIOLATION"
+        } else {
+            "ok"
+        };
+        writeln!(
+            w,
+            "{:<45} {:>5}  {}",
+            trunc(&format!("{}:{}", f.file, f.name), 44),
+            f.complexity,
+            status
+        )
+        .ok();
+    }
+    writeln!(w, "{}", "-".repeat(70)).ok();
+    writeln!(
+        w,
+        "Functions: {total}  Violations: {violations}  Max V(G): {max}"
+    )
+    .ok();
+}
+
+fn write_text_report(
+    path: &str,
+    all: &[FnComplexity],
+    threshold: usize,
+    total: usize,
+    violations: usize,
+    max: usize,
+) -> std::io::Result<()> {
+    let mut f = std::fs::File::create(path)?;
+    emit_text_report(&mut f, all, threshold, total, violations, max);
+    Ok(())
 }
 
 // ── Analysis ────────────────────────────────────────────────────────────────
@@ -287,6 +326,7 @@ struct Opts {
     output: Option<String>,
     format: String,
     threshold: usize,
+    dal_label: Option<String>,
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
@@ -295,11 +335,12 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
         output: None,
         format: "text".to_string(),
         threshold: THRESHOLD_DAL_B,
+        dal_label: None,
     };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
-            flag @ ("--dir" | "--output" | "--format" | "--threshold") => {
+            flag @ ("--dir" | "--output" | "--format" | "--threshold" | "--dal") => {
                 if i + 1 >= args.len() {
                     writeln!(stderr, "rsfusa comp: {flag} requires an argument").ok();
                     return None;
@@ -310,7 +351,10 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                     "--output" => opts.output = Some(args[i].clone()),
                     "--format" => opts.format = args[i].clone(),
                     "--threshold" => match args[i].parse::<usize>() {
-                        Ok(v) => opts.threshold = v,
+                        Ok(v) => {
+                            opts.threshold = v;
+                            opts.dal_label = None;
+                        }
                         Err(_) => {
                             writeln!(
                                 stderr,
@@ -320,6 +364,24 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                             return None;
                         }
                     },
+                    "--dal" => {
+                        let (t, label) = match args[i].to_uppercase().as_str() {
+                            "DAL-A" => (THRESHOLD_DAL_A, "DAL-A"),
+                            "DAL-B" => (THRESHOLD_DAL_B, "DAL-B"),
+                            "DAL-C" => (THRESHOLD_DAL_C, "DAL-C"),
+                            "DAL-D" => (THRESHOLD_DAL_D, "DAL-D"),
+                            _ => {
+                                writeln!(
+                                    stderr,
+                                    "rsfusa comp: --dal must be DAL-A, DAL-B, DAL-C, or DAL-D"
+                                )
+                                .ok();
+                                return None;
+                            }
+                        };
+                        opts.threshold = t;
+                        opts.dal_label = Some(label.to_string());
+                    }
                     _ => {}
                 }
             }
@@ -332,7 +394,10 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                     opts.format = v.to_string();
                 } else if let Some(v) = other.strip_prefix("--threshold=") {
                     match v.parse::<usize>() {
-                        Ok(n) => opts.threshold = n,
+                        Ok(n) => {
+                            opts.threshold = n;
+                            opts.dal_label = None;
+                        }
                         Err(_) => {
                             writeln!(
                                 stderr,
@@ -342,14 +407,35 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                             return None;
                         }
                     }
+                } else if let Some(v) = other.strip_prefix("--dal=") {
+                    let (t, label) = match v.to_uppercase().as_str() {
+                        "DAL-A" => (THRESHOLD_DAL_A, "DAL-A"),
+                        "DAL-B" => (THRESHOLD_DAL_B, "DAL-B"),
+                        "DAL-C" => (THRESHOLD_DAL_C, "DAL-C"),
+                        "DAL-D" => (THRESHOLD_DAL_D, "DAL-D"),
+                        _ => {
+                            writeln!(
+                                stderr,
+                                "rsfusa comp: --dal must be DAL-A, DAL-B, DAL-C, or DAL-D"
+                            )
+                            .ok();
+                            return None;
+                        }
+                    };
+                    opts.threshold = t;
+                    opts.dal_label = Some(label.to_string());
                 } else if other == "--dal-a" {
                     opts.threshold = THRESHOLD_DAL_A;
+                    opts.dal_label = Some("DAL-A".to_string());
                 } else if other == "--dal-b" {
                     opts.threshold = THRESHOLD_DAL_B;
+                    opts.dal_label = Some("DAL-B".to_string());
                 } else if other == "--dal-c" {
                     opts.threshold = THRESHOLD_DAL_C;
+                    opts.dal_label = Some("DAL-C".to_string());
                 } else if other == "--dal-d" {
                     opts.threshold = THRESHOLD_DAL_D;
+                    opts.dal_label = Some("DAL-D".to_string());
                 } else {
                     writeln!(stderr, "rsfusa comp: unknown flag: {other}").ok();
                     return None;
