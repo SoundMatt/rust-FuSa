@@ -1,4 +1,5 @@
 // Core value types shared across all modules (§4, §2.4, §1.5).
+//fusa:req REQ-LOC001
 //fusa:req REQ-CLI001
 //fusa:req REQ-CLI003
 //fusa:req REQ-CLI004
@@ -12,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use unicode_normalization::UnicodeNormalization;
 
-pub const VERSION: &str = "0.2.4";
+pub const VERSION: &str = "0.2.5";
 pub const SPEC_VERSION: &str = "1.10";
 pub const TOOL_NAME: &str = "rust-FuSa";
 pub const LANGUAGE: &str = "rust";
@@ -93,10 +94,10 @@ pub struct Location {
     pub line: u32,
     #[serde(skip_serializing_if = "is_zero")]
     pub column: u32,
-    #[serde(skip_serializing_if = "is_zero")]
-    pub end_line: u32,
-    #[serde(skip_serializing_if = "is_zero")]
-    pub end_column: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end_line: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end_column: Option<u32>,
 }
 
 fn is_zero(v: &u32) -> bool {
@@ -109,8 +110,8 @@ impl Location {
             file: file.into(),
             line: 0,
             column: 0,
-            end_line: 0,
-            end_column: 0,
+            end_line: None,
+            end_column: None,
         }
     }
 
@@ -119,8 +120,20 @@ impl Location {
             file: file.into(),
             line,
             column: 0,
-            end_line: 0,
-            end_column: 0,
+            end_line: None,
+            end_column: None,
+        }
+    }
+
+    /// Construct a location with full span: start column and end column (both 1-indexed, inclusive).
+    /// Sets endLine = line (single-line span). col/end_col of 0 leave those fields absent.
+    pub fn at_col(file: impl Into<String>, line: u32, col: u32, end_col: u32) -> Self {
+        Self {
+            file: file.into(),
+            line,
+            column: col,
+            end_line: if end_col > 0 { Some(line) } else { None },
+            end_column: if end_col > 0 { Some(end_col) } else { None },
         }
     }
 }

@@ -109,14 +109,14 @@
     {
       "id": "REQ-CLI003",
       "title": "Fingerprint computation",
-      "text": "The tool shall compute SHA-256 fingerprints per x-FuSa spec §4.2 for every finding.",
+      "text": "The tool shall compute SHA-256 fingerprints per x-FuSa spec \u00a74.2 for every finding.",
       "standard": "iso26262",
       "level": "HLR"
     },
     {
       "id": "REQ-CLI004",
       "title": "Common header on all JSON documents",
-      "text": "All JSON documents produced by the tool shall include schemaVersion, kind, tool, toolVersion, language, generatedAt fields (x-FuSa spec §3.1).",
+      "text": "All JSON documents produced by the tool shall include schemaVersion, kind, tool, toolVersion, language, generatedAt fields (x-FuSa spec \u00a73.1).",
       "standard": "iso26262",
       "level": "HLR"
     },
@@ -494,7 +494,7 @@
     {
       "id": "REQ-TRACE004",
       "title": "Trace matrix output",
-      "text": "The trace command shall output a matrix with tracedRequirements, testedRequirements, and secTestedRequirements (x-FuSa spec §5).",
+      "text": "The trace command shall output a matrix with tracedRequirements, testedRequirements, and secTestedRequirements (x-FuSa spec \u00a75).",
       "standard": "iso26262",
       "level": "HLR"
     },
@@ -515,7 +515,7 @@
     {
       "id": "REQ-TRACE007",
       "title": "Trace JSON schema",
-      "text": "The trace command shall produce a trace.json conforming to x-FuSa spec §5 schema.",
+      "text": "The trace command shall produce a trace.json conforming to x-FuSa spec \u00a75 schema.",
       "standard": "iso26262",
       "level": "HLR"
     },
@@ -564,7 +564,7 @@
     {
       "id": "REQ-QUALIFY002",
       "title": "Qualification report",
-      "text": "The qualify command shall write qualify-report.json with x-FuSa §3.1 header and per-case results.",
+      "text": "The qualify command shall write qualify-report.json with x-FuSa \u00a73.1 header and per-case results.",
       "standard": "iso26262",
       "level": "HLR"
     },
@@ -578,7 +578,7 @@
     {
       "id": "REQ-QUALIFY004",
       "title": "Qualification hash",
-      "text": "The qualify command shall compute a deterministic hash over its results using RFC 8785 canonical JSON (x-FuSa spec §6).",
+      "text": "The qualify command shall compute a deterministic hash over its results using RFC 8785 canonical JSON (x-FuSa spec \u00a76).",
       "standard": "iso26262",
       "level": "HLR"
     },
@@ -592,7 +592,7 @@
     {
       "id": "REQ-RELEASE002",
       "title": "SBOM hash format",
-      "text": "Dependency hashes in sbom.json shall be formatted as algo:value (e.g. sha256:abc123) per x-FuSa spec §7.",
+      "text": "Dependency hashes in sbom.json shall be formatted as algo:value (e.g. sha256:abc123) per x-FuSa spec \u00a77.",
       "standard": "iso26262",
       "level": "HLR"
     },
@@ -648,7 +648,7 @@
     {
       "id": "REQ-AUDIT002",
       "title": "Audit pack manifest",
-      "text": "The audit pack shall include a manifest.json with bare-hex SHA-256 per entry (x-FuSa spec §8).",
+      "text": "The audit pack shall include a manifest.json with bare-hex SHA-256 per entry (x-FuSa spec \u00a78).",
       "standard": "iso26262",
       "level": "HLR"
     },
@@ -676,7 +676,7 @@
     {
       "id": "REQ-VERIFY002",
       "title": "Test evidence document",
-      "text": "The verify command shall write .fusa-evidence.json with x-FuSa §3.1 header and test run summary.",
+      "text": "The verify command shall write .fusa-evidence.json with x-FuSa \u00a73.1 header and test run summary.",
       "standard": "iso26262",
       "level": "HLR"
     },
@@ -732,7 +732,7 @@
     {
       "id": "REQ-FMEA005",
       "title": "FMEA JSON output",
-      "text": "The fmea command shall write fmea.json with x-FuSa §3.1 header and an entries[] array.",
+      "text": "The fmea command shall write fmea.json with x-FuSa \u00a73.1 header and an entries[] array.",
       "standard": "iso26262",
       "level": "HLR"
     },
@@ -788,7 +788,7 @@
     {
       "id": "REQ-VULN002",
       "title": "Vulnerability JSON output",
-      "text": "The vuln command shall write vuln.json with x-FuSa §3.1 header and vulnerabilities[] array.",
+      "text": "The vuln command shall write vuln.json with x-FuSa \u00a73.1 header and vulnerabilities[] array.",
       "standard": "iso21434",
       "level": "HLR"
     },
@@ -844,7 +844,7 @@
     {
       "id": "REQ-TARA004",
       "title": "TARA JSON output",
-      "text": "The tara command shall write tara.json with x-FuSa §3.1 header and threats[] array.",
+      "text": "The tara command shall write tara.json with x-FuSa \u00a73.1 header and threats[] array.",
       "standard": "iso21434",
       "level": "HLR"
     },
@@ -942,7 +942,7 @@
     {
       "id": "REQ-HARA005",
       "title": "HARA JSON header",
-      "text": "The .fusa-hara.json file shall include the x-FuSa §3.1 common header.",
+      "text": "The .fusa-hara.json file shall include the x-FuSa \u00a73.1 common header.",
       "standard": "iso26262",
       "level": "HLR"
     },
@@ -970,7 +970,7 @@
     {
       "id": "REQ-E2E001",
       "title": "End-to-end qualification",
-      "text": "The tool qualification suite shall exercise all §9.1 MUST commands and verify correct exit codes and output schemas.",
+      "text": "The tool qualification suite shall exercise all \u00a79.1 MUST commands and verify correct exit codes and output schemas.",
       "standard": "iso26262",
       "level": "HLR"
     },
@@ -1054,7 +1054,7 @@
     {
       "id": "REQ-IEC62443003",
       "title": "IEC 62443 JSON output",
-      "text": "The iec62443 subcommand shall support --format json output with kind 'gap-report' conforming to §3.1 common header.",
+      "text": "The iec62443 subcommand shall support --format json output with kind 'gap-report' conforming to \u00a73.1 common header.",
       "standard": "iec62443",
       "level": "HLR"
     },
@@ -1089,7 +1089,7 @@
     {
       "id": "REQ-SLSA003",
       "title": "SLSA JSON output",
-      "text": "The slsa subcommand shall support --format json output with kind 'gap-report' conforming to §3.1 common header.",
+      "text": "The slsa subcommand shall support --format json output with kind 'gap-report' conforming to \u00a73.1 common header.",
       "standard": "slsa",
       "level": "HLR"
     },
@@ -1124,7 +1124,7 @@
     {
       "id": "REQ-COMP003",
       "title": "Complexity JSON output",
-      "text": "The comp command shall write comp-report.json with x-FuSa §3.1 header, threshold, functions[], and summary fields when --format json is specified.",
+      "text": "The comp command shall write comp-report.json with x-FuSa \u00a73.1 header, threshold, functions[], and summary fields when --format json is specified.",
       "standard": "do178c",
       "level": "HLR"
     },
@@ -1138,9 +1138,17 @@
     {
       "id": "REQ-COMP005",
       "title": "DAL threshold presets",
-      "text": "The comp command shall support --dal-a (threshold 4), --dal-b (threshold 10), --dal-c (threshold 15), and --dal-d (threshold 20) flags per DO-178C §6.3.4.",
+      "text": "The comp command shall support --dal-a (threshold 4), --dal-b (threshold 10), --dal-c (threshold 15), and --dal-d (threshold 20) flags per DO-178C \u00a76.3.4.",
       "standard": "do178c",
       "level": "HLR"
+    },
+    {
+      "id": "REQ-LOC001",
+      "title": "Finding span population",
+      "description": "Findings SHOULD include endLine and endColumn when span information is derivable from the source text (\u00a74 MAY). Fields MUST be omitted when not available rather than emitting 0.",
+      "priority": "SHOULD",
+      "status": "implemented",
+      "source": "spec \u00a74"
     }
   ]
 }

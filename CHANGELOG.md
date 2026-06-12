@@ -7,6 +7,29 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.2.5] — 2026-06-12
+
+### Fixed
+
+- **`endLine`/`endColumn` span population (§4 MAY)** — `Location.end_line` and `Location.end_column` changed from `u32` (always `0`) to `Option<u32>` (absent when unknown); all lint, cyber, and analysis rules now populate column + endLine + endColumn for single-line token matches
+- Fields are omitted from JSON output when absent (not emitted as `0`), preventing consumer confusion
+
+### Added
+
+- `Location::at_col(file, line, col, end_col)` constructor for full span
+- `REQ-LOC001` requirement: findings SHOULD include endLine/endColumn when derivable
+
+### Tests
+
+- 1 new test: `check_json_end_line_end_column` — verifies endLine = line and endColumn > column for LINT002 findings
+- Total: **48 tests**, all green
+
+### Changed
+
+- Version bumped to **0.2.5**
+
+---
+
 ## [0.2.4] — 2026-06-12
 
 ### Fixed
