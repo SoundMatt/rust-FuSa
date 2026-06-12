@@ -1,6 +1,6 @@
 # rust-FuSa
 
-**Version 0.2.1** · x-FuSa spec v1.9 · language: rust · binary: `rsfusa`
+**Version 0.2.3** · x-FuSa spec v1.9 · language: rust · binary: `rsfusa`
 
 A functional safety enablement toolkit for Rust projects. rust-FuSa provides static checks, coding rules, traceability helpers, CI evidence bundles, reproducible build metadata, HARA, FMEA, TARA, boundary diagrams, and tool qualification support to help teams build safety cases under ISO 26262, IEC 61508, ISO 21434, DO-178C, and MISRA.
 
@@ -84,6 +84,7 @@ rsfusa diff baseline.json current.json
 rsfusa vuln
 rsfusa coverage
 rsfusa coupling
+rsfusa comp
 rsfusa verify
 rsfusa badge --output status.svg
 rsfusa sas                # Software Accomplishment Summary (DO-178C §11.20)
@@ -103,7 +104,7 @@ rsfusa hooks install
 
 ---
 
-## All 43 commands
+## All 44 commands
 
 ### §9.1 MUST (required by x-FuSa spec)
 
@@ -131,6 +132,7 @@ rsfusa hooks install
 | `cyber` | CWE-mapped security analysis → `cyber-report.json` |
 | `coverage` | Structural coverage report |
 | `coupling` | Module coupling analysis |
+| `comp` | Cyclomatic complexity (McCabe V(G)) per DO-178C §6.3.4 |
 | `fmea` | Design FMEA from `pub fn` declarations |
 | `tara` | Threat Analysis per ISO 21434 |
 | `safety-case` | GSN safety argument |
@@ -330,6 +332,7 @@ Tool registry entry:
 - [Command: lint](docs/commands/lint.md)
 - [Command: analyze](docs/commands/analyze.md)
 - [Command: release](docs/commands/release.md)
+- [Command: comp](docs/commands/comp.md)
 - [Standard: ISO 26262](docs/standards/iso26262.md)
 - [Standard: IEC 61508](docs/standards/iec61508.md)
 - [Standard: ISO 21434](docs/standards/iso21434.md)

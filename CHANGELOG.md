@@ -7,6 +7,23 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.2.3] — 2026-06-12
+
+### Added
+
+- **`comp`** (§9.2 SHOULD) — Cyclomatic complexity (McCabe V(G)) analysis per DO-178C §6.3.4; walks all `.rs` files, counts decision points per function, exits 1 on threshold violations
+- `docs/commands/comp.md` reference documentation
+- Requirements REQ-COMP001–REQ-COMP005 added to `.fusa-reqs.json`
+
+### Changed
+
+- Version bumped to **0.2.3**
+- `capabilities` output updated to list all **44 commands** (was 43)
+- README and docs updated to reflect 44-command surface
+- Docker image `ARG VERSION` updated to 0.2.3
+
+---
+
 ## [0.2.1] — 2026-06-12
 
 ### Added

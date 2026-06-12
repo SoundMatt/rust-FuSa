@@ -4,6 +4,7 @@ pub mod badge;
 pub mod boundary;
 pub mod capabilities;
 pub mod check;
+pub mod comp;
 pub mod coupling;
 pub mod coverage;
 pub mod cyber;

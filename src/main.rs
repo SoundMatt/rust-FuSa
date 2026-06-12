@@ -60,6 +60,7 @@ fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
         "cyber" => cmd::cyber::run(rest, stdout, stderr),
         "coverage" => cmd::coverage::run(rest, stdout, stderr),
         "coupling" => cmd::coupling::run(rest, stdout, stderr),
+        "comp" => cmd::comp::run(rest, stdout, stderr),
         "fmea" => cmd::fmea::run(rest, stdout, stderr),
         "tara" => cmd::tara::run(rest, stdout, stderr),
         "safety-case" => cmd::safety_case::run(rest, stdout, stderr),
@@ -157,6 +158,11 @@ fn print_help(w: &mut dyn Write) {
     writeln!(
         w,
         "    coupling      Module coupling analysis → coupling-report.json"
+    )
+    .ok();
+    writeln!(
+        w,
+        "    comp          Cyclomatic complexity (V(G)) per DO-178C §6.3.4 → comp-report.json"
     )
     .ok();
     writeln!(
@@ -702,8 +708,8 @@ mod tests {
         assert_eq!(code, 0);
         let text = String::from_utf8(out).unwrap();
         assert!(
-            text.contains("0.2.1"),
-            "version string should contain 0.2.1"
+            text.contains("0.2.3"),
+            "version string should contain 0.2.3"
         );
         assert!(
             text.contains("rust-FuSa"),
@@ -947,5 +953,144 @@ mod tests {
         let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
         assert_eq!(v["kind"].as_str(), Some("gap-report"));
         assert_eq!(v["standard"].as_str(), Some("slsa"));
+    }
+
+    //fusa:test REQ-COMP001
+    //fusa:test REQ-COMP002
+    #[test]
+    fn comp_runs_on_simple_source() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir(dir.path().join("src")).unwrap();
+        std::fs::write(
+            dir.path().join("src/lib.rs"),
+            "pub fn simple(x: i32) -> i32 { x + 1 }\n",
+        )
+        .unwrap();
+        let a = args(&format!("rsfusa comp --dir {}", dir.path().display()));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert!(code == 0 || code == 1, "comp exits 0 or 1, got {code}");
+        let text = String::from_utf8(out).unwrap();
+        assert!(
+            text.contains("Cyclomatic") || text.contains("simple"),
+            "output should contain complexity report"
+        );
+    }
+
+    //fusa:test REQ-COMP003
+    //fusa:test REQ-COMP004
+    #[test]
+    fn comp_json_schema() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir(dir.path().join("src")).unwrap();
+        std::fs::write(
+            dir.path().join("src/lib.rs"),
+            "pub fn foo(x: i32) -> i32 {\n  if x > 0 { x } else { -x }\n}\n",
+        )
+        .unwrap();
+        let a = args(&format!(
+            "rsfusa comp --dir {} --format json",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert!(code == 0 || code == 1);
+        let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
+        assert_eq!(v["kind"].as_str(), Some("comp-report"));
+        assert!(v["threshold"].as_u64().is_some());
+        assert!(v["functions"].is_array());
+        assert!(v["summary"]["totalFunctions"].as_u64().unwrap() >= 1);
+    }
+
+    //fusa:test REQ-COMP003
+    #[test]
+    fn comp_threshold_flag() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir(dir.path().join("src")).unwrap();
+        // Write a function with complexity 1 (no branches)
+        std::fs::write(
+            dir.path().join("src/lib.rs"),
+            "pub fn trivial() -> i32 { 42 }\n",
+        )
+        .unwrap();
+        // With threshold 1, complexity=1 should NOT be a violation (1 <= 1)
+        let a = args(&format!(
+            "rsfusa comp --dir {} --format json --threshold 1",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "trivial function should not violate threshold 1");
+        let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
+        assert_eq!(v["threshold"].as_u64(), Some(1));
+    }
+
+    //fusa:test REQ-COMP002
+    #[test]
+    fn comp_detects_complex_function() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir(dir.path().join("src")).unwrap();
+        // Write a function with multiple branches (complexity > 2)
+        std::fs::write(
+            dir.path().join("src/lib.rs"),
+            r#"pub fn branchy(x: i32, y: i32, z: i32) -> i32 {
+    if x > 0 {
+        if y > 0 {
+            if z > 0 { x + y + z } else { x + y }
+        } else {
+            x
+        }
+    } else {
+        while y > 0 { return y; }
+        0
+    }
+}
+"#,
+        )
+        .unwrap();
+        let a = args(&format!(
+            "rsfusa comp --dir {} --format json --threshold 2",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 1, "complex function should violate threshold 2");
+        let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
+        assert!(
+            v["summary"]["violations"].as_u64().unwrap() >= 1,
+            "should report at least one violation"
+        );
+        let max = v["summary"]["maxComplexity"].as_u64().unwrap();
+        assert!(max > 2, "max complexity should exceed 2, got {max}");
+    }
+
+    //fusa:test REQ-COMP005
+    #[test]
+    fn comp_dal_a_threshold() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir(dir.path().join("src")).unwrap();
+        std::fs::write(
+            dir.path().join("src/lib.rs"),
+            "pub fn simple() -> i32 { 1 }\n",
+        )
+        .unwrap();
+        let a = args(&format!(
+            "rsfusa comp --dir {} --format json --dal-a",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert!(code == 0 || code == 1);
+        let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
+        assert_eq!(
+            v["threshold"].as_u64(),
+            Some(4),
+            "DAL-A threshold should be 4"
+        );
     }
 }
