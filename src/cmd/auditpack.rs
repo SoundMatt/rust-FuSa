@@ -26,11 +26,21 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
 
     match pack(&project_root, &out_path) {
         Ok(manifest) => {
-            writeln!(stdout, "Audit pack written to {}", out_path.display()).ok();
-            writeln!(stdout, "Module: {}", manifest.module).ok();
-            writeln!(stdout, "Files packed: {}", manifest.files.len()).ok();
+            writeln!(
+                stderr,
+                "rsfusa audit-pack: written to {}",
+                out_path.display()
+            )
+            .ok();
+            writeln!(stderr, "rsfusa audit-pack: module: {}", manifest.module).ok();
+            writeln!(
+                stderr,
+                "rsfusa audit-pack: files packed: {}",
+                manifest.files.len()
+            )
+            .ok();
             for entry in &manifest.files {
-                writeln!(stdout, "  {:<40}  {}…", entry.path, &entry.sha256[..16]).ok();
+                writeln!(stderr, "  {:<40}  {}…", entry.path, &entry.sha256[..16]).ok();
             }
             EXIT_OK
         }
