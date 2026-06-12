@@ -7,6 +7,25 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.2.6] — 2026-06-12
+
+### Fixed
+
+- **`--sec-tested` gate (§5 MUST)** — gate now checks `sec_tested_requirements` (requirements with `sec-test` tags) instead of `tested_requirements` (all test tags); closes #10
+- **Gap-report JSON canonical schema (§9.3 MUST)** — renamed `requirements` → `objectives`, `"met"` → `"satisfied"`, added `"partial": 0` to summary, added `"findings": []` per objective; closes #9
+- **Standards + audit-pack progress to stderr (§2.2 MUST)** — confirmation/progress lines from `audit-pack` and all `standards` commands moved to stderr; stdout is clean for piping; closes #8
+
+### Tests
+
+- 3 new tests: `gap_report_objectives_status_canonical`, `audit_pack_stdout_clean`, `trace_sec_tested_gate_uses_sec_test_tags`
+- Total: **51 tests**, all green
+
+### Changed
+
+- Version bumped to **0.2.6**
+
+---
+
 ## [0.2.5] — 2026-06-12
 
 ### Fixed

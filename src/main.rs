@@ -708,8 +708,8 @@ mod tests {
         assert_eq!(code, 0);
         let text = String::from_utf8(out).unwrap();
         assert!(
-            text.contains("0.2.5"),
-            "version string should contain 0.2.5"
+            text.contains("0.2.6"),
+            "version string should contain 0.2.6"
         );
         assert!(
             text.contains("rust-FuSa"),
@@ -923,6 +923,24 @@ mod tests {
         let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
         assert_eq!(v["kind"].as_str(), Some("gap-report"));
         assert_eq!(v["standard"].as_str(), Some("iec62443"));
+        // §9.3 canonical shape
+        assert!(v["objectives"].is_array(), "must have 'objectives' array");
+        assert!(
+            v["summary"]["satisfied"].is_number(),
+            "summary.satisfied must be present"
+        );
+        assert!(
+            v["summary"]["partial"].is_number(),
+            "summary.partial must be present"
+        );
+        assert!(
+            v.get("requirements").is_none(),
+            "'requirements' key must not appear"
+        );
+        assert!(
+            v["summary"].get("met").is_none(),
+            "'met' key must not appear"
+        );
     }
 
     //fusa:test REQ-FUSA045
@@ -953,6 +971,88 @@ mod tests {
         let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
         assert_eq!(v["kind"].as_str(), Some("gap-report"));
         assert_eq!(v["standard"].as_str(), Some("slsa"));
+        assert!(v["objectives"].is_array(), "must have 'objectives' array");
+        assert!(v["summary"]["satisfied"].is_number());
+        assert!(v.get("requirements").is_none());
+    }
+
+    #[test]
+    fn gap_report_objectives_status_canonical() {
+        // §9.3: each objective status must be "satisfied" or "gap", never "met".
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!(
+            "rsfusa iso26262 --dir {} --format json",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        run(&a, &mut out, &mut err);
+        let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
+        for obj in v["objectives"].as_array().unwrap() {
+            let status = obj["status"].as_str().unwrap();
+            assert!(
+                status == "satisfied" || status == "gap" || status == "partial",
+                "objective status must be satisfied|partial|gap, got '{status}'"
+            );
+            assert!(
+                obj["findings"].is_array(),
+                "each objective must have 'findings' array"
+            );
+        }
+    }
+
+    #[test]
+    fn audit_pack_stdout_clean() {
+        // §2.2: audit-pack must not write progress to stdout.
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!("rsfusa audit-pack --dir {}", dir.path().display()));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        run(&a, &mut out, &mut err);
+        assert!(
+            out.is_empty(),
+            "audit-pack must write nothing to stdout (§2.2)"
+        );
+        let errtext = String::from_utf8(err).unwrap();
+        assert!(
+            errtext.contains("audit-pack"),
+            "progress should appear on stderr"
+        );
+    }
+
+    #[test]
+    fn trace_sec_tested_gate_uses_sec_test_tags() {
+        // §5: --sec-tested gate must use sec_tested_requirements (sec-test tags only).
+        let dir = tempfile::TempDir::new().unwrap();
+        // Two requirements: one has a test tag only, one has a sec-test tag.
+        std::fs::write(
+            dir.path().join(".fusa-reqs.json"),
+            r#"{"requirements":[
+                {"id":"REQ-A","title":"A","text":"A","standard":"generic","level":"HLR"},
+                {"id":"REQ-B","title":"B","text":"B","standard":"generic","level":"HLR"}
+            ]}"#,
+        )
+        .unwrap();
+        // Tag REQ-A with test, REQ-B with sec-test.
+        let src = dir.path().join("src");
+        std::fs::create_dir(&src).unwrap();
+        std::fs::write(
+            src.join("lib.rs"),
+            "//fusa:test REQ-A\n//fusa:sec-test REQ-B\npub fn x() {}\n",
+        )
+        .unwrap();
+        // Gate: sec-tested=100 — REQ-B is sec-tested (1/2=50%), so gate should fail.
+        let a = args(&format!(
+            "rsfusa trace --dir {} --sec-tested 100",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(
+            code, 1,
+            "--sec-tested 100 should fail when only 1/2 reqs have sec-test tags"
+        );
     }
 
     //fusa:test REQ-COMP001

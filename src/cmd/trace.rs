@@ -118,7 +118,7 @@ fn check_gates(cov: &Coverage, req_coverage: u32, sec_tested: u32, stderr: &mut 
         }
     }
     if sec_tested > 0 {
-        let pct = (cov.tested_requirements * 100 / total) as u32;
+        let pct = (cov.sec_tested_requirements * 100 / total) as u32;
         if pct < sec_tested {
             writeln!(
                 stderr,

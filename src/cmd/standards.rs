@@ -535,7 +535,8 @@ fn run_gap_report(
         .dir
         .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
-    let mut items: Vec<serde_json::Value> = Vec::new();
+    // §9.3 canonical shape: objectives[], status: satisfied|partial|gap, findings:[].
+    let mut objectives: Vec<serde_json::Value> = Vec::new();
     let mut gap_count = 0usize;
     let mut required_gaps = 0usize;
 
@@ -545,7 +546,7 @@ fn run_gap_report(
             .map(|f| project_root.join(f).exists())
             .unwrap_or(false);
 
-        let status = if present { "met" } else { "gap" };
+        let status = if present { "satisfied" } else { "gap" };
         if status == "gap" {
             gap_count += 1;
         }
@@ -553,20 +554,19 @@ fn run_gap_report(
             required_gaps += 1;
         }
 
-        items.push(serde_json::json!({
+        objectives.push(serde_json::json!({
             "id": req.id,
             "title": req.title,
-            "evidenceFile": req.evidence_file,
-            "required": req.required,
             "status": status,
+            "findings": [],
         }));
     }
 
     let total = requirements.len();
-    let met = total - gap_count;
+    let satisfied = total - gap_count;
 
-    if opts.format == "json" {
-        let report = serde_json::json!({
+    let build_report = || {
+        serde_json::json!({
             "schemaVersion": SPEC_VERSION,
             "kind": "gap-report",
             "tool": TOOL_NAME,
@@ -575,22 +575,26 @@ fn run_gap_report(
             "generatedAt": chrono::Utc::now().to_rfc3339(),
             "standard": standard_id,
             "standardName": standard_name,
-            "requirements": items,
+            "objectives": objectives,
             "summary": {
                 "total": total,
-                "met": met,
+                "satisfied": satisfied,
+                "partial": 0,
                 "gaps": gap_count,
-                "requiredGaps": required_gaps,
             }
-        });
-        let json = serde_json::to_string_pretty(&report).unwrap();
+        })
+    };
+
+    if opts.format == "json" {
+        let json = serde_json::to_string_pretty(&build_report()).unwrap();
         match opts.output.as_deref() {
             Some(path) => {
                 if let Err(e) = std::fs::write(path, json + "\n") {
                     writeln!(stderr, "rsfusa {standard_id}: write {path}: {e}").ok();
                     return EXIT_RUNTIME;
                 }
-                writeln!(stdout, "Gap report written to {path}").ok();
+                // §2.2: confirmation to stderr, not stdout.
+                writeln!(stderr, "rsfusa {standard_id}: gap report written to {path}").ok();
             }
             None => {
                 writeln!(stdout, "{json}").ok();
@@ -599,19 +603,19 @@ fn run_gap_report(
     } else {
         writeln!(stdout, "{standard_name} Compliance Gap Report").ok();
         writeln!(stdout, "{}", "=".repeat(50)).ok();
-        writeln!(stdout, "{:<18} {:<44} Status", "Requirement", "Title").ok();
+        writeln!(stdout, "{:<18} {:<44} Status", "Objective", "Title").ok();
         writeln!(stdout, "{}", "-".repeat(80)).ok();
-        for item in &items {
-            let status_str = if item["status"] == "met" {
-                "MET"
+        for obj in &objectives {
+            let status_str = if obj["status"] == "satisfied" {
+                "SATISFIED"
             } else {
                 "GAP"
             };
             writeln!(
                 stdout,
                 "{:<18} {:<44} {}",
-                item["id"].as_str().unwrap_or(""),
-                truncate(item["title"].as_str().unwrap_or(""), 43),
+                obj["id"].as_str().unwrap_or(""),
+                truncate(obj["title"].as_str().unwrap_or(""), 43),
                 status_str
             )
             .ok();
@@ -619,30 +623,18 @@ fn run_gap_report(
         writeln!(stdout, "{}", "-".repeat(80)).ok();
         writeln!(
             stdout,
-            "Total: {total}  Met: {met}  Gaps: {gap_count}  Required gaps: {required_gaps}"
+            "Total: {total}  Satisfied: {satisfied}  Gaps: {gap_count}  Required gaps: {required_gaps}"
         )
         .ok();
 
         if let Some(path) = opts.output.as_deref() {
-            let report = serde_json::json!({
-                "schemaVersion": SPEC_VERSION,
-                "kind": "gap-report",
-                "tool": TOOL_NAME,
-                "toolVersion": VERSION,
-                "language": LANGUAGE,
-                "generatedAt": chrono::Utc::now().to_rfc3339(),
-                "standard": standard_id,
-                "standardName": standard_name,
-                "requirements": items,
-                "summary": { "total": total, "met": met, "gaps": gap_count, "requiredGaps": required_gaps }
-            });
-            if let Err(e) =
-                std::fs::write(path, serde_json::to_string_pretty(&report).unwrap() + "\n")
-            {
+            let json = serde_json::to_string_pretty(&build_report()).unwrap();
+            if let Err(e) = std::fs::write(path, json + "\n") {
                 writeln!(stderr, "rsfusa {standard_id}: write {path}: {e}").ok();
                 return EXIT_RUNTIME;
             }
-            writeln!(stdout, "Gap report written to {path}").ok();
+            // §2.2: confirmation to stderr, not stdout.
+            writeln!(stderr, "rsfusa {standard_id}: gap report written to {path}").ok();
         }
     }
 
