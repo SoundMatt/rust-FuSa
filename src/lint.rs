@@ -82,6 +82,24 @@ fn is_test_file(rel: &str) -> bool {
     rel.contains("/tests/") || rel.starts_with("tests/") || rel.ends_with("_test.rs")
 }
 
+// Returns (col, end_col) 1-indexed inclusive. Returns (0, 0) if pattern not found.
+fn find_col(line: &str, pat: &str) -> (u32, u32) {
+    match line.find(pat) {
+        Some(pos) => (pos as u32 + 1, (pos + pat.len()) as u32),
+        None => (0, 0),
+    }
+}
+
+fn find_any_col(line: &str, pats: &[&str]) -> (u32, u32) {
+    for pat in pats {
+        let r = find_col(line, pat);
+        if r.0 > 0 {
+            return r;
+        }
+    }
+    (0, 0)
+}
+
 // LINT001 — unsafe blocks without //fusa:unsafe annotation.
 struct RuleUnsafeBlock;
 impl Rule for RuleUnsafeBlock {
@@ -109,10 +127,11 @@ impl Rule for RuleUnsafeBlock {
                 {
                     let prev = if i > 0 { lines[i - 1].trim() } else { "" };
                     if !prev.contains("//fusa:unsafe") {
+                        let (col, end_col) = find_col(line, "unsafe");
                         findings.push(Finding::new(
                             self.id(), Severity::Error,
                             "unsafe block without //fusa:unsafe justification on the preceding line",
-                            Location::at(rel.clone(), (i + 1) as u32),
+                            Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                             Category::Safety,
                             "add '//fusa:unsafe <justification>' on the line before the unsafe block",
                         ).with_standard("iso26262", "6.4.6"));
@@ -144,10 +163,11 @@ impl Rule for RuleUnwrapUsage {
             for (i, line) in content.lines().enumerate() {
                 if line.contains(".unwrap()") && !line.trim_start().starts_with("//") {
                     let lineno = (i + 1) as u32;
+                    let (col, end_col) = find_col(line, ".unwrap()");
                     findings.push(Finding::new(
                         self.id(), Severity::Warning,
                         ".unwrap() can panic; use ? or .expect(\"<reason>\") in library/safety code",
-                        Location::at(rel.clone(), lineno),
+                        Location::at_col(rel.clone(), lineno, col, end_col),
                         Category::Safety,
                         "replace .unwrap() with ? or .expect(\"rationale\") to provide context on failure",
                     ));
@@ -185,11 +205,14 @@ impl Rule for RuleTodoFixme {
                     } else {
                         "TODO"
                     };
+                    let upper = line.to_uppercase();
+                    let search = if label == "FIXME" { "FIXME" } else { "TODO" };
+                    let (col, end_col) = find_col(&upper, search);
                     findings.push(Finding::new(
                         self.id(),
                         Severity::Warning,
                         format!("{label} comment — unresolved work item in safety-critical code"),
-                        Location::at(rel.clone(), (i + 1) as u32),
+                        Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                         Category::Safety,
                         "resolve or convert to a tracked issue before final safety release",
                     ));
@@ -219,10 +242,11 @@ impl Rule for RuleTransmuteUsage {
                 if line.contains("mem::transmute") && !line.trim_start().starts_with("//") {
                     let prev = if i > 0 { lines[i - 1].trim() } else { "" };
                     if !prev.contains("//fusa:unsafe") {
+                        let (col, end_col) = find_col(line, "mem::transmute");
                         findings.push(Finding::new(
                             self.id(), Severity::Error,
                             "std::mem::transmute used without //fusa:unsafe justification",
-                            Location::at(rel.clone(), (i + 1) as u32),
+                            Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                             Category::Safety,
                             "add '//fusa:unsafe <justification>' and document why transmute is safe here",
                         ).with_standard("cert-c", "EXP36-C"));
@@ -261,14 +285,20 @@ impl Rule for RulePanicUsage {
                     let prev = if i > 0 { lines[i - 1].trim() } else { "" };
                     if !prev.contains("//fusa:") {
                         let which = if trimmed.contains("panic!(") {
+                            "panic!("
+                        } else {
+                            "unreachable!("
+                        };
+                        let which_display = if which == "panic!(" {
                             "panic!()"
                         } else {
                             "unreachable!()"
                         };
+                        let (col, end_col) = find_col(line, which);
                         findings.push(Finding::new(
                             self.id(), Severity::Warning,
-                            format!("{which} causes process abort — use Result or a recoverable error instead"),
-                            Location::at(rel.clone(), (i + 1) as u32),
+                            format!("{which_display} causes process abort — use Result or a recoverable error instead"),
+                            Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                             Category::Safety,
                             "replace with a Result return or add '//fusa:panic <justification>' if intentional",
                         ));

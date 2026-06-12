@@ -70,6 +70,23 @@ fn rel_path(root: &Path, path: &Path) -> String {
         .replace('\\', "/")
 }
 
+fn find_col(line: &str, pat: &str) -> (u32, u32) {
+    match line.find(pat) {
+        Some(pos) => (pos as u32 + 1, (pos + pat.len()) as u32),
+        None => (0, 0),
+    }
+}
+
+fn find_any_col(line: &str, pats: &[&str]) -> (u32, u32) {
+    for pat in pats {
+        let r = find_col(line, pat);
+        if r.0 > 0 {
+            return r;
+        }
+    }
+    (0, 0)
+}
+
 // ANA001 — function body length exceeds 60 lines.
 struct RuleFunctionLength;
 impl Rule for RuleFunctionLength {
@@ -223,13 +240,14 @@ impl Rule for RuleTooManyParams {
                                 .chars()
                                 .take_while(|c| c.is_alphanumeric() || *c == '_')
                                 .collect();
+                            let (col, end_col) = find_col(line, "fn ");
                             findings.push(Finding::new(
                                 self.id(),
                                 Severity::Warning,
                                 format!(
                                     "function '{name}' has {count} parameters (limit {MAX_PARAMS})"
                                 ),
-                                Location::at(rel.clone(), (i + 1) as u32),
+                                Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                                 Category::Safety,
                                 "group related parameters into a struct to reduce parameter count",
                             ));
@@ -271,12 +289,14 @@ impl Rule for RuleRawPointerDeref {
                 {
                     let prev = if i > 0 { lines[i - 1].trim() } else { "" };
                     if !prev.contains("//fusa:unsafe") {
+                        let (col, end_col) =
+                            find_any_col(line, &["*ptr", "*raw", "*p ", "*self.ptr", "*buf"]);
                         findings.push(
                             Finding::new(
                                 self.id(),
                                 Severity::Warning,
                                 "raw pointer dereference without //fusa:unsafe justification",
-                                Location::at(rel.clone(), (i + 1) as u32),
+                                Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                                 Category::Safety,
                                 "add '//fusa:unsafe <justification>' before the dereference",
                             )
@@ -315,11 +335,12 @@ impl Rule for RuleIntegerTruncatingCast {
                     if trimmed.contains(cast) {
                         let prev = if i > 0 { lines[i - 1].trim() } else { "" };
                         if !prev.starts_with("//") && !trimmed.contains("// safe:") {
+                            let (col, end_col) = find_col(line, cast);
                             findings.push(Finding::new(
                                 self.id(),
                                 Severity::Warning,
                                 format!("truncating cast '{cast}' may silently discard bits"),
-                                Location::at(rel.clone(), (i + 1) as u32),
+                                Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                                 Category::Safety,
                                 "use try_from() / try_into() to detect overflow, or add '// safe: <range-proof>' comment",
                             ).with_standard("iso26262", "6.4.6"));

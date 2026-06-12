@@ -98,6 +98,23 @@ fn rel_path(root: &Path, path: &Path) -> String {
         .replace('\\', "/")
 }
 
+fn find_col(line: &str, pat: &str) -> (u32, u32) {
+    match line.find(pat) {
+        Some(pos) => (pos as u32 + 1, (pos + pat.len()) as u32),
+        None => (0, 0),
+    }
+}
+
+fn find_any_col(line: &str, pats: &[&str]) -> (u32, u32) {
+    for pat in pats {
+        let r = find_col(line, pat);
+        if r.0 > 0 {
+            return r;
+        }
+    }
+    (0, 0)
+}
+
 // CYBER001 (CWE-798) — hardcoded credentials in string literals.
 struct RuleHardcodedCredentials;
 impl Rule for RuleHardcodedCredentials {
@@ -130,12 +147,13 @@ impl Rule for RuleHardcodedCredentials {
                 }
                 for (pat, label) in patterns {
                     if lower.contains(pat) && (lower.contains("= \"") || lower.contains("=\"")) {
+                        let (col, end_col) = find_col(&lower, pat);
                         findings.push(
                             Finding::new(
                                 self.id(),
                                 Severity::Error,
                                 format!("possible hardcoded {label} in string literal"),
-                                Location::at(rel.clone(), (i + 1) as u32),
+                                Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                                 Category::Security,
                                 "load credentials from environment variables or a secrets manager",
                             )
@@ -178,10 +196,11 @@ impl Rule for RuleSqlInjection {
                     || trimmed.contains("+ &")
                     || trimmed.contains("+ \"");
                 if has_sql && has_interp {
+                    let (col, end_col) = find_any_col(line, &["format!(", "+ &", "+ \""]);
                     findings.push(Finding::new(
                         self.id(), Severity::Error,
                         "SQL query appears to be constructed by string interpolation",
-                        Location::at(rel.clone(), (i + 1) as u32),
+                        Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                         Category::Security,
                         "use parameterised queries (? placeholders) instead of string concatenation",
                     ).with_standard("cert-c", "STR02-C"));
@@ -220,10 +239,11 @@ impl Rule for RulePathTraversal {
                     let range = i.saturating_sub(3)..=(i + 3).min(lines.len() - 1);
                     let nearby: String = lines[range].to_vec().join("\n");
                     if !nearby.contains("canonicalize") && !nearby.contains("//fusa:safe") {
+                        let (col, end_col) = find_any_col(line, &["PathBuf::from(", "Path::new("]);
                         findings.push(Finding::new(
                             self.id(), Severity::Warning,
                             "path constructed from potentially user-controlled input without canonicalization",
-                            Location::at(rel.clone(), (i + 1) as u32),
+                            Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                             Category::Security,
                             "call .canonicalize() and verify the result is within the allowed root",
                         ).with_standard("cert-c", "FIO02-C"));
@@ -264,12 +284,13 @@ impl Rule for RuleWeakRandom {
                 if weak.iter().any(|p| trimmed.contains(p)) {
                     let prev = if i > 0 { lines[i - 1].trim() } else { "" };
                     if !prev.contains("//fusa:safe") && !prev.contains("// not security") {
+                        let (col, end_col) = find_any_col(line, weak);
                         findings.push(
                             Finding::new(
                                 self.id(),
                                 Severity::Warning,
                                 "non-cryptographic RNG — do not use for security-sensitive values",
-                                Location::at(rel.clone(), (i + 1) as u32),
+                                Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                                 Category::Security,
                                 "use OsRng or the rand::rngs::OsRng for cryptographic randomness",
                             )
@@ -315,12 +336,13 @@ impl Rule for RuleUncheckedArithmetic {
                 {
                     let prev = if i > 0 { lines[i - 1].trim() } else { "" };
                     if !prev.contains("//fusa:safe") {
+                        let (col, end_col) = find_any_col(line, &["len()", "count()"]);
                         findings.push(
                             Finding::new(
                                 self.id(),
                                 Severity::Info,
                                 "arithmetic on length/count values without overflow check",
-                                Location::at(rel.clone(), (i + 1) as u32),
+                                Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                                 Category::Security,
                                 "use .checked_add() / .checked_mul() to prevent integer overflow",
                             )
@@ -359,12 +381,13 @@ impl Rule for RuleCleartextHttp {
                     && !trimmed.contains("127.0.0.1")
                     && !trimmed.contains("//fusa:safe")
                 {
+                    let (col, end_col) = find_col(line, "\"http://");
                     findings.push(
                         Finding::new(
                             self.id(),
                             Severity::Warning,
                             "HTTP URL used — data transmitted in cleartext",
-                            Location::at(rel.clone(), (i + 1) as u32),
+                            Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                             Category::Security,
                             "use HTTPS to encrypt data in transit",
                         )
@@ -400,10 +423,11 @@ impl Rule for RuleCommandInjection {
                 if trimmed.contains("Command::new(") && !trimmed.contains("\"") {
                     let prev = if i > 0 { lines[i - 1].trim() } else { "" };
                     if !prev.contains("//fusa:safe") {
+                        let (col, end_col) = find_col(line, "Command::new(");
                         findings.push(Finding::new(
                             self.id(), Severity::Warning,
                             "Command::new() called with a variable argument — verify no user-controlled input reaches here",
-                            Location::at(rel.clone(), (i + 1) as u32),
+                            Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                             Category::Security,
                             "validate and sanitise all arguments passed to Command::new(); never pass shell-interpreted strings",
                         ).with_standard("cert-c", "ENV33-C"));
@@ -444,10 +468,11 @@ impl Rule for RuleDeprecatedCrypto {
                     if lower.contains(pat)
                         && (lower.contains("use ") || lower.contains("extern crate"))
                     {
+                        let (col, end_col) = find_col(&lower, pat);
                         findings.push(Finding::new(
                             self.id(), Severity::Error,
                             format!("use of deprecated/weak cryptographic algorithm: {name}"),
-                            Location::at(rel.clone(), (i + 1) as u32),
+                            Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                             Category::Security,
                             "use SHA-256 or stronger (sha2 crate) for hashing; use AES-GCM for encryption",
                         ).with_standard("iso21434", "11.4.3"));
@@ -501,12 +526,13 @@ impl Rule for RuleSensitiveLogging {
                 let has_log = log_macros.iter().any(|m| lower.contains(m));
                 let has_sensitive = sensitive.iter().any(|s| lower.contains(s));
                 if has_log && has_sensitive && !lower.contains("//fusa:safe") {
+                    let (col, end_col) = find_any_col(&lower, log_macros);
                     findings.push(
                         Finding::new(
                             self.id(),
                             Severity::Warning,
                             "possible logging of sensitive field (password/token/key)",
-                            Location::at(rel.clone(), (i + 1) as u32),
+                            Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                             Category::Security,
                             "avoid logging sensitive values; redact or mask before logging",
                         )
@@ -549,10 +575,11 @@ impl Rule for RuleUnvalidatedDeserialize {
                 if patterns.iter().any(|p| trimmed.contains(p)) {
                     let prev = if i > 0 { lines[i - 1].trim() } else { "" };
                     if !prev.contains("//fusa:safe") && !prev.contains("// validated") {
+                        let (col, end_col) = find_any_col(line, patterns);
                         findings.push(Finding::new(
                             self.id(), Severity::Info,
                             "deserialisation of external data — ensure input is size-bounded and validated",
-                            Location::at(rel.clone(), (i + 1) as u32),
+                            Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                             Category::Security,
                             "validate structure and field bounds after deserialisation before use",
                         ).with_standard("cert-c", "STR38-C"));
@@ -605,10 +632,11 @@ impl Rule for RuleUncheckedSliceIndex {
                         {
                             let prev = if i > 0 { lines[i - 1].trim() } else { "" };
                             if !prev.contains("//fusa:safe") {
+                                let (col, end_col) = find_col(line, "[");
                                 findings.push(Finding::new(
                                     self.id(), Severity::Info,
                                     "direct slice indexing with a variable — consider .get() for bounds-safe access",
-                                    Location::at(rel.clone(), (i + 1) as u32),
+                                    Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                                     Category::Security,
                                     "use .get(index) which returns Option instead of panicking on out-of-bounds",
                                 ).with_standard("cert-c", "ARR30-C"));
@@ -664,10 +692,11 @@ impl Rule for RuleUnboundedAlloc {
                                 {
                                     let prev = if i > 0 { lines[i - 1].trim() } else { "" };
                                     if !prev.contains("//fusa:safe") {
+                                        let (col, end_col) = find_col(line, pat);
                                         findings.push(Finding::new(
                                             self.id(), Severity::Warning,
                                             "allocation with non-constant size — ensure capacity is bounded",
-                                            Location::at(rel.clone(), (i + 1) as u32),
+                                            Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                                             Category::Security,
                                             "cap allocations with a constant maximum (e.g., .min(MAX_CAPACITY))",
                                         ).with_standard("cert-c", "MEM35-C"));
@@ -711,12 +740,13 @@ impl Rule for RuleTlsBypass {
                     continue;
                 }
                 if patterns.iter().any(|p| trimmed.contains(p)) {
+                    let (col, end_col) = find_any_col(line, patterns);
                     findings.push(
                         Finding::new(
                             self.id(),
                             Severity::Error,
                             "TLS certificate verification disabled — vulnerable to MITM",
-                            Location::at(rel.clone(), (i + 1) as u32),
+                            Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                             Category::Security,
                             "enable TLS certificate verification; never disable in production code",
                         )
@@ -754,10 +784,11 @@ impl Rule for RuleToctouCheck {
                         if use_fns.iter().any(|p| use_line.contains(p))
                             && !check_line.contains("//fusa:safe")
                         {
+                            let (col, end_col) = find_any_col(check_line, check_fns);
                             findings.push(Finding::new(
                                 self.id(), Severity::Warning,
                                 "filesystem check followed by use within 5 lines — possible TOCTOU",
-                                Location::at(rel.clone(), (i + 1) as u32),
+                                Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                                 Category::Security,
                                 "open the file directly and handle errors; avoid separate existence check",
                             ).with_standard("cert-c", "FIO45-C"));
@@ -792,12 +823,13 @@ impl Rule for RuleInsecureFilePerms {
                     continue;
                 }
                 if patterns.iter().any(|p| trimmed.contains(p)) {
+                    let (col, end_col) = find_any_col(line, patterns);
                     findings.push(
                         Finding::new(
                             self.id(),
                             Severity::Warning,
                             "world-writable/world-readable file permission mask",
-                            Location::at(rel.clone(), (i + 1) as u32),
+                            Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                             Category::Security,
                             "use restrictive permissions (e.g., 0o600 for user-only read/write)",
                         )
@@ -840,10 +872,11 @@ impl Rule for RuleEnvSecretExposure {
                 if (trimmed.contains("env::var(") || trimmed.contains("env::var_os("))
                     && sensitive.iter().any(|s| trimmed.to_uppercase().contains(s))
                 {
+                    let (col, end_col) = find_any_col(line, &["env::var(", "env::var_os("]);
                     findings.push(Finding::new(
                         self.id(), Severity::Info,
                         "sensitive environment variable accessed — avoid logging or propagating this value",
-                        Location::at(rel.clone(), (i + 1) as u32),
+                        Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                         Category::Security,
                         "treat the value as a secret; clear it from memory when no longer needed",
                     ).with_standard("iso21434", "11.4.3"));
@@ -880,10 +913,11 @@ impl Rule for RulePathFromUserInput {
                     if !nearby.contains("canonicalize") && !nearby.contains("//fusa:safe") {
                         let prev = if i > 0 { lines[i - 1].trim() } else { "" };
                         if !prev.contains("//fusa:safe") {
+                            let (col, end_col) = find_col(line, ".join(");
                             findings.push(Finding::new(
                                 self.id(), Severity::Info,
                                 "path .join() with variable argument — verify no .. traversal is possible",
-                                Location::at(rel.clone(), (i + 1) as u32),
+                                Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                                 Category::Security,
                                 "call .canonicalize() after joining and verify path is within allowed root",
                             ).with_standard("cert-c", "FIO02-C"));
@@ -919,10 +953,11 @@ impl Rule for RuleManuallyDrop {
                 if trimmed.contains("ManuallyDrop") {
                     let prev = if i > 0 { lines[i - 1].trim() } else { "" };
                     if !prev.contains("//fusa:unsafe") {
+                        let (col, end_col) = find_col(line, "ManuallyDrop");
                         findings.push(Finding::new(
                             self.id(), Severity::Warning,
                             "ManuallyDrop used without //fusa:unsafe justification",
-                            Location::at(rel.clone(), (i + 1) as u32),
+                            Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                             Category::Security,
                             "document why ManuallyDrop is necessary and add //fusa:unsafe justification",
                         ).with_standard("cert-c", "MEM31-C"));
@@ -973,10 +1008,11 @@ impl Rule for RuleFormatWithExternal {
                             {
                                 let prev = if i > 0 { lines[i - 1].trim() } else { "" };
                                 if !prev.contains("//fusa:safe") {
+                                    let (col, end_col) = find_col(line, mac);
                                     findings.push(Finding::new(
                                         self.id(), Severity::Info,
                                         format!("{mac} called with non-literal first argument — ensure it is not user-controlled"),
-                                        Location::at(rel.clone(), (i + 1) as u32),
+                                        Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                                         Category::Security,
                                         "use a string literal as the format template; pass dynamic content as arguments",
                                     ).with_standard("cert-c", "FIO30-C"));
@@ -1015,10 +1051,11 @@ impl Rule for RuleUncheckedFromUtf8 {
                 if trimmed.contains("from_utf8_unchecked") {
                     let prev = if i > 0 { lines[i - 1].trim() } else { "" };
                     if !prev.contains("//fusa:unsafe") {
+                        let (col, end_col) = find_col(line, "from_utf8_unchecked");
                         findings.push(Finding::new(
                             self.id(), Severity::Error,
                             "from_utf8_unchecked invoked without //fusa:unsafe justification",
-                            Location::at(rel.clone(), (i + 1) as u32),
+                            Location::at_col(rel.clone(), (i + 1) as u32, col, end_col),
                             Category::Security,
                             "use std::str::from_utf8() which returns Result; only use unchecked variant with proof of valid UTF-8",
                         ).with_standard("cert-c", "STR38-C"));

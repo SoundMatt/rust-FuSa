@@ -708,8 +708,8 @@ mod tests {
         assert_eq!(code, 0);
         let text = String::from_utf8(out).unwrap();
         assert!(
-            text.contains("0.2.4"),
-            "version string should contain 0.2.4"
+            text.contains("0.2.5"),
+            "version string should contain 0.2.5"
         );
         assert!(
             text.contains("rust-FuSa"),
@@ -1255,6 +1255,67 @@ mod tests {
                 "ruleId {rid} does not match §1.5.1 regex ^[A-Z][A-Z0-9]*(-[A-Z0-9.]+)*$"
             );
         }
+    }
+
+    //fusa:test REQ-LOC001
+    #[test]
+    fn check_json_end_line_end_column() {
+        // §4 MAY: endLine/endColumn populated for single-line token matches; absent when unknown.
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir(dir.path().join("src")).unwrap();
+        // LINT002 (.unwrap()) fires at a known column position.
+        std::fs::write(
+            dir.path().join("src/lib.rs"),
+            "pub fn bad() -> i32 { \"42\".parse().unwrap() }\n",
+        )
+        .unwrap();
+        std::fs::write(
+            dir.path().join("Cargo.toml"),
+            "[package]\nname=\"t\"\nversion=\"0.1.0\"\nedition=\"2021\"\n",
+        )
+        .unwrap();
+        std::fs::write(dir.path().join("README.md"), "# t\n").unwrap();
+        std::fs::write(dir.path().join("LICENSE"), "MPL-2.0\n").unwrap();
+        std::fs::write(
+            dir.path().join(".fusa.json"),
+            "{\"configVersion\":\"1.0\",\"project\":{\"name\":\"t\"},\"standard\":\"generic\"}\n",
+        )
+        .unwrap();
+        std::fs::write(
+            dir.path().join(".fusa-reqs.json"),
+            "{\"requirements\":[]}\n",
+        )
+        .unwrap();
+        let a = args(&format!(
+            "rsfusa check --dir {} --format json",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        run(&a, &mut out, &mut err);
+        let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
+        let findings = v["findings"].as_array().unwrap();
+        // Find the LINT002 finding
+        let lint002 = findings
+            .iter()
+            .find(|f| f["ruleId"].as_str() == Some("LINT002"))
+            .expect("LINT002 finding must be present");
+        let loc = &lint002["location"];
+        // endLine must equal line (single-line span)
+        assert_eq!(
+            loc["endLine"], loc["line"],
+            "endLine must equal line for single-line span"
+        );
+        // endColumn must be > column (span covers .unwrap())
+        let col = loc["column"].as_u64().unwrap_or(0);
+        let end_col = loc["endColumn"]
+            .as_u64()
+            .expect("endColumn must be present");
+        assert!(end_col > col, "endColumn {end_col} must be > column {col}");
+        assert!(
+            end_col >= col + 8,
+            "endColumn should cover at least len('.unwrap()')=9 chars"
+        );
     }
 
     fn is_valid_rule_id(id: &str) -> bool {
