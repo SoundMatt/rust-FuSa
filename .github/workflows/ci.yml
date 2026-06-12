@@ -43,11 +43,12 @@ jobs:
       - name: build release
         run: cargo build --release --locked
 
-      - name: self-check (lint + analyze + check)
+      - name: self-check (lint + analyze + check + comp)
         run: |
           ./target/release/rsfusa lint --dir . --format json --output lint-report.json || true
           ./target/release/rsfusa analyze --dir . --format json --output analyze-report.json || true
           ./target/release/rsfusa check --dir . --format json --output check-report.json || true
+          ./target/release/rsfusa comp --dir . --format json --output comp-report.json || true
 
       - name: self-check SARIF (GitHub code scanning)
         run: |
@@ -119,6 +120,7 @@ jobs:
             check-report.json
             lint-report.json
             analyze-report.json
+            comp-report.json
             cyber-report.json
             trace.json
             fmea.json

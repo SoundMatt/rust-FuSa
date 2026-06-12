@@ -22,7 +22,7 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         "specVersion": SPEC_VERSION,
         "commands": {
             "must": ["version", "capabilities", "init", "check", "report", "trace", "qualify", "release", "audit-pack"],
-            "should": ["lint", "analyze", "diff", "verify", "vuln", "cyber", "coverage", "coupling", "fmea", "tara", "safety-case", "boundary", "hara"],
+            "should": ["lint", "analyze", "diff", "verify", "vuln", "cyber", "coverage", "coupling", "comp", "fmea", "tara", "safety-case", "boundary", "hara"],
             "may": ["iso26262", "iec61508", "do178c", "do178", "iso21434", "unece", "misra", "iec62443", "slsa", "disposition", "badge", "sas", "sci", "impact", "metrics", "fix", "sign", "req", "pr", "template", "hooks"]
         },
         "formats": {
@@ -34,6 +34,7 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
             "qualify":     ["text", "json"],
             "cyber":       ["text", "json"],
             "coverage":    ["text", "json"],
+            "comp":        ["text", "json"],
             "diff":        ["text", "json"],
             "fix":         ["text", "json"],
             "iso26262":    ["text", "json"],

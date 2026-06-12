@@ -1106,6 +1106,41 @@
       "text": "The slsa subcommand shall exit 1 when required gaps exist and exit 0 when all required evidence is present.",
       "standard": "slsa",
       "level": "HLR"
+    },
+    {
+      "id": "REQ-COMP001",
+      "title": "Cyclomatic complexity scan",
+      "text": "The comp command shall recursively scan all .rs files (excluding target/) and compute McCabe cyclomatic complexity V(G) for each function.",
+      "standard": "do178c",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-COMP002",
+      "title": "Complexity threshold gate",
+      "text": "The comp command shall exit 1 when any function exceeds the configured complexity threshold, and exit 0 otherwise.",
+      "standard": "do178c",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-COMP003",
+      "title": "Complexity JSON output",
+      "text": "The comp command shall write comp-report.json with x-FuSa §3.1 header, threshold, functions[], and summary fields when --format json is specified.",
+      "standard": "do178c",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-COMP004",
+      "title": "Complexity text output",
+      "text": "The comp command shall print a tabular text report showing function name, V(G) value, and VIOLATION/ok status for each function.",
+      "standard": "do178c",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-COMP005",
+      "title": "DAL threshold presets",
+      "text": "The comp command shall support --dal-a (threshold 4), --dal-b (threshold 10), --dal-c (threshold 15), and --dal-d (threshold 20) flags per DO-178C §6.3.4.",
+      "standard": "do178c",
+      "level": "HLR"
     }
   ]
 }
