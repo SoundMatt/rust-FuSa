@@ -27,7 +27,6 @@ pub const INPUT_FILES: &[&str] = &[
 pub const EVIDENCE_FILES: &[&str] = &[
     "sbom.json",
     "provenance.json",
-    "provenance.intoto.jsonl",
     "artifact-manifest.json",
     "safety-case.json",
     "safety-case.md",
@@ -36,6 +35,7 @@ pub const EVIDENCE_FILES: &[&str] = &[
     "tara.md",
     "fmea.json",
     "fmea.csv",
+    "comp-report.json",
     "coupling-report.json",
     "cyber-report.json",
     "vuln.json",

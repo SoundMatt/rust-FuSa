@@ -1,5 +1,5 @@
 // rsfusa — rust-FuSa functional safety toolkit for Rust projects.
-// Implements x-FuSa spec v1.9 (§1.1: language=rust, binary=rsfusa).
+// Implements x-FuSa spec v1.10 (§1.1: language=rust, binary=rsfusa).
 //fusa:req REQ-NF001
 //fusa:req REQ-NF002
 //fusa:req REQ-CLI001
@@ -259,7 +259,7 @@ mod tests {
         assert_eq!(code, 0);
         let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
         assert_eq!(v["tool"], "rust-FuSa");
-        assert_eq!(v["specVersion"], "1.9");
+        assert_eq!(v["specVersion"], "1.10");
     }
 
     //fusa:test REQ-CLI010
@@ -387,8 +387,8 @@ mod tests {
             "qualify should pass: {}",
             String::from_utf8(err).unwrap_or_default()
         );
-        let text = String::from_utf8(out).unwrap();
-        assert!(text.contains("passed"));
+        let errtext = String::from_utf8(err).unwrap();
+        assert!(errtext.contains("passed"));
     }
 
     //fusa:test REQ-HARA002
@@ -435,7 +435,7 @@ mod tests {
         let code = run(&a, &mut out, &mut err);
         assert!(code == 0 || code == 1);
         let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
-        assert_eq!(v["schemaVersion"], "1.9");
+        assert_eq!(v["schemaVersion"], "1.10");
         assert_eq!(v["tool"], "rust-FuSa");
         assert!(v["findings"].is_array());
         assert!(v["summary"]["errors"].is_number());
@@ -708,8 +708,8 @@ mod tests {
         assert_eq!(code, 0);
         let text = String::from_utf8(out).unwrap();
         assert!(
-            text.contains("0.2.3"),
-            "version string should contain 0.2.3"
+            text.contains("0.2.4"),
+            "version string should contain 0.2.4"
         );
         assert!(
             text.contains("rust-FuSa"),
@@ -999,9 +999,10 @@ mod tests {
         assert!(code == 0 || code == 1);
         let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
         assert_eq!(v["kind"].as_str(), Some("comp-report"));
+        assert_eq!(v["schemaVersion"].as_str(), Some("1.10"));
         assert!(v["threshold"].as_u64().is_some());
-        assert!(v["functions"].is_array());
-        assert!(v["summary"]["totalFunctions"].as_u64().unwrap() >= 1);
+        assert!(v["results"].is_array());
+        assert!(v["totalFunctions"].as_u64().unwrap() >= 1);
     }
 
     //fusa:test REQ-COMP003
@@ -1061,10 +1062,10 @@ mod tests {
         assert_eq!(code, 1, "complex function should violate threshold 2");
         let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
         assert!(
-            v["summary"]["violations"].as_u64().unwrap() >= 1,
+            v["violations"].as_u64().unwrap() >= 1,
             "should report at least one violation"
         );
-        let max = v["summary"]["maxComplexity"].as_u64().unwrap();
+        let max = v["maxComplexity"].as_u64().unwrap();
         assert!(max > 2, "max complexity should exceed 2, got {max}");
     }
 
@@ -1092,5 +1093,196 @@ mod tests {
             Some(4),
             "DAL-A threshold should be 4"
         );
+    }
+
+    //fusa:test REQ-COMP003
+    //fusa:test REQ-COMP005
+    #[test]
+    fn comp_dal_flag_canonical() {
+        // §2.9: --dal DAL-A|B|C|D canonical flag form.
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir(dir.path().join("src")).unwrap();
+        std::fs::write(dir.path().join("src/lib.rs"), "pub fn f() -> i32 { 1 }\n").unwrap();
+        let a = args(&format!(
+            "rsfusa comp --dir {} --format json --dal DAL-B",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert!(code == 0 || code == 1);
+        let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
+        assert_eq!(v["threshold"].as_u64(), Some(10));
+        assert_eq!(v["dal"].as_str(), Some("DAL-B"));
+    }
+
+    // §2.2: --output redirects report; MUST NOT also write to stdout.
+    #[test]
+    fn check_output_no_double_write() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::write(
+            dir.path().join("Cargo.toml"),
+            "[package]\nname=\"t\"\nversion=\"0.1.0\"\nedition=\"2021\"\n",
+        )
+        .unwrap();
+        std::fs::write(dir.path().join("README.md"), "# t\n").unwrap();
+        std::fs::write(dir.path().join("LICENSE"), "MPL-2.0\n").unwrap();
+        std::fs::write(
+            dir.path().join(".fusa.json"),
+            "{\"configVersion\":\"1.0\",\"project\":{\"name\":\"t\"},\"standard\":\"generic\"}\n",
+        )
+        .unwrap();
+        std::fs::write(
+            dir.path().join(".fusa-reqs.json"),
+            "{\"requirements\":[]}\n",
+        )
+        .unwrap();
+        let out_file = dir.path().join("check-report.json");
+        let a = args(&format!(
+            "rsfusa check --dir {} --format json --output {}",
+            dir.path().display(),
+            out_file.display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert!(code == 0 || code == 1);
+        // §2.2: stdout MUST be empty when --output is given.
+        assert!(
+            out.is_empty(),
+            "check: stdout must be empty when --output is given, got: {}",
+            String::from_utf8_lossy(&out)
+        );
+        // The file must be valid JSON with the §3.1 header.
+        let content = std::fs::read(&out_file).unwrap();
+        let v: serde_json::Value = serde_json::from_slice(&content).unwrap();
+        assert_eq!(v["kind"].as_str(), Some("check-report"));
+        assert_eq!(v["schemaVersion"].as_str(), Some("1.10"));
+    }
+
+    // §2.2: comp --output redirects; stdout must be empty.
+    #[test]
+    fn comp_output_no_double_write() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir(dir.path().join("src")).unwrap();
+        std::fs::write(dir.path().join("src/lib.rs"), "pub fn f() -> i32 { 1 }\n").unwrap();
+        let out_file = dir.path().join("comp-report.json");
+        let a = args(&format!(
+            "rsfusa comp --dir {} --format json --output {}",
+            dir.path().display(),
+            out_file.display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert!(code == 0 || code == 1);
+        assert!(
+            out.is_empty(),
+            "comp: stdout must be empty when --output is given, got: {}",
+            String::from_utf8_lossy(&out)
+        );
+        let content = std::fs::read(&out_file).unwrap();
+        let v: serde_json::Value = serde_json::from_slice(&content).unwrap();
+        assert_eq!(v["kind"].as_str(), Some("comp-report"));
+    }
+
+    // §2.9: ruleId is format-invariant — same string in text and JSON.
+    #[test]
+    fn check_ruleid_format_invariant() {
+        let dir = tempfile::TempDir::new().unwrap();
+        // Create a project that triggers LINT002 (.unwrap() in source).
+        std::fs::create_dir(dir.path().join("src")).unwrap();
+        std::fs::write(
+            dir.path().join("src/lib.rs"),
+            "pub fn bad() -> i32 { \"42\".parse().unwrap() }\n",
+        )
+        .unwrap();
+        std::fs::write(
+            dir.path().join("Cargo.toml"),
+            "[package]\nname=\"t\"\nversion=\"0.1.0\"\nedition=\"2021\"\n",
+        )
+        .unwrap();
+        std::fs::write(dir.path().join("README.md"), "# t\n").unwrap();
+        std::fs::write(dir.path().join("LICENSE"), "MPL-2.0\n").unwrap();
+        std::fs::write(
+            dir.path().join(".fusa.json"),
+            "{\"configVersion\":\"1.0\",\"project\":{\"name\":\"t\"},\"standard\":\"generic\"}\n",
+        )
+        .unwrap();
+        std::fs::write(
+            dir.path().join(".fusa-reqs.json"),
+            "{\"requirements\":[]}\n",
+        )
+        .unwrap();
+
+        // JSON format — capture ruleIds from findings.
+        let a_json = args(&format!(
+            "rsfusa check --dir {} --format json",
+            dir.path().display()
+        ));
+        let mut out_json = Vec::new();
+        let mut err_json = Vec::new();
+        run(&a_json, &mut out_json, &mut err_json);
+        let v: serde_json::Value = serde_json::from_slice(&out_json).unwrap();
+        let rule_ids: Vec<&str> = v["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|f| f["ruleId"].as_str())
+            .collect();
+        assert!(!rule_ids.is_empty(), "should have at least one finding");
+
+        // Text format — each ruleId must appear verbatim in text output too (§2.9).
+        let a_text = args(&format!(
+            "rsfusa check --dir {} --format text",
+            dir.path().display()
+        ));
+        let mut out_text = Vec::new();
+        let mut err_text = Vec::new();
+        run(&a_text, &mut out_text, &mut err_text);
+        let text = String::from_utf8(out_text).unwrap();
+        for rid in &rule_ids {
+            assert!(
+                text.contains(rid),
+                "ruleId {rid} from JSON must appear verbatim in text output (§2.9)"
+            );
+        }
+
+        // ruleId regex: ^[A-Z][A-Z0-9]*(-[A-Z0-9.]+)*$ per §1.5.1.
+        for rid in &rule_ids {
+            assert!(
+                is_valid_rule_id(rid),
+                "ruleId {rid} does not match §1.5.1 regex ^[A-Z][A-Z0-9]*(-[A-Z0-9.]+)*$"
+            );
+        }
+    }
+
+    fn is_valid_rule_id(id: &str) -> bool {
+        if id.is_empty() {
+            return false;
+        }
+        let mut chars = id.chars();
+        if !chars.next().unwrap().is_ascii_uppercase() {
+            return false;
+        }
+        let mut expecting_part = false;
+        let mut part_len = 0usize;
+        for c in chars {
+            if c == '-' {
+                if expecting_part && part_len == 0 {
+                    return false; // empty segment
+                }
+                expecting_part = true;
+                part_len = 0;
+            } else if expecting_part {
+                if !(c.is_ascii_uppercase() || c.is_ascii_digit() || c == '.') {
+                    return false;
+                }
+                part_len += 1;
+            } else if !(c.is_ascii_uppercase() || c.is_ascii_digit()) {
+                return false;
+            }
+        }
+        !(expecting_part && part_len == 0)
     }
 }
