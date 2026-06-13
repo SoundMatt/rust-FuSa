@@ -133,6 +133,17 @@ jobs:
             artifact-manifest.json
           if-no-files-found: warn
 
+  dco:
+    name: DCO
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check DCO
+        uses: dco-org/dco-action@v1
+
   cross-compile:
     name: Cross-compile (${{ matrix.target }})
     runs-on: ubuntu-latest
