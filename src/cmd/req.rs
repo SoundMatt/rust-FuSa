@@ -1,4 +1,5 @@
 // `rsfusa req [show|import|export]` — requirement management.
+//fusa:req REQ-REQQ003
 
 use crate::config::load;
 use crate::config::{load_reqs, ReqsFile, Requirement};

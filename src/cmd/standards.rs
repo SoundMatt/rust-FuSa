@@ -1,5 +1,23 @@
 // Standards gap reports: iso26262, iec61508, do178c, iso21434, unece, misra, iec62443, slsa.
 // Each maps evidence files to standard requirements and reports gaps.
+//fusa:req REQ-IEC62443001
+//fusa:req REQ-IEC62443002
+//fusa:req REQ-IEC62443003
+//fusa:req REQ-IEC62443004
+//fusa:req REQ-IEC62443005
+//fusa:req REQ-SLSA001
+//fusa:req REQ-SLSA002
+//fusa:req REQ-SLSA003
+//fusa:req REQ-SLSA004
+//fusa:req REQ-SLSA005
+//fusa:req REQ-ISO21434-001
+//fusa:req REQ-ISO21434-002
+//fusa:req REQ-ISO21434-003
+//fusa:req REQ-UNECE-001
+//fusa:req REQ-UNECE-002
+//fusa:req REQ-UNECE-003
+//fusa:req REQ-LOC-REL001
+//fusa:req REQ-REPORT-MD001
 
 use crate::types::{
     EXIT_GATE_FAIL, EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION,
@@ -598,6 +616,39 @@ fn run_gap_report(
             }
             None => {
                 writeln!(stdout, "{json}").ok();
+            }
+        }
+    } else if opts.format == "md" {
+        let mut md = String::new();
+        md.push_str(&format!("# {standard_name} Compliance Gap Report\n\n"));
+        md.push_str("| Objective | Title | Status |\n");
+        md.push_str("|---|---|---|\n");
+        for obj in &objectives {
+            let status_str = if obj["status"] == "satisfied" {
+                "✓ SATISFIED"
+            } else {
+                "✗ GAP"
+            };
+            md.push_str(&format!(
+                "| {} | {} | {} |\n",
+                obj["id"].as_str().unwrap_or(""),
+                obj["title"].as_str().unwrap_or(""),
+                status_str
+            ));
+        }
+        md.push_str(&format!(
+            "\n**Total:** {total}  **Satisfied:** {satisfied}  **Gaps:** {gap_count}  **Required gaps:** {required_gaps}\n"
+        ));
+        match opts.output.as_deref() {
+            Some(path) => {
+                if let Err(e) = std::fs::write(path, &md) {
+                    writeln!(stderr, "rsfusa {standard_id}: write {path}: {e}").ok();
+                    return EXIT_RUNTIME;
+                }
+                writeln!(stderr, "rsfusa {standard_id}: gap report written to {path}").ok();
+            }
+            None => {
+                write!(stdout, "{md}").ok();
             }
         }
     } else {

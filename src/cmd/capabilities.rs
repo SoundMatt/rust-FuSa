@@ -1,3 +1,5 @@
+//fusa:req REQ-CLI010
+//fusa:req REQ-CAP-STD001
 use crate::types::{EXIT_OK, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use std::io::Write;
 

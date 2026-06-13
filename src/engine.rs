@@ -6,6 +6,9 @@
 //fusa:req REQ-ENG005
 //fusa:req REQ-ENG006
 //fusa:req REQ-ENG007
+//fusa:req REQ-RUNTIME001
+//fusa:req REQ-RUNTIME002
+//fusa:req REQ-RUNTIME003
 
 use crate::config::FusaConfig;
 use crate::types::Finding;
