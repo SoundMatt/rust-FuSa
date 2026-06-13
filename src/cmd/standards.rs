@@ -601,31 +601,34 @@ fn run_gap_report(
             }
         }
     } else {
-        writeln!(stdout, "{standard_name} Compliance Gap Report").ok();
-        writeln!(stdout, "{}", "=".repeat(50)).ok();
-        writeln!(stdout, "{:<18} {:<44} Status", "Objective", "Title").ok();
-        writeln!(stdout, "{}", "-".repeat(80)).ok();
-        for obj in &objectives {
-            let status_str = if obj["status"] == "satisfied" {
-                "SATISFIED"
-            } else {
-                "GAP"
-            };
+        // §2.2: when --output is given, stdout must be clean; write JSON to file only.
+        if opts.output.is_none() {
+            writeln!(stdout, "{standard_name} Compliance Gap Report").ok();
+            writeln!(stdout, "{}", "=".repeat(50)).ok();
+            writeln!(stdout, "{:<18} {:<44} Status", "Objective", "Title").ok();
+            writeln!(stdout, "{}", "-".repeat(80)).ok();
+            for obj in &objectives {
+                let status_str = if obj["status"] == "satisfied" {
+                    "SATISFIED"
+                } else {
+                    "GAP"
+                };
+                writeln!(
+                    stdout,
+                    "{:<18} {:<44} {}",
+                    obj["id"].as_str().unwrap_or(""),
+                    truncate(obj["title"].as_str().unwrap_or(""), 43),
+                    status_str
+                )
+                .ok();
+            }
+            writeln!(stdout, "{}", "-".repeat(80)).ok();
             writeln!(
                 stdout,
-                "{:<18} {:<44} {}",
-                obj["id"].as_str().unwrap_or(""),
-                truncate(obj["title"].as_str().unwrap_or(""), 43),
-                status_str
+                "Total: {total}  Satisfied: {satisfied}  Gaps: {gap_count}  Required gaps: {required_gaps}"
             )
             .ok();
         }
-        writeln!(stdout, "{}", "-".repeat(80)).ok();
-        writeln!(
-            stdout,
-            "Total: {total}  Satisfied: {satisfied}  Gaps: {gap_count}  Required gaps: {required_gaps}"
-        )
-        .ok();
 
         if let Some(path) = opts.output.as_deref() {
             let json = serde_json::to_string_pretty(&build_report()).unwrap();
@@ -633,7 +636,6 @@ fn run_gap_report(
                 writeln!(stderr, "rsfusa {standard_id}: write {path}: {e}").ok();
                 return EXIT_RUNTIME;
             }
-            // §2.2: confirmation to stderr, not stdout.
             writeln!(stderr, "rsfusa {standard_id}: gap report written to {path}").ok();
         }
     }

@@ -49,6 +49,7 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         .iter()
         .any(|f| f.severity == crate::types::Severity::Error);
 
+    let explicit_output = opts.output.is_some();
     let out_path = opts
         .output
         .unwrap_or_else(|| project_root.join(CYBER_FILE).to_string_lossy().into_owned());
@@ -66,12 +67,13 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         return EXIT_RUNTIME;
     }
 
-    if opts.format.as_deref() != Some("json") {
+    // §2.2: when --output is given, stdout must be clean; text summary only for interactive runs.
+    if opts.format.as_deref() != Some("json") && !explicit_output {
         let no_color = std::env::var("NO_COLOR").is_ok();
         render_text(stdout, &report, !no_color).ok();
     }
 
-    writeln!(stdout, "Cybersecurity report written to {out_path}").ok();
+    writeln!(stderr, "rsfusa cyber: written to {out_path}").ok();
 
     if has_errors {
         EXIT_GATE_FAIL
