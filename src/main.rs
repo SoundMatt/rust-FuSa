@@ -708,8 +708,8 @@ mod tests {
         assert_eq!(code, 0);
         let text = String::from_utf8(out).unwrap();
         assert!(
-            text.contains("0.2.6"),
-            "version string should contain 0.2.6"
+            text.contains("0.2.7"),
+            "version string should contain 0.2.7"
         );
         assert!(
             text.contains("rust-FuSa"),
@@ -1284,6 +1284,54 @@ mod tests {
         let content = std::fs::read(&out_file).unwrap();
         let v: serde_json::Value = serde_json::from_slice(&content).unwrap();
         assert_eq!(v["kind"].as_str(), Some("comp-report"));
+    }
+
+    // §2.2: cyber --output must not write anything to stdout.
+    #[test]
+    fn cyber_output_stdout_clean() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir(dir.path().join("src")).unwrap();
+        std::fs::write(dir.path().join("src/lib.rs"), "pub fn f() {}\n").unwrap();
+        let out_file = dir.path().join("cyber-out.json");
+        let a = args(&format!(
+            "rsfusa cyber --dir {} --output {}",
+            dir.path().display(),
+            out_file.display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        run(&a, &mut out, &mut err);
+        assert!(
+            out.is_empty(),
+            "cyber: stdout must be empty when --output is given, got: {}",
+            String::from_utf8_lossy(&out)
+        );
+        let errtext = String::from_utf8(err).unwrap();
+        assert!(errtext.contains("cyber"), "confirmation should appear on stderr");
+    }
+
+    // §2.2: standards --output must not write text table to stdout.
+    #[test]
+    fn standards_output_stdout_clean() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let out_file = dir.path().join("gap.json");
+        let a = args(&format!(
+            "rsfusa iso26262 --dir {} --output {}",
+            dir.path().display(),
+            out_file.display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        run(&a, &mut out, &mut err);
+        assert!(
+            out.is_empty(),
+            "iso26262: stdout must be empty when --output is given, got: {}",
+            String::from_utf8_lossy(&out)
+        );
+        let content = std::fs::read(&out_file).unwrap();
+        let v: serde_json::Value = serde_json::from_slice(&content).unwrap();
+        assert_eq!(v["kind"].as_str(), Some("gap-report"));
+        assert_eq!(v["standard"].as_str(), Some("iso26262"));
     }
 
     // §2.9: ruleId is format-invariant — same string in text and JSON.

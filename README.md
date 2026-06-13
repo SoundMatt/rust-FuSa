@@ -1,6 +1,6 @@
 # rust-FuSa
 
-**Version 0.2.6** · x-FuSa spec v1.10 · language: rust · binary: `rsfusa`
+**Version 0.2.7** · x-FuSa spec v1.10 · language: rust · binary: `rsfusa`
 
 A functional safety enablement toolkit for Rust projects. rust-FuSa provides static checks, coding rules, traceability helpers, CI evidence bundles, reproducible build metadata, HARA, FMEA, TARA, boundary diagrams, and tool qualification support to help teams build safety cases under ISO 26262, IEC 61508, ISO 21434, DO-178C, and MISRA.
 

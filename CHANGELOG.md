@@ -7,6 +7,24 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.2.7] — 2026-06-13
+
+### Fixed
+
+- **`cyber` stdout clean on `--output` (§2.2)** — `cyber` no longer renders the text summary to stdout when `--output <file>` is given; stdout is clean for piping. Confirmation line moved to stderr.
+- **Standards text mode stdout clean on `--output` (§2.2)** — `iso26262`, `iec61508`, `do178c`, `iso21434`, `unece`, `misra`, `iec62443`, `slsa` no longer print the text gap-report table to stdout when `--output <file>` is given; JSON is written to the file, stdout is clean.
+
+### Tests
+
+- 2 new tests: `cyber_output_stdout_clean`, `standards_output_stdout_clean`
+- Total: **53 tests**, all green
+
+### Changed
+
+- Version bumped to **0.2.7**
+
+---
+
 ## [0.2.6] — 2026-06-12
 
 ### Fixed
