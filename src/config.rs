@@ -1,4 +1,17 @@
 // Project configuration: .fusa.json (§1.2.1) and .fusa-reqs.json (§1.2.2).
+//fusa:req REQ-CFG001
+//fusa:req REQ-CFG002
+//fusa:req REQ-CFG003
+//fusa:req REQ-CFG004
+//fusa:req REQ-CFG005
+//fusa:req REQ-CFG006
+//fusa:req REQ-CFG007
+//fusa:req REQ-CFG008
+//fusa:req REQ-ERR001
+//fusa:req REQ-ERR002
+//fusa:req REQ-ERR003
+//fusa:req REQ-REQQ001
+//fusa:req REQ-REQQ002
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

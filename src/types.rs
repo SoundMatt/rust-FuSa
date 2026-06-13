@@ -1,5 +1,6 @@
 // Core value types shared across all modules (§4, §2.4, §1.5).
 //fusa:req REQ-LOC001
+//fusa:req REQ-LOC-REL001
 //fusa:req REQ-CLI001
 //fusa:req REQ-CLI003
 //fusa:req REQ-CLI004
@@ -13,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use unicode_normalization::UnicodeNormalization;
 
-pub const VERSION: &str = "0.2.7";
+pub const VERSION: &str = "0.2.8";
 pub const SPEC_VERSION: &str = "1.10";
 pub const TOOL_NAME: &str = "rust-FuSa";
 pub const LANGUAGE: &str = "rust";

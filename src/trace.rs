@@ -6,6 +6,7 @@
 //fusa:req REQ-TRACE005
 //fusa:req REQ-TRACE006
 //fusa:req REQ-TRACE007
+//fusa:req REQ-TRACE-MD001
 
 use crate::config::{load_reqs, FusaConfig, Requirement};
 use crate::types::{

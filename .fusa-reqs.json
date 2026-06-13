@@ -1149,6 +1149,76 @@
       "priority": "SHOULD",
       "status": "implemented",
       "source": "spec \u00a74"
+    },
+    {
+      "id": "REQ-LOC-REL001",
+      "title": "Project-relative file paths",
+      "text": "All location.file paths in JSON output shall be relative to the project root directory, not absolute paths.",
+      "standard": "x-fusa",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CAP-STD001",
+      "title": "Canonical standards identifiers in capabilities",
+      "text": "The capabilities.standards array shall use lower-case hyphenated identifiers as specified in \u00a72.4.1 (e.g. 'iso26262', 'iec61508', 'unece-r155').",
+      "standard": "x-fusa",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TRACE-MD001",
+      "title": "Traceability matrix markdown output",
+      "text": "The trace command shall support --format md to emit the traceability matrix as a Markdown table.",
+      "standard": "x-fusa",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-REPORT-MD001",
+      "title": "Compliance gap report markdown output",
+      "text": "All standards gap report subcommands (iso26262, iec61508, do178c, iso21434, iec62443, slsa, unece) shall support --format md to emit the gap report as a Markdown table.",
+      "standard": "x-fusa",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ISO21434-001",
+      "title": "ISO 21434 gap report command",
+      "text": "The tool shall provide an 'iso21434' subcommand that generates a gap report mapping project evidence to ISO/SAE 21434 automotive cybersecurity requirements.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ISO21434-002",
+      "title": "ISO 21434 evidence mapping",
+      "text": "The iso21434 gap report shall map evidence files including tara.json, .fusa.json, and cybersecurity plan documentation.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ISO21434-003",
+      "title": "ISO 21434 JSON output",
+      "text": "The iso21434 subcommand shall support --format json output with kind 'gap-report' conforming to the x-FuSa gap report schema.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-UNECE-001",
+      "title": "UNECE R.155/R.156 gap report command",
+      "text": "The tool shall provide a 'unece' subcommand that generates a gap report mapping project evidence to UNECE R.155 and R.156 cybersecurity management system requirements.",
+      "standard": "unece-r155",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-UNECE-002",
+      "title": "UNECE R.155/R.156 evidence mapping",
+      "text": "The unece gap report shall map evidence files including tara.json, cyber-report.json, and vehicle type approval documentation.",
+      "standard": "unece-r155",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-UNECE-003",
+      "title": "UNECE R.155/R.156 JSON output",
+      "text": "The unece subcommand shall support --format json output with kind 'gap-report' conforming to the x-FuSa gap report schema.",
+      "standard": "unece-r155",
+      "level": "HLR"
     }
   ]
 }

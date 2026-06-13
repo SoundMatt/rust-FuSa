@@ -1,3 +1,4 @@
+//fusa:req REQ-CLI009
 use crate::types::{EXIT_OK, EXIT_USAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use std::io::Write;
 
