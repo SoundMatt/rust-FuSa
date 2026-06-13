@@ -1307,7 +1307,10 @@ mod tests {
             String::from_utf8_lossy(&out)
         );
         let errtext = String::from_utf8(err).unwrap();
-        assert!(errtext.contains("cyber"), "confirmation should appear on stderr");
+        assert!(
+            errtext.contains("cyber"),
+            "confirmation should appear on stderr"
+        );
     }
 
     // §2.2: standards --output must not write text table to stdout.
