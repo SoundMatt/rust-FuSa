@@ -7,6 +7,13 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.2.9 — 2026-07-25
+
+- Fix SPEC_VERSION from "1.10" to "1.10.4"
+- Add docker-publish.yml — publish ghcr.io/soundmatt/rust-fusa on tag push
+
+---
+
 ## [0.2.7] — 2026-06-13
 
 ### Fixed
