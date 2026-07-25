@@ -15,7 +15,7 @@ use sha2::{Digest, Sha256};
 use unicode_normalization::UnicodeNormalization;
 
 pub const VERSION: &str = "0.2.8";
-pub const SPEC_VERSION: &str = "1.10";
+pub const SPEC_VERSION: &str = "1.10.4";
 pub const TOOL_NAME: &str = "rust-FuSa";
 pub const LANGUAGE: &str = "rust";
 
