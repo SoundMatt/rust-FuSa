@@ -262,7 +262,7 @@ mod tests {
         assert_eq!(code, 0);
         let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
         assert_eq!(v["tool"], "rust-FuSa");
-        assert_eq!(v["specVersion"], "1.10");
+        assert_eq!(v["specVersion"], "1.10.4");
     }
 
     //fusa:test REQ-CLI010
