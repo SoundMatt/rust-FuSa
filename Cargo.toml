@@ -1,6 +1,6 @@
 [package]
 name = "rsfusa"
-version = "0.2.9"
+version = "0.3.0"
 edition = "2021"
 description = "rust-FuSa: functional safety toolkit for Rust projects"
 license = "MPL-2.0"

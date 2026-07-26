@@ -735,8 +735,8 @@ mod tests {
         assert_eq!(code, 0);
         let text = String::from_utf8(out).unwrap();
         assert!(
-            text.contains("0.2.9"),
-            "version string should contain 0.2.9"
+            text.contains("0.3.0"),
+            "version string should contain 0.3.0"
         );
         assert!(
             text.contains("rust-FuSa"),
@@ -1852,5 +1852,402 @@ mod tests {
         let parts: Vec<&str> = fp.splitn(2, ':').collect();
         assert_eq!(parts[0], "sha256", "fingerprint must start with 'sha256:'");
         assert_eq!(parts[1].len(), 64, "sha256 hex must be 64 chars");
+    }
+
+    // ── Feature 1: HLR/LLR Decomposition ────────────────────────────────────
+
+    //fusa:test REQ-TRACE-HLR001
+    //fusa:test REQ-TRACE-HLR002
+    #[test]
+    fn hlr_llr_validation_llr_without_parent() {
+        use crate::config::Requirement;
+        use crate::trace::validate_hlr_llr;
+        let reqs = vec![
+            Requirement {
+                id: "REQ-HLR001".to_string(),
+                title: Some("A high-level requirement".to_string()),
+                text: None,
+                standard: None,
+                level: Some("HLR".to_string()),
+                asil: None,
+                parent: None,
+            },
+            Requirement {
+                id: "REQ-LLR001".to_string(),
+                title: Some("A low-level requirement without parent".to_string()),
+                text: None,
+                standard: None,
+                level: Some("LLR".to_string()),
+                asil: None,
+                parent: None, // missing parent
+            },
+        ];
+        let result = validate_hlr_llr(&reqs, None, None, true);
+        assert!(
+            result.findings.iter().any(|f| f.rule_id == "TRACE-HLR001"),
+            "should flag LLR without parent"
+        );
+        assert!(result.has_errors, "strict mode should produce errors");
+    }
+
+    //fusa:test REQ-TRACE-HLR002
+    #[test]
+    fn hlr_llr_validation_llr_bad_parent() {
+        use crate::config::Requirement;
+        use crate::trace::validate_hlr_llr;
+        let reqs = vec![
+            Requirement {
+                id: "REQ-LLR001".to_string(),
+                title: None,
+                text: None,
+                standard: None,
+                level: Some("LLR".to_string()),
+                asil: None,
+                parent: Some("REQ-DOES-NOT-EXIST".to_string()),
+            },
+        ];
+        let result = validate_hlr_llr(&reqs, None, None, true);
+        assert!(
+            result.findings.iter().any(|f| f.rule_id == "TRACE-HLR002"),
+            "should flag LLR referencing nonexistent parent"
+        );
+    }
+
+    //fusa:test REQ-TRACE-HLR003
+    #[test]
+    fn hlr_llr_validation_hlr_without_children() {
+        use crate::config::Requirement;
+        use crate::trace::validate_hlr_llr;
+        let reqs = vec![
+            Requirement {
+                id: "REQ-HLR001".to_string(),
+                title: None,
+                text: None,
+                standard: None,
+                level: Some("HLR".to_string()),
+                asil: None,
+                parent: None,
+            },
+        ];
+        let result = validate_hlr_llr(&reqs, None, None, true);
+        assert!(
+            result.findings.iter().any(|f| f.rule_id == "TRACE-HLR003"),
+            "should flag HLR with no LLR children"
+        );
+    }
+
+    //fusa:test REQ-TRACE-HLR004
+    #[test]
+    fn hlr_llr_validation_valid_hierarchy() {
+        use crate::config::Requirement;
+        use crate::trace::validate_hlr_llr;
+        let reqs = vec![
+            Requirement {
+                id: "REQ-HLR001".to_string(),
+                title: None,
+                text: None,
+                standard: None,
+                level: Some("HLR".to_string()),
+                asil: None,
+                parent: None,
+            },
+            Requirement {
+                id: "REQ-LLR001".to_string(),
+                title: None,
+                text: None,
+                standard: None,
+                level: Some("LLR".to_string()),
+                asil: None,
+                parent: Some("REQ-HLR001".to_string()),
+            },
+        ];
+        let result = validate_hlr_llr(&reqs, None, None, false);
+        assert!(result.findings.is_empty(), "valid hierarchy should produce no findings");
+    }
+
+    //fusa:test REQ-TRACE-HLR001
+    #[test]
+    fn trace_strict_hlr_llr_flag_accepted() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::write(
+            dir.path().join(".fusa.json"),
+            "{\"configVersion\":\"1.0\",\"project\":{\"name\":\"t\"},\"standard\":\"iso26262\"}\n",
+        )
+        .unwrap();
+        std::fs::write(
+            dir.path().join(".fusa-reqs.json"),
+            "{\"requirements\":[]}\n",
+        )
+        .unwrap();
+        let a = args(&format!(
+            "rsfusa trace --strict-hlr-llr --dir {}",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        // With no HLR/LLR requirements, no failures expected.
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "--strict-hlr-llr with no HLR/LLR should pass");
+    }
+
+    //fusa:test REQ-TRACE-HLR001
+    //fusa:test REQ-TRACE-HLR003
+    #[test]
+    fn trace_strict_hlr_llr_fails_on_incomplete_hierarchy() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::write(
+            dir.path().join(".fusa.json"),
+            "{\"configVersion\":\"1.0\",\"project\":{\"name\":\"t\"},\"standard\":\"iso26262\"}\n",
+        )
+        .unwrap();
+        // HLR with no LLR children — should fail under --strict-hlr-llr.
+        std::fs::write(
+            dir.path().join(".fusa-reqs.json"),
+            r#"{"requirements":[{"id":"REQ-HLR001","level":"HLR","title":"top"}]}"#,
+        )
+        .unwrap();
+        let a = args(&format!(
+            "rsfusa trace --strict-hlr-llr --dir {}",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_ne!(code, 0, "--strict-hlr-llr should fail when HLR has no LLR");
+    }
+
+    // ── Feature 2: Tool Qualification Display ───────────────────────────────
+
+    //fusa:test REQ-QUALIFY-TQ001
+    //fusa:test REQ-QUALIFY-TQ002
+    //fusa:test REQ-QUALIFY-TQ003
+    #[test]
+    fn qualify_qualification_method_independent() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!(
+            "rsfusa qualify --dir {} --format json --qualification-method independent --qualifier AcmeSafetyLtd",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0);
+        let err_text = String::from_utf8(err).unwrap();
+        assert!(
+            err_text.contains("independently-qualified"),
+            "stderr should show independently-qualified badge"
+        );
+    }
+
+    //fusa:test REQ-QUALIFY-TQ001
+    #[test]
+    fn qualify_badge_self_qualified() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!(
+            "rsfusa qualify --dir {} --format json --qualification-method self",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0);
+        let err_text = String::from_utf8(err).unwrap();
+        assert!(
+            err_text.contains("self-qualified"),
+            "stderr should show self-qualified badge"
+        );
+    }
+
+    //fusa:test REQ-QUALIFY-TQ001
+    #[test]
+    fn qualify_badge_unqualified_when_no_method() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!(
+            "rsfusa qualify --dir {} --format json",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0);
+        let err_text = String::from_utf8(err).unwrap();
+        assert!(
+            err_text.contains("unqualified"),
+            "stderr should show unqualified badge"
+        );
+    }
+
+    //fusa:test REQ-QUALIFY-TQ002
+    //fusa:test REQ-QUALIFY-TQ003
+    #[test]
+    fn qualify_json_has_qualification_fields() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let out_path = dir.path().join("q.json");
+        let a = args(&format!(
+            "rsfusa qualify --dir {} --output {} --format json --qualification-method independent --qualifier TestOrg --record-uri https://example.com/dossier",
+            dir.path().display(),
+            out_path.display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        run(&a, &mut out, &mut err);
+        let content = std::fs::read_to_string(&out_path).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&content).unwrap();
+        assert_eq!(v["qualificationMethod"].as_str(), Some("independent"));
+        assert_eq!(v["qualifierIdentity"].as_str(), Some("TestOrg"));
+        assert_eq!(v["qualificationRecordUri"].as_str(), Some("https://example.com/dossier"));
+        assert_eq!(v["qualificationBadge"].as_str(), Some("independently-qualified"));
+    }
+
+    // ── Feature 3: MC/DC Coverage ───────────────────────────────────────────
+
+    //fusa:test REQ-COVERAGE-MCDC001
+    //fusa:test REQ-COVERAGE-MCDC002
+    #[test]
+    fn coverage_mcdc_flag_accepted() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!(
+            "rsfusa coverage --dir {} --mcdc --format json",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        // Should not fail on usage (flag accepted).
+        let code = run(&a, &mut out, &mut err);
+        assert!(code == 0 || code == 1, "mcdc flag should not cause usage error");
+    }
+
+    //fusa:test REQ-COVERAGE-MCDC003
+    //fusa:test REQ-COVERAGE-MCDC004
+    #[test]
+    fn coverage_mcdc_file_parsed() {
+        let dir = tempfile::TempDir::new().unwrap();
+        // Create a minimal LLVM MC/DC JSON file.
+        let mcdc_json = r#"{"data":[{"functions":[{"name":"foo","mcdc_records":[{"conditions":[{"covered_true_count":1,"covered_false_count":1}]}]}]}]}"#;
+        let mcdc_path = dir.path().join("mcdc.json");
+        std::fs::write(&mcdc_path, mcdc_json).unwrap();
+        let out_path = dir.path().join("cov.json");
+        let a = args(&format!(
+            "rsfusa coverage --dir {} --mcdc --mcdc-file {} --format json --output {}",
+            dir.path().display(),
+            mcdc_path.display(),
+            out_path.display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert!(code == 0 || code == 1);
+        let content = std::fs::read_to_string(&out_path).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&content).unwrap();
+        assert!(v["mcdc"].is_object(), "report should contain mcdc section");
+        assert_eq!(v["mcdc"]["totalFunctions"].as_u64(), Some(1));
+        assert_eq!(v["mcdc"]["coveredConditions"].as_u64(), Some(1));
+        assert_eq!(v["mcdc"]["passesGate"].as_bool(), Some(true));
+    }
+
+    //fusa:test REQ-COVERAGE-MCDC004
+    #[test]
+    fn coverage_mcdc_gate_fails_on_uncovered_condition() {
+        let dir = tempfile::TempDir::new().unwrap();
+        // A condition where covered_false_count is 0 → MC/DC not covered.
+        let mcdc_json = r#"{"data":[{"functions":[{"name":"bar","mcdc_records":[{"conditions":[{"covered_true_count":1,"covered_false_count":0}]}]}]}]}"#;
+        let mcdc_path = dir.path().join("mcdc.json");
+        std::fs::write(&mcdc_path, mcdc_json).unwrap();
+        let a = args(&format!(
+            "rsfusa coverage --dir {} --mcdc --mcdc-file {} --format json",
+            dir.path().display(),
+            mcdc_path.display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 1, "uncovered MC/DC condition should fail gate (exit 1)");
+    }
+
+    // ── Feature 4: V&V Independence ─────────────────────────────────────────
+
+    //fusa:test REQ-QUALIFY-VV001
+    //fusa:test REQ-QUALIFY-VV002
+    #[test]
+    fn qualify_vv_independence_detected() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let out_path = dir.path().join("q.json");
+        let a = args(&format!(
+            "rsfusa qualify --dir {} --output {} --format json --implementation-author Alice --independent-reviewer Bob",
+            dir.path().display(),
+            out_path.display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        run(&a, &mut out, &mut err);
+        let content = std::fs::read_to_string(&out_path).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&content).unwrap();
+        assert_eq!(v["implementationAuthor"].as_str(), Some("Alice"));
+        assert_eq!(v["independentReviewer"].as_str(), Some("Bob"));
+        assert_eq!(
+            v["independenceStatus"].as_str(),
+            Some("independent"),
+            "different author/reviewer should yield independence status"
+        );
+    }
+
+    //fusa:test REQ-QUALIFY-VV002
+    #[test]
+    fn qualify_vv_non_independence_when_same_person() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let out_path = dir.path().join("q.json");
+        let a = args(&format!(
+            "rsfusa qualify --dir {} --output {} --format json --implementation-author Alice --independent-reviewer Alice",
+            dir.path().display(),
+            out_path.display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        run(&a, &mut out, &mut err);
+        let content = std::fs::read_to_string(&out_path).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&content).unwrap();
+        assert_eq!(
+            v["independenceStatus"].as_str(),
+            Some("non-independent"),
+            "same author/reviewer should yield non-independent status"
+        );
+    }
+
+    //fusa:test REQ-QUALIFY-VV003
+    //fusa:test REQ-QUALIFY-VV004
+    #[test]
+    fn qualify_vv_all_fields_persisted() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let out_path = dir.path().join("q.json");
+        let a = args(&format!(
+            "rsfusa qualify --dir {} --output {} --format json --implementation-author Dev --independent-reviewer Tester --independent-test-executor TestLab --achievable-asil ASIL-D",
+            dir.path().display(),
+            out_path.display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        run(&a, &mut out, &mut err);
+        let content = std::fs::read_to_string(&out_path).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&content).unwrap();
+        assert_eq!(v["independentTestExecutor"].as_str(), Some("TestLab"));
+        assert_eq!(v["achievableAsil"].as_str(), Some("ASIL-D"));
+    }
+
+    //fusa:test REQ-QUALIFY-VV001
+    #[test]
+    fn qualify_vv_independence_shown_in_stderr() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!(
+            "rsfusa qualify --dir {} --format json --implementation-author Dev --independent-reviewer Reviewer",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        run(&a, &mut out, &mut err);
+        let err_text = String::from_utf8(err).unwrap();
+        assert!(
+            err_text.contains("independent"),
+            "independence status should appear in stderr"
+        );
     }
 }

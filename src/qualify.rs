@@ -4,6 +4,13 @@
 //fusa:req REQ-QUALIFY003
 //fusa:req REQ-QUALIFY004
 //fusa:req REQ-E2E001
+//fusa:req REQ-QUALIFY-TQ001
+//fusa:req REQ-QUALIFY-TQ002
+//fusa:req REQ-QUALIFY-TQ003
+//fusa:req REQ-QUALIFY-VV001
+//fusa:req REQ-QUALIFY-VV002
+//fusa:req REQ-QUALIFY-VV003
+//fusa:req REQ-QUALIFY-VV004
 
 use crate::engine::{Registry, RunResult};
 use crate::types::{LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
@@ -46,6 +53,31 @@ pub struct Report {
     pub passed: usize,
     pub failed: usize,
     pub results: Vec<CaseResult>,
+    /// "self", "independent", or absent (§6 tool qualification method).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub qualification_method: Option<String>,
+    /// URI to the qualification dossier.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub qualification_record_uri: Option<String>,
+    /// Name/org of the qualifying entity.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub qualifier_identity: Option<String>,
+    /// Qualification badge: "independently-qualified" | "self-qualified" | "unqualified".
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub qualification_badge: Option<String>,
+    // V&V Independence fields (§6.4).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub implementation_author: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub independent_reviewer: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub independent_test_executor: Option<String>,
+    /// ASIL achievable given independence configuration.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub achievable_asil: Option<String>,
+    /// "independent" when reviewer differs from author, else "non-independent".
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub independence_status: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hash: Option<String>,
 }
@@ -53,6 +85,34 @@ pub struct Report {
 impl Report {
     pub fn has_failures(&self) -> bool {
         self.failed > 0
+    }
+
+    /// Compute and set the qualification badge from qualification_method.
+    pub fn compute_badge(&mut self) {
+        let badge = match self.qualification_method.as_deref() {
+            Some("independent") => "independently-qualified",
+            Some("self") => "self-qualified",
+            _ => "unqualified",
+        };
+        self.qualification_badge = Some(badge.to_string());
+    }
+
+    /// Compute and set independence_status from implementation_author and independent_reviewer.
+    pub fn compute_independence(&mut self) {
+        if let (Some(author), Some(reviewer)) = (
+            self.implementation_author.as_deref(),
+            self.independent_reviewer.as_deref(),
+        ) {
+            let status = if !author.is_empty()
+                && !reviewer.is_empty()
+                && author != reviewer
+            {
+                "independent"
+            } else {
+                "non-independent"
+            };
+            self.independence_status = Some(status.to_string());
+        }
     }
 }
 
@@ -277,6 +337,18 @@ pub fn builtin_cases() -> Vec<Case> {
     cases
 }
 
+/// Builder for extra qualification / V&V metadata.
+#[derive(Debug, Default)]
+pub struct QualifyOptions {
+    pub qualification_method: Option<String>,
+    pub qualification_record_uri: Option<String>,
+    pub qualifier_identity: Option<String>,
+    pub implementation_author: Option<String>,
+    pub independent_reviewer: Option<String>,
+    pub independent_test_executor: Option<String>,
+    pub achievable_asil: Option<String>,
+}
+
 pub fn run(registry: &Registry, cases: &[Case]) -> Report {
     let mut results = Vec::new();
     let mut passed = 0usize;
@@ -343,8 +415,33 @@ pub fn run(registry: &Registry, cases: &[Case]) -> Report {
         passed,
         failed,
         results,
+        qualification_method: None,
+        qualification_record_uri: None,
+        qualifier_identity: None,
+        qualification_badge: None,
+        implementation_author: None,
+        independent_reviewer: None,
+        independent_test_executor: None,
+        achievable_asil: None,
+        independence_status: None,
         hash: None,
     };
+    report.hash = Some(compute_hash(&report));
+    report
+}
+
+pub fn run_with_opts(registry: &Registry, cases: &[Case], opts: &QualifyOptions) -> Report {
+    let mut report = run(registry, cases);
+    report.qualification_method = opts.qualification_method.clone();
+    report.qualification_record_uri = opts.qualification_record_uri.clone();
+    report.qualifier_identity = opts.qualifier_identity.clone();
+    report.implementation_author = opts.implementation_author.clone();
+    report.independent_reviewer = opts.independent_reviewer.clone();
+    report.independent_test_executor = opts.independent_test_executor.clone();
+    report.achievable_asil = opts.achievable_asil.clone();
+    report.compute_badge();
+    report.compute_independence();
+    // Recompute hash to include the new fields.
     report.hash = Some(compute_hash(&report));
     report
 }
@@ -376,6 +473,16 @@ fn compute_hash(report: &Report) -> String {
         passed: usize,
         failed: usize,
         results: Vec<&'a CaseResult>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        qualification_method: Option<&'a str>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        qualifier_identity: Option<&'a str>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        implementation_author: Option<&'a str>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        independent_reviewer: Option<&'a str>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        independent_test_executor: Option<&'a str>,
     }
 
     let mut sorted_results: Vec<&CaseResult> = report.results.iter().collect();
@@ -392,6 +499,11 @@ fn compute_hash(report: &Report) -> String {
         passed: report.passed,
         failed: report.failed,
         results: sorted_results,
+        qualification_method: report.qualification_method.as_deref(),
+        qualifier_identity: report.qualifier_identity.as_deref(),
+        implementation_author: report.implementation_author.as_deref(),
+        independent_reviewer: report.independent_reviewer.as_deref(),
+        independent_test_executor: report.independent_test_executor.as_deref(),
     };
 
     let json = serde_json::to_string(&c).expect("canonical serialise");
