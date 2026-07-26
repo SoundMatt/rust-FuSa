@@ -1895,17 +1895,15 @@ mod tests {
     fn hlr_llr_validation_llr_bad_parent() {
         use crate::config::Requirement;
         use crate::trace::validate_hlr_llr;
-        let reqs = vec![
-            Requirement {
-                id: "REQ-LLR001".to_string(),
-                title: None,
-                text: None,
-                standard: None,
-                level: Some("LLR".to_string()),
-                asil: None,
-                parent: Some("REQ-DOES-NOT-EXIST".to_string()),
-            },
-        ];
+        let reqs = vec![Requirement {
+            id: "REQ-LLR001".to_string(),
+            title: None,
+            text: None,
+            standard: None,
+            level: Some("LLR".to_string()),
+            asil: None,
+            parent: Some("REQ-DOES-NOT-EXIST".to_string()),
+        }];
         let result = validate_hlr_llr(&reqs, None, None, true);
         assert!(
             result.findings.iter().any(|f| f.rule_id == "TRACE-HLR002"),
@@ -1918,17 +1916,15 @@ mod tests {
     fn hlr_llr_validation_hlr_without_children() {
         use crate::config::Requirement;
         use crate::trace::validate_hlr_llr;
-        let reqs = vec![
-            Requirement {
-                id: "REQ-HLR001".to_string(),
-                title: None,
-                text: None,
-                standard: None,
-                level: Some("HLR".to_string()),
-                asil: None,
-                parent: None,
-            },
-        ];
+        let reqs = vec![Requirement {
+            id: "REQ-HLR001".to_string(),
+            title: None,
+            text: None,
+            standard: None,
+            level: Some("HLR".to_string()),
+            asil: None,
+            parent: None,
+        }];
         let result = validate_hlr_llr(&reqs, None, None, true);
         assert!(
             result.findings.iter().any(|f| f.rule_id == "TRACE-HLR003"),
@@ -1962,7 +1958,10 @@ mod tests {
             },
         ];
         let result = validate_hlr_llr(&reqs, None, None, false);
-        assert!(result.findings.is_empty(), "valid hierarchy should produce no findings");
+        assert!(
+            result.findings.is_empty(),
+            "valid hierarchy should produce no findings"
+        );
     }
 
     //fusa:test REQ-TRACE-HLR001
@@ -2095,8 +2094,14 @@ mod tests {
         let v: serde_json::Value = serde_json::from_str(&content).unwrap();
         assert_eq!(v["qualificationMethod"].as_str(), Some("independent"));
         assert_eq!(v["qualifierIdentity"].as_str(), Some("TestOrg"));
-        assert_eq!(v["qualificationRecordUri"].as_str(), Some("https://example.com/dossier"));
-        assert_eq!(v["qualificationBadge"].as_str(), Some("independently-qualified"));
+        assert_eq!(
+            v["qualificationRecordUri"].as_str(),
+            Some("https://example.com/dossier")
+        );
+        assert_eq!(
+            v["qualificationBadge"].as_str(),
+            Some("independently-qualified")
+        );
     }
 
     // ── Feature 3: MC/DC Coverage ───────────────────────────────────────────
@@ -2114,7 +2119,10 @@ mod tests {
         let mut err = Vec::new();
         // Should not fail on usage (flag accepted).
         let code = run(&a, &mut out, &mut err);
-        assert!(code == 0 || code == 1, "mcdc flag should not cause usage error");
+        assert!(
+            code == 0 || code == 1,
+            "mcdc flag should not cause usage error"
+        );
     }
 
     //fusa:test REQ-COVERAGE-MCDC003
@@ -2161,7 +2169,10 @@ mod tests {
         let mut out = Vec::new();
         let mut err = Vec::new();
         let code = run(&a, &mut out, &mut err);
-        assert_eq!(code, 1, "uncovered MC/DC condition should fail gate (exit 1)");
+        assert_eq!(
+            code, 1,
+            "uncovered MC/DC condition should fail gate (exit 1)"
+        );
     }
 
     // ── Feature 4: V&V Independence ─────────────────────────────────────────

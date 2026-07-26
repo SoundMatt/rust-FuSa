@@ -120,13 +120,8 @@ pub fn validate_hlr_llr(
     let base_sev = if strict {
         Severity::Error
     } else {
-        let is_critical = matches!(
-            dal.unwrap_or(""),
-            "DAL-A" | "DAL-B" | "a" | "b"
-        ) || matches!(
-            asil.unwrap_or(""),
-            "ASIL-D" | "ASIL-C" | "D" | "C"
-        );
+        let is_critical = matches!(dal.unwrap_or(""), "DAL-A" | "DAL-B" | "a" | "b")
+            || matches!(asil.unwrap_or(""), "ASIL-D" | "ASIL-C" | "D" | "C");
         if is_critical {
             Severity::Error
         } else {
@@ -149,32 +144,31 @@ pub fn validate_hlr_llr(
         }
         match req.parent.as_deref() {
             None | Some("") => {
-                findings.push(
-                    Finding::new(
-                        "TRACE-HLR001",
-                        base_sev.clone(),
-                        format!("LLR {} has no parent_id; every LLR must reference an HLR", req.id),
-                        Location::new(".fusa-reqs.json"),
-                        Category::Requirement,
-                        "add a 'parent' field to this LLR pointing to its parent HLR id",
-                    )
-                );
+                findings.push(Finding::new(
+                    "TRACE-HLR001",
+                    base_sev.clone(),
+                    format!(
+                        "LLR {} has no parent_id; every LLR must reference an HLR",
+                        req.id
+                    ),
+                    Location::new(".fusa-reqs.json"),
+                    Category::Requirement,
+                    "add a 'parent' field to this LLR pointing to its parent HLR id",
+                ));
             }
             Some(pid) => {
                 if !hlr_ids.contains(pid) {
-                    findings.push(
-                        Finding::new(
-                            "TRACE-HLR002",
-                            base_sev.clone(),
-                            format!(
-                                "LLR {} references parent '{}' which is not an HLR in .fusa-reqs.json",
-                                req.id, pid
-                            ),
-                            Location::new(".fusa-reqs.json"),
-                            Category::Requirement,
-                            "ensure the parent id exists and has level 'HLR'",
-                        )
-                    );
+                    findings.push(Finding::new(
+                        "TRACE-HLR002",
+                        base_sev.clone(),
+                        format!(
+                            "LLR {} references parent '{}' which is not an HLR in .fusa-reqs.json",
+                            req.id, pid
+                        ),
+                        Location::new(".fusa-reqs.json"),
+                        Category::Requirement,
+                        "ensure the parent id exists and has level 'HLR'",
+                    ));
                 }
             }
         }
@@ -198,24 +192,23 @@ pub fn validate_hlr_llr(
     }
     for (hlr_id, count) in &hlr_child_count {
         if *count == 0 {
-            findings.push(
-                Finding::new(
-                    "TRACE-HLR003",
-                    base_sev.clone(),
-                    format!("HLR {hlr_id} has no LLR children; every HLR must be decomposed"),
-                    Location::new(".fusa-reqs.json"),
-                    Category::Requirement,
-                    "add at least one LLR with this HLR's id as its 'parent' field",
-                )
-            );
+            findings.push(Finding::new(
+                "TRACE-HLR003",
+                base_sev.clone(),
+                format!("HLR {hlr_id} has no LLR children; every HLR must be decomposed"),
+                Location::new(".fusa-reqs.json"),
+                Category::Requirement,
+                "add at least one LLR with this HLR's id as its 'parent' field",
+            ));
         }
     }
 
-    let has_errors = findings
-        .iter()
-        .any(|f| f.severity == Severity::Error);
+    let has_errors = findings.iter().any(|f| f.severity == Severity::Error);
 
-    HlrLlrResult { findings, has_errors }
+    HlrLlrResult {
+        findings,
+        has_errors,
+    }
 }
 
 pub fn build(project_root: &Path, cfg: &FusaConfig) -> Result<(Matrix, Vec<Finding>), String> {

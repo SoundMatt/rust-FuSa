@@ -138,18 +138,16 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
-            flag @ (
-                "--output"
-                | "--format"
-                | "--dir"
-                | "--qualification-method"
-                | "--record-uri"
-                | "--qualifier"
-                | "--implementation-author"
-                | "--independent-reviewer"
-                | "--independent-test-executor"
-                | "--achievable-asil"
-            ) => {
+            flag @ ("--output"
+            | "--format"
+            | "--dir"
+            | "--qualification-method"
+            | "--record-uri"
+            | "--qualifier"
+            | "--implementation-author"
+            | "--independent-reviewer"
+            | "--independent-test-executor"
+            | "--achievable-asil") => {
                 if i + 1 >= args.len() {
                     writeln!(stderr, "rsfusa qualify: {flag} requires an argument").ok();
                     return None;

@@ -42,8 +42,7 @@ impl McdcRecord {
     }
 
     fn is_fully_covered(&self) -> bool {
-        !self.conditions.is_empty()
-            && self.conditions.iter().all(|c| c.is_covered())
+        !self.conditions.is_empty() && self.conditions.iter().all(|c| c.is_covered())
     }
 }
 
@@ -66,8 +65,7 @@ impl McdcRecord {
 /// }
 /// ```
 fn parse_mcdc_file(path: &str) -> Result<Vec<McdcRecord>, String> {
-    let data =
-        std::fs::read_to_string(path).map_err(|e| format!("read mcdc file {path}: {e}"))?;
+    let data = std::fs::read_to_string(path).map_err(|e| format!("read mcdc file {path}: {e}"))?;
     let v: serde_json::Value =
         serde_json::from_str(&data).map_err(|e| format!("parse mcdc file {path}: {e}"))?;
 
@@ -431,7 +429,8 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
     while i < args.len() {
         match args[i].as_str() {
             "--mcdc" => opts.mcdc = true,
-            flag @ ("--dir" | "--format" | "--output" | "--min-coverage" | "--mcdc-file" | "--mcdc-threshold") => {
+            flag @ ("--dir" | "--format" | "--output" | "--min-coverage" | "--mcdc-file"
+            | "--mcdc-threshold") => {
                 if i + 1 >= args.len() {
                     writeln!(stderr, "rsfusa coverage: {flag} requires an argument").ok();
                     return None;

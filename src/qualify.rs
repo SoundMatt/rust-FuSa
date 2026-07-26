@@ -103,10 +103,7 @@ impl Report {
             self.implementation_author.as_deref(),
             self.independent_reviewer.as_deref(),
         ) {
-            let status = if !author.is_empty()
-                && !reviewer.is_empty()
-                && author != reviewer
-            {
+            let status = if !author.is_empty() && !reviewer.is_empty() && author != reviewer {
                 "independent"
             } else {
                 "non-independent"
