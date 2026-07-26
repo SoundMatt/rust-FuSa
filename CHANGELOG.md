@@ -7,6 +7,17 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.3.2 — 2026-07-26
+
+### Fixed
+
+- **aarch64 cross-compilation linker** — `.cargo/config.toml` now uses
+  `aarch64-linux-gnu-gcc` (provided by the `gcc-aarch64-linux-gnu` apt package
+  that CI already installs) instead of `aarch64-linux-musl-gcc` (musl variant
+  not present on the CI runner), fixing the "linker not found" error on Release CI.
+
+---
+
 ## v0.3.1 — 2026-07-26
 
 ### Added
