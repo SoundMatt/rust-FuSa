@@ -1219,6 +1219,111 @@
       "text": "The unece subcommand shall support --format json output with kind 'gap-report' conforming to the x-FuSa gap report schema.",
       "standard": "unece-r155",
       "level": "HLR"
+    },
+    {
+      "id": "REQ-TRACE-HLR001",
+      "title": "HLR/LLR: LLR must have parent",
+      "text": "The trace command shall validate that every requirement with level LLR references a parent_id pointing to an existing HLR requirement.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TRACE-HLR002",
+      "title": "HLR/LLR: LLR parent must be an HLR",
+      "text": "The trace command shall flag any LLR whose parent field references a requirement that does not have level HLR.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TRACE-HLR003",
+      "title": "HLR/LLR: HLR must have at least one LLR child",
+      "text": "The trace command shall validate that every HLR has at least one LLR requirement referencing it as parent.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TRACE-HLR004",
+      "title": "HLR/LLR: --strict-hlr-llr flag",
+      "text": "The trace command shall support a --strict-hlr-llr flag that forces ERROR severity for all HLR/LLR validation findings regardless of DAL/ASIL level.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-QUALIFY-TQ001",
+      "title": "Tool qualification badge",
+      "text": "The qualify command shall compute and display a qualification badge: 'independently-qualified', 'self-qualified', or 'unqualified' based on --qualification-method.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-QUALIFY-TQ002",
+      "title": "Tool qualification method field",
+      "text": "The qualify report shall include a qualificationMethod field ('self' or 'independent') when --qualification-method is provided.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-QUALIFY-TQ003",
+      "title": "Tool qualification identity and record URI",
+      "text": "The qualify command shall support --qualifier and --record-uri flags and persist them as qualifierIdentity and qualificationRecordUri in the report.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-QUALIFY-VV001",
+      "title": "V&V independence status",
+      "text": "The qualify command shall compute independenceStatus as 'independent' when implementationAuthor differs from independentReviewer, and 'non-independent' when they are the same.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-QUALIFY-VV002",
+      "title": "V&V author and reviewer fields",
+      "text": "The qualify command shall support --implementation-author and --independent-reviewer flags and persist them in the report.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-QUALIFY-VV003",
+      "title": "V&V independent test executor",
+      "text": "The qualify command shall support --independent-test-executor flag and persist it as independentTestExecutor in the report.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-QUALIFY-VV004",
+      "title": "V&V achievable ASIL",
+      "text": "The qualify command shall support --achievable-asil flag and persist it as achievableAsil in the report.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-COVERAGE-MCDC001",
+      "title": "MC/DC coverage flag",
+      "text": "The coverage command shall support a --mcdc flag that enables MC/DC coverage analysis and reporting.",
+      "standard": "do178c",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-COVERAGE-MCDC002",
+      "title": "MC/DC file input",
+      "text": "The coverage command shall support a --mcdc-file flag accepting a path to an LLVM coverage JSON export containing MC/DC records.",
+      "standard": "do178c",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-COVERAGE-MCDC003",
+      "title": "MC/DC condition parsing",
+      "text": "The coverage command shall parse LLVM MC/DC records, treating a condition as covered only when both covered_true_count > 0 and covered_false_count > 0.",
+      "standard": "do178c",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-COVERAGE-MCDC004",
+      "title": "MC/DC hard gate",
+      "text": "The coverage command shall fail with exit code 1 when --mcdc is enabled and any annotated function has uncovered MC/DC conditions below the threshold.",
+      "standard": "do178c",
+      "level": "HLR"
     }
   ]
 }

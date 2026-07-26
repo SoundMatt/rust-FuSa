@@ -7,6 +7,10 @@
 //fusa:req REQ-TRACE006
 //fusa:req REQ-TRACE007
 //fusa:req REQ-TRACE-MD001
+//fusa:req REQ-TRACE-HLR001
+//fusa:req REQ-TRACE-HLR002
+//fusa:req REQ-TRACE-HLR003
+//fusa:req REQ-TRACE-HLR004
 
 use crate::config::{load_reqs, FusaConfig, Requirement};
 use crate::types::{
@@ -58,6 +62,20 @@ pub struct Coverage {
     pub traced_requirements: usize,
     pub tested_requirements: usize,
     pub sec_tested_requirements: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hlr_count: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub llr_count: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hlr_with_llr: Option<usize>,
+}
+
+/// HLR/LLR validation result.
+#[derive(Debug)]
+pub struct HlrLlrResult {
+    pub findings: Vec<Finding>,
+    /// true if any finding is ERROR severity (gate fail)
+    pub has_errors: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -77,6 +95,120 @@ pub struct Matrix {
     pub requirements: Vec<Requirement>,
     pub tags: Vec<Tag>,
     pub coverage: Coverage,
+}
+
+/// Validate HLR/LLR parent-child relationships in the requirements list.
+///
+/// Rules:
+/// - Each LLR (level == "LLR") must reference a parent that exists and has level == "HLR".
+/// - Each HLR must have at least one LLR child.
+///
+/// The `strict` flag forces ERROR severity regardless of DAL/ASIL level.
+/// Otherwise: DAL-A/ASIL-D → ERROR; DAL-C/ASIL-C and below → WARNING.
+pub fn validate_hlr_llr(
+    requirements: &[Requirement],
+    dal: Option<&str>,
+    asil: Option<&str>,
+    strict: bool,
+) -> HlrLlrResult {
+    //fusa:req REQ-TRACE-HLR001
+    //fusa:req REQ-TRACE-HLR002
+    //fusa:req REQ-TRACE-HLR003
+    //fusa:req REQ-TRACE-HLR004
+
+    // Determine base severity from DAL/ASIL context.
+    let base_sev = if strict {
+        Severity::Error
+    } else {
+        let is_critical = matches!(dal.unwrap_or(""), "DAL-A" | "DAL-B" | "a" | "b")
+            || matches!(asil.unwrap_or(""), "ASIL-D" | "ASIL-C" | "D" | "C");
+        if is_critical {
+            Severity::Error
+        } else {
+            Severity::Warning
+        }
+    };
+
+    let hlr_ids: std::collections::HashSet<&str> = requirements
+        .iter()
+        .filter(|r| r.level.as_deref() == Some("HLR"))
+        .map(|r| r.id.as_str())
+        .collect();
+
+    let mut findings = Vec::new();
+
+    // Every LLR must reference an existing HLR parent.
+    for req in requirements {
+        if req.level.as_deref() != Some("LLR") {
+            continue;
+        }
+        match req.parent.as_deref() {
+            None | Some("") => {
+                findings.push(Finding::new(
+                    "TRACE-HLR001",
+                    base_sev.clone(),
+                    format!(
+                        "LLR {} has no parent_id; every LLR must reference an HLR",
+                        req.id
+                    ),
+                    Location::new(".fusa-reqs.json"),
+                    Category::Requirement,
+                    "add a 'parent' field to this LLR pointing to its parent HLR id",
+                ));
+            }
+            Some(pid) => {
+                if !hlr_ids.contains(pid) {
+                    findings.push(Finding::new(
+                        "TRACE-HLR002",
+                        base_sev.clone(),
+                        format!(
+                            "LLR {} references parent '{}' which is not an HLR in .fusa-reqs.json",
+                            req.id, pid
+                        ),
+                        Location::new(".fusa-reqs.json"),
+                        Category::Requirement,
+                        "ensure the parent id exists and has level 'HLR'",
+                    ));
+                }
+            }
+        }
+    }
+
+    // Every HLR must have at least one LLR child.
+    let mut hlr_child_count: HashMap<&str, usize> = HashMap::new();
+    for req in requirements {
+        if req.level.as_deref() == Some("HLR") {
+            hlr_child_count.entry(req.id.as_str()).or_insert(0);
+        }
+    }
+    for req in requirements {
+        if req.level.as_deref() == Some("LLR") {
+            if let Some(pid) = req.parent.as_deref() {
+                if let Some(count) = hlr_child_count.get_mut(pid) {
+                    *count += 1;
+                }
+            }
+        }
+    }
+    for (hlr_id, count) in &hlr_child_count {
+        if *count == 0 {
+            findings.push(Finding::new(
+                "TRACE-HLR003",
+                base_sev.clone(),
+                format!("HLR {hlr_id} has no LLR children; every HLR must be decomposed"),
+                Location::new(".fusa-reqs.json"),
+                Category::Requirement,
+                "add at least one LLR with this HLR's id as its 'parent' field",
+            ));
+        }
+    }
+
+    let has_errors = findings.iter().any(|f| f.severity == Severity::Error);
+
+    HlrLlrResult {
+        findings,
+        has_errors,
+    }
 }
 
 pub fn build(project_root: &Path, cfg: &FusaConfig) -> Result<(Matrix, Vec<Finding>), String> {
@@ -275,11 +407,41 @@ fn compute_coverage(requirements: &[Requirement], tags: &[Tag]) -> Coverage {
         }
     }
 
+    // HLR/LLR hierarchy metrics.
+    let hlr_count = requirements
+        .iter()
+        .filter(|r| r.level.as_deref() == Some("HLR"))
+        .count();
+    let llr_count = requirements
+        .iter()
+        .filter(|r| r.level.as_deref() == Some("LLR"))
+        .count();
+
+    // Count HLRs that have at least one LLR child.
+    let llr_parents: std::collections::HashSet<&str> = requirements
+        .iter()
+        .filter(|r| r.level.as_deref() == Some("LLR"))
+        .filter_map(|r| r.parent.as_deref())
+        .collect();
+    let hlr_with_llr = requirements
+        .iter()
+        .filter(|r| r.level.as_deref() == Some("HLR") && llr_parents.contains(r.id.as_str()))
+        .count();
+
+    let (opt_hlr, opt_llr, opt_hlr_with_llr) = if hlr_count > 0 || llr_count > 0 {
+        (Some(hlr_count), Some(llr_count), Some(hlr_with_llr))
+    } else {
+        (None, None, None)
+    };
+
     Coverage {
         total_requirements: total,
         traced_requirements: traced.len(),
         tested_requirements: tested.len(),
         sec_tested_requirements: sec_tested.len(),
+        hlr_count: opt_hlr,
+        llr_count: opt_llr,
+        hlr_with_llr: opt_hlr_with_llr,
     }
 }
 
@@ -295,13 +457,51 @@ pub fn render_text<W: Write + ?Sized>(w: &mut W, matrix: &Matrix) -> std::io::Re
         matrix.coverage.tested_requirements,
         matrix.coverage.sec_tested_requirements
     )?;
+    if let (Some(hlr), Some(llr), Some(hlr_with_llr)) = (
+        matrix.coverage.hlr_count,
+        matrix.coverage.llr_count,
+        matrix.coverage.hlr_with_llr,
+    ) {
+        writeln!(
+            w,
+            "HLR:     {}  LLR: {}  HLRs with LLR: {}",
+            hlr, llr, hlr_with_llr
+        )?;
+    }
     writeln!(w)?;
+
+    // Group LLRs by parent for hierarchical rendering.
+    let mut llr_by_parent: HashMap<&str, Vec<&Requirement>> = HashMap::new();
+    for req in &matrix.requirements {
+        if req.level.as_deref() == Some("LLR") {
+            if let Some(pid) = req.parent.as_deref() {
+                llr_by_parent.entry(pid).or_default().push(req);
+            }
+        }
+    }
 
     for req in &matrix.requirements {
         let title = req.title.as_deref().unwrap_or("(no title)");
-        writeln!(w, "  {:<25} {}", req.id, title)?;
+        let level_tag = match req.level.as_deref() {
+            Some("HLR") => " [HLR]",
+            Some("LLR") => " [LLR]",
+            _ => "",
+        };
+        writeln!(w, "  {:<25} {}{}", req.id, title, level_tag)?;
         for tag in matrix.tags.iter().filter(|t| t.requirement_id == req.id) {
             writeln!(w, "    [{:<8}] {}:{}", tag.kind, tag.file, tag.line)?;
+        }
+        // If HLR, show child LLRs.
+        if req.level.as_deref() == Some("HLR") {
+            if let Some(children) = llr_by_parent.get(req.id.as_str()) {
+                for child in children {
+                    let ctitle = child.title.as_deref().unwrap_or("(no title)");
+                    writeln!(w, "    LLR {:<21} {}", child.id, ctitle)?;
+                    for tag in matrix.tags.iter().filter(|t| t.requirement_id == child.id) {
+                        writeln!(w, "      [{:<8}] {}:{}", tag.kind, tag.file, tag.line)?;
+                    }
+                }
+            }
         }
     }
 
@@ -314,8 +514,19 @@ pub fn render_text<W: Write + ?Sized>(w: &mut W, matrix: &Matrix) -> std::io::Re
 pub fn render_md<W: Write + ?Sized>(w: &mut W, matrix: &Matrix) -> std::io::Result<()> {
     writeln!(w, "# Requirement Traceability Matrix")?;
     writeln!(w)?;
-    writeln!(w, "| ID | Title | Traced | Tested |")?;
-    writeln!(w, "|---|---|---|---|")?;
+    if let (Some(hlr), Some(llr), Some(hlr_with_llr)) = (
+        matrix.coverage.hlr_count,
+        matrix.coverage.llr_count,
+        matrix.coverage.hlr_with_llr,
+    ) {
+        writeln!(
+            w,
+            "**HLR:** {hlr}  **LLR:** {llr}  **HLRs with LLR:** {hlr_with_llr}"
+        )?;
+        writeln!(w)?;
+    }
+    writeln!(w, "| ID | Level | Parent | Title | Traced | Tested |")?;
+    writeln!(w, "|---|---|---|---|---|---|")?;
 
     let tags_by_req: HashMap<&str, Vec<&Tag>> = {
         let mut m: HashMap<&str, Vec<&Tag>> = HashMap::new();
@@ -335,10 +546,14 @@ pub fn render_md<W: Write + ?Sized>(w: &mut W, matrix: &Matrix) -> std::io::Resu
             })
             .unwrap_or(false);
         let title = req.title.as_deref().unwrap_or("");
+        let level = req.level.as_deref().unwrap_or("");
+        let parent = req.parent.as_deref().unwrap_or("");
         writeln!(
             w,
-            "| {} | {} | {} | {} |",
+            "| {} | {} | {} | {} | {} | {} |",
             req.id,
+            level,
+            parent,
             title,
             if traced { "✓" } else { "✗" },
             if tested { "✓" } else { "✗" }

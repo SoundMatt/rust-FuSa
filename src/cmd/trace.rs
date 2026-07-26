@@ -5,8 +5,12 @@
 //fusa:req REQ-TRACE005
 //fusa:req REQ-TRACE006
 //fusa:req REQ-TRACE007
+//fusa:req REQ-TRACE-HLR001
+//fusa:req REQ-TRACE-HLR002
+//fusa:req REQ-TRACE-HLR003
+//fusa:req REQ-TRACE-HLR004
 use crate::config::load;
-use crate::trace::{build, render_md, render_text, Coverage};
+use crate::trace::{build, render_md, render_text, validate_hlr_llr, Coverage};
 use crate::types::{EXIT_GATE_FAIL, EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};
 use std::io::Write;
 use std::path::PathBuf;
@@ -44,6 +48,18 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         }
     };
 
+    // HLR/LLR validation.
+    let hlr_llr_result = validate_hlr_llr(
+        &matrix.requirements,
+        cfg.dal.as_deref(),
+        cfg.asil.as_deref(),
+        opts.strict_hlr_llr,
+    );
+    for f in &hlr_llr_result.findings {
+        writeln!(stderr, "rsfusa trace: [{:?}] {}", f.severity, f.message).ok();
+    }
+    let hlr_gate_fail = hlr_llr_result.has_errors && !hlr_llr_result.findings.is_empty();
+
     // --gaps: filter to untested requirements only (coverage still shows full totals per §5).
     let full_coverage = matrix.coverage;
     if opts.gaps {
@@ -62,7 +78,13 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         matrix.coverage = full_coverage;
     }
 
-    let gate_code = check_gates(&matrix.coverage, opts.req_coverage, opts.sec_tested, stderr);
+    let gate_code = check_gates(
+        &matrix.coverage,
+        opts.req_coverage,
+        opts.sec_tested,
+        hlr_gate_fail,
+        stderr,
+    );
 
     let render_err = if let Some(path) = opts.output.as_deref() {
         let mut f = match std::fs::File::create(path) {
@@ -99,13 +121,20 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     gate_code
 }
 
-fn check_gates(cov: &Coverage, req_coverage: u32, sec_tested: u32, stderr: &mut dyn Write) -> i32 {
+fn check_gates(
+    cov: &Coverage,
+    req_coverage: u32,
+    sec_tested: u32,
+    hlr_gate_fail: bool,
+    stderr: &mut dyn Write,
+) -> i32 {
     let total = cov.total_requirements;
+    let mut fail = hlr_gate_fail;
+
     if total == 0 {
-        return EXIT_OK;
+        return if fail { EXIT_GATE_FAIL } else { EXIT_OK };
     }
 
-    let mut fail = false;
     if req_coverage > 0 {
         let pct = (cov.traced_requirements * 100 / total) as u32;
         if pct < req_coverage {
@@ -143,6 +172,7 @@ struct Opts {
     req_coverage: u32,
     sec_tested: u32,
     strict: bool,
+    strict_hlr_llr: bool,
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
@@ -154,6 +184,7 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
         req_coverage: 0,
         sec_tested: 0,
         strict: false,
+        strict_hlr_llr: false,
     };
     let mut i = 0;
     while i < args.len() {
@@ -168,6 +199,7 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                     opts.sec_tested = 100;
                 }
             }
+            "--strict-hlr-llr" => opts.strict_hlr_llr = true,
             "--no-color" => {}
             flag @ ("--dir" | "--format" | "--output" | "--req-coverage" | "--sec-tested") => {
                 if i + 1 >= args.len() {

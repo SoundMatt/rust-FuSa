@@ -7,6 +7,31 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.3.0 — 2026-07-26
+
+### Added
+
+- **HLR/LLR decomposition validation (`trace`)** — the trace command now validates HLR/LLR parent-child relationships: every LLR must reference an existing HLR parent; every HLR must have at least one LLR child. Severity is ERROR for DAL-A/ASIL-D projects, WARNING otherwise. New `--strict-hlr-llr` flag forces ERROR regardless of integrity level. Text, Markdown, and JSON renderers updated to display hierarchy metrics (hlrCount, llrCount, hlrWithLlr). Closes #19.
+
+- **Tool Qualification Display (`qualify`)** — the qualify command now supports `--qualification-method` (self/independent), `--qualifier`, and `--record-uri` flags. Computes a qualification badge shown in stderr: `independently-qualified`, `self-qualified`, or `unqualified`. All fields persisted in qualify-report.json. Closes #20.
+
+- **MC/DC Coverage (`coverage`)** — the coverage command now supports `--mcdc`, `--mcdc-file <llvm-json>`, and `--mcdc-threshold <pct>` flags. Parses LLVM MC/DC records; a condition is covered only when covered_true_count > 0 AND covered_false_count > 0. Hard gate: exit 1 when any function has uncovered conditions below threshold. Structured `mcdc` section added to the JSON report. Closes #21.
+
+- **V&V Independence (`qualify`)** — the qualify command now supports `--implementation-author`, `--independent-reviewer`, `--independent-test-executor`, and `--achievable-asil` flags. Computes `independenceStatus`: `independent` when reviewer differs from author, `non-independent` otherwise. All fields persisted in qualify-report.json. Closes #22.
+
+### Changed
+
+- 16 new requirements added to `.fusa-reqs.json` (REQ-TRACE-HLR001–004, REQ-QUALIFY-TQ001–003, REQ-QUALIFY-VV001–004, REQ-COVERAGE-MCDC001–004).
+- Coverage struct gains optional `hlrCount`, `llrCount`, `hlrWithLlr` fields (omitted from JSON when no HLR/LLR requirements exist).
+- Qualification hash canonical form updated to include qualification_method, qualifier_identity, implementation_author, independent_reviewer, independent_test_executor.
+
+### Tests
+
+- 17 new tests covering all 4 features.
+- Total: **84 tests**, all green.
+
+---
+
 ## v0.2.9 — 2026-07-25
 
 - Fix SPEC_VERSION from "1.10" to "1.10.4"

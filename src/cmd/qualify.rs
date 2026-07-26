@@ -3,8 +3,15 @@
 //fusa:req REQ-QUALIFY003
 //fusa:req REQ-QUALIFY004
 //fusa:req REQ-E2E001
+//fusa:req REQ-QUALIFY-TQ001
+//fusa:req REQ-QUALIFY-TQ002
+//fusa:req REQ-QUALIFY-TQ003
+//fusa:req REQ-QUALIFY-VV001
+//fusa:req REQ-QUALIFY-VV002
+//fusa:req REQ-QUALIFY-VV003
+//fusa:req REQ-QUALIFY-VV004
 use crate::engine::default_registry;
-use crate::qualify::{builtin_cases, run as qualify_run, save, REPORT_FILE};
+use crate::qualify::{builtin_cases, run_with_opts, save, QualifyOptions, REPORT_FILE};
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};
 use std::io::Write;
 use std::path::PathBuf;
@@ -31,7 +38,16 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     writeln!(stderr, "rsfusa qualify: running {} case(s)...", cases.len()).ok();
 
     let registry = default_registry();
-    let report = qualify_run(&registry, &cases);
+    let qopts = QualifyOptions {
+        qualification_method: opts.qualification_method.clone(),
+        qualification_record_uri: opts.qualification_record_uri.clone(),
+        qualifier_identity: opts.qualifier_identity.clone(),
+        implementation_author: opts.implementation_author.clone(),
+        independent_reviewer: opts.independent_reviewer.clone(),
+        independent_test_executor: opts.independent_test_executor.clone(),
+        achievable_asil: opts.achievable_asil.clone(),
+    };
+    let report = run_with_opts(&registry, &cases, &qopts);
 
     writeln!(
         stderr,
@@ -54,6 +70,12 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         }
     }
 
+    if let Some(badge) = &report.qualification_badge {
+        writeln!(stderr, "rsfusa qualify: qualification badge: [{badge}]").ok();
+    }
+    if let Some(status) = &report.independence_status {
+        writeln!(stderr, "rsfusa qualify: V&V independence: {status}").ok();
+    }
     if let Some(h) = &report.hash {
         writeln!(stderr, "rsfusa qualify: integrity hash: {h}").ok();
     }
@@ -88,6 +110,15 @@ struct Opts {
     output: Option<String>,
     output_given: bool,
     format: Option<String>,
+    // Feature 2: Tool Qualification Display
+    qualification_method: Option<String>,
+    qualification_record_uri: Option<String>,
+    qualifier_identity: Option<String>,
+    // Feature 4: V&V Independence
+    implementation_author: Option<String>,
+    independent_reviewer: Option<String>,
+    independent_test_executor: Option<String>,
+    achievable_asil: Option<String>,
 }
 
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
@@ -96,11 +127,27 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
         output: None,
         output_given: false,
         format: None,
+        qualification_method: None,
+        qualification_record_uri: None,
+        qualifier_identity: None,
+        implementation_author: None,
+        independent_reviewer: None,
+        independent_test_executor: None,
+        achievable_asil: None,
     };
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
-            flag @ ("--output" | "--format" | "--dir") => {
+            flag @ ("--output"
+            | "--format"
+            | "--dir"
+            | "--qualification-method"
+            | "--record-uri"
+            | "--qualifier"
+            | "--implementation-author"
+            | "--independent-reviewer"
+            | "--independent-test-executor"
+            | "--achievable-asil") => {
                 if i + 1 >= args.len() {
                     writeln!(stderr, "rsfusa qualify: {flag} requires an argument").ok();
                     return None;
@@ -113,6 +160,27 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                     }
                     "--format" => opts.format = Some(args[i].clone()),
                     "--dir" => opts.dir = Some(PathBuf::from(&args[i])),
+                    "--qualification-method" => {
+                        opts.qualification_method = Some(args[i].clone());
+                    }
+                    "--record-uri" => {
+                        opts.qualification_record_uri = Some(args[i].clone());
+                    }
+                    "--qualifier" => {
+                        opts.qualifier_identity = Some(args[i].clone());
+                    }
+                    "--implementation-author" => {
+                        opts.implementation_author = Some(args[i].clone());
+                    }
+                    "--independent-reviewer" => {
+                        opts.independent_reviewer = Some(args[i].clone());
+                    }
+                    "--independent-test-executor" => {
+                        opts.independent_test_executor = Some(args[i].clone());
+                    }
+                    "--achievable-asil" => {
+                        opts.achievable_asil = Some(args[i].clone());
+                    }
                     _ => {}
                 }
             }
@@ -124,6 +192,20 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                     opts.format = Some(v.to_string());
                 } else if let Some(v) = other.strip_prefix("--dir=") {
                     opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--qualification-method=") {
+                    opts.qualification_method = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--record-uri=") {
+                    opts.qualification_record_uri = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--qualifier=") {
+                    opts.qualifier_identity = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--implementation-author=") {
+                    opts.implementation_author = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--independent-reviewer=") {
+                    opts.independent_reviewer = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--independent-test-executor=") {
+                    opts.independent_test_executor = Some(v.to_string());
+                } else if let Some(v) = other.strip_prefix("--achievable-asil=") {
+                    opts.achievable_asil = Some(v.to_string());
                 } else {
                     writeln!(stderr, "rsfusa qualify: unknown flag: {other}").ok();
                     return None;
