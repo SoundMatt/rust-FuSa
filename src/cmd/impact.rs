@@ -1,4 +1,7 @@
 // `rsfusa impact` — analyse impact of source changes on requirements and artifacts.
+//fusa:req REQ-IMPACT001
+//fusa:req REQ-IMPACT002
+//fusa:req REQ-IMPACT003
 
 use crate::config::load_reqs;
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};

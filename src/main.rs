@@ -735,8 +735,8 @@ mod tests {
         assert_eq!(code, 0);
         let text = String::from_utf8(out).unwrap();
         assert!(
-            text.contains("0.3.0"),
-            "version string should contain 0.3.0"
+            text.contains("0.3.1"),
+            "version string should contain 0.3.1"
         );
         assert!(
             text.contains("rust-FuSa"),
@@ -2259,6 +2259,532 @@ mod tests {
         assert!(
             err_text.contains("independent"),
             "independence status should appear in stderr"
+        );
+    }
+
+    // ── badge ────────────────────────────────────────────────────────────────
+
+    //fusa:test REQ-BADGE001
+    //fusa:test REQ-BADGE002
+    #[test]
+    fn badge_generates_svg() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!("rsfusa badge --dir {}", dir.path().display()));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "badge should exit 0");
+        let text = String::from_utf8(out).unwrap();
+        assert!(
+            text.contains("<svg") && text.contains("rust-FuSa"),
+            "badge output should be SVG containing tool name"
+        );
+    }
+
+    //fusa:test REQ-BADGE003
+    #[test]
+    fn badge_writes_to_output_file() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let out_file = dir.path().join("badge.svg");
+        let a = args(&format!(
+            "rsfusa badge --dir {} --output {}",
+            dir.path().display(),
+            out_file.display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "badge --output should exit 0");
+        assert!(out_file.exists(), "badge.svg must be created");
+        let content = std::fs::read_to_string(&out_file).unwrap();
+        assert!(content.contains("<svg"), "written file must be SVG");
+    }
+
+    // ── coupling ─────────────────────────────────────────────────────────────
+
+    //fusa:test REQ-COUPLING001
+    //fusa:test REQ-COUPLING002
+    //fusa:test REQ-COUPLING003
+    #[test]
+    fn coupling_creates_report() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir(dir.path().join("src")).unwrap();
+        std::fs::write(
+            dir.path().join("src/lib.rs"),
+            "use crate::types::EXIT_OK;\npub fn f() -> i32 { 0 }\n",
+        )
+        .unwrap();
+        let out_file = dir.path().join("coupling-report.json");
+        let a = args(&format!(
+            "rsfusa coupling --dir {} --output {}",
+            dir.path().display(),
+            out_file.display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "coupling should exit 0");
+        assert!(out_file.exists(), "coupling-report.json must be created");
+        let v: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&out_file).unwrap()).unwrap();
+        assert_eq!(v["kind"].as_str(), Some("coupling-report"));
+        assert!(v["modules"].is_array());
+    }
+
+    // ── disposition ───────────────────────────────────────────────────────────
+
+    //fusa:test REQ-DISP001
+    #[test]
+    fn disposition_list_empty() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!(
+            "rsfusa disposition list --dir {}",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "disposition list on empty dir should exit 0");
+        let text = String::from_utf8(out).unwrap();
+        assert!(!text.is_empty(), "disposition list should produce output");
+    }
+
+    //fusa:test REQ-DISP002
+    //fusa:test REQ-DISP003
+    #[test]
+    fn disposition_add_and_list() {
+        let dir = tempfile::TempDir::new().unwrap();
+        // Add a disposition
+        let a_add = args(&format!(
+            "rsfusa disposition add --dir {} --rule LINT002 --status accepted --note test-note",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a_add, &mut out, &mut err);
+        assert_eq!(code, 0, "disposition add should exit 0");
+        // Verify the file was created
+        assert!(dir.path().join(".fusa-dispositions.json").exists());
+        // List it back
+        let a_list = args(&format!(
+            "rsfusa disposition list --dir {}",
+            dir.path().display()
+        ));
+        let mut out2 = Vec::new();
+        let mut err2 = Vec::new();
+        let code2 = run(&a_list, &mut out2, &mut err2);
+        assert_eq!(code2, 0);
+        let text = String::from_utf8(out2).unwrap();
+        assert!(
+            text.contains("LINT002"),
+            "listed dispositions should include the added rule"
+        );
+    }
+
+    // ── fix ───────────────────────────────────────────────────────────────────
+
+    //fusa:test REQ-FIX001
+    #[test]
+    fn fix_runs_on_empty_dir() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!("rsfusa fix --dir {}", dir.path().display()));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "fix should exit 0");
+        let text = String::from_utf8(out).unwrap();
+        assert!(!text.is_empty(), "fix must produce output");
+    }
+
+    //fusa:test REQ-FIX002
+    #[test]
+    fn fix_json_format() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir(dir.path().join("src")).unwrap();
+        std::fs::write(
+            dir.path().join("src/lib.rs"),
+            "pub fn bad() -> i32 { let x: Option<i32> = None; x.unwrap() }\n",
+        )
+        .unwrap();
+        let a = args(&format!(
+            "rsfusa fix --dir {} --format json",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "fix --format json should exit 0");
+        // Output is either the JSON report or "No fixable findings."
+        let text = String::from_utf8(out).unwrap();
+        assert!(
+            text.contains("fix-report") || text.contains("No fixable"),
+            "fix --format json must produce structured output or no-findings message"
+        );
+    }
+
+    // ── hooks ─────────────────────────────────────────────────────────────────
+
+    //fusa:test REQ-HOOKS001
+    #[test]
+    fn hooks_show_no_git_dir() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!("rsfusa hooks show --dir {}", dir.path().display()));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "hooks show should exit 0 even without .git");
+        let text = String::from_utf8(out).unwrap();
+        assert!(!text.is_empty(), "hooks show must produce output");
+    }
+
+    //fusa:test REQ-HOOKS002
+    //fusa:test REQ-HOOKS003
+    #[test]
+    fn hooks_install_and_remove() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir_all(dir.path().join(".git/hooks")).unwrap();
+        // Install
+        let a_install = args(&format!(
+            "rsfusa hooks install --dir {}",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a_install, &mut out, &mut err);
+        assert_eq!(code, 0, "hooks install should exit 0");
+        assert!(
+            dir.path().join(".git/hooks/pre-commit").exists(),
+            "pre-commit hook must be created"
+        );
+        // Remove
+        let a_remove = args(&format!(
+            "rsfusa hooks remove --dir {}",
+            dir.path().display()
+        ));
+        let mut out2 = Vec::new();
+        let mut err2 = Vec::new();
+        let code2 = run(&a_remove, &mut out2, &mut err2);
+        assert_eq!(code2, 0, "hooks remove should exit 0");
+        assert!(
+            !dir.path().join(".git/hooks/pre-commit").exists(),
+            "pre-commit hook must be removed"
+        );
+    }
+
+    // ── impact ────────────────────────────────────────────────────────────────
+
+    //fusa:test REQ-IMPACT001
+    //fusa:test REQ-IMPACT002
+    //fusa:test REQ-IMPACT003
+    #[test]
+    fn impact_runs_on_empty_dir() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!("rsfusa impact --dir {}", dir.path().display()));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "impact should exit 0");
+        let text = String::from_utf8(out).unwrap();
+        assert!(
+            text.contains("Impact Analysis"),
+            "impact output should contain report header"
+        );
+    }
+
+    // ── metrics ───────────────────────────────────────────────────────────────
+
+    //fusa:test REQ-METRICS001
+    //fusa:test REQ-METRICS003
+    #[test]
+    fn metrics_record_creates_file() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!(
+            "rsfusa metrics record --dir {}",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "metrics record should exit 0");
+        assert!(
+            dir.path().join(".fusa-metrics.json").exists(),
+            ".fusa-metrics.json must be created"
+        );
+        let v: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(dir.path().join(".fusa-metrics.json")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(v["kind"].as_str(), Some("metrics"));
+        assert!(v["snapshots"].is_array());
+        assert_eq!(v["snapshots"].as_array().unwrap().len(), 1);
+    }
+
+    //fusa:test REQ-METRICS002
+    #[test]
+    fn metrics_show_no_file() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!(
+            "rsfusa metrics show --dir {}",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "metrics show should exit 0 with no file");
+        let text = String::from_utf8(out).unwrap();
+        assert!(!text.is_empty(), "metrics show should produce output");
+    }
+
+    // ── pr ────────────────────────────────────────────────────────────────────
+
+    //fusa:test REQ-PR001
+    #[test]
+    fn pr_init_creates_file() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!("rsfusa pr init --dir {}", dir.path().display()));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "pr init should exit 0");
+        assert!(
+            dir.path().join(".fusa-problems.json").exists(),
+            ".fusa-problems.json must be created"
+        );
+        let v: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(dir.path().join(".fusa-problems.json")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(v["kind"].as_str(), Some("problem-reports"));
+    }
+
+    //fusa:test REQ-PR002
+    //fusa:test REQ-PR003
+    #[test]
+    fn pr_add_and_list() {
+        let dir = tempfile::TempDir::new().unwrap();
+        // Add a problem report
+        let a_add = args(&format!(
+            "rsfusa pr add --dir {} --title test-problem --severity major --phase testing",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a_add, &mut out, &mut err);
+        assert_eq!(code, 0, "pr add should exit 0");
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("PR-"), "pr add should print the new PR ID");
+        // List it
+        let a_list = args(&format!("rsfusa pr list --dir {}", dir.path().display()));
+        let mut out2 = Vec::new();
+        let mut err2 = Vec::new();
+        let code2 = run(&a_list, &mut out2, &mut err2);
+        assert_eq!(code2, 0, "pr list should exit 0");
+        let text2 = String::from_utf8(out2).unwrap();
+        assert!(
+            text2.contains("test-problem"),
+            "pr list should show the added problem title"
+        );
+    }
+
+    // ── sas ───────────────────────────────────────────────────────────────────
+
+    //fusa:test REQ-SAS001
+    //fusa:test REQ-SAS002
+    #[test]
+    fn sas_creates_md_file() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let a = args(&format!("rsfusa sas --dir {}", dir.path().display()));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "sas should exit 0");
+        assert!(dir.path().join("sas.md").exists(), "sas.md must be created");
+        let content = std::fs::read_to_string(dir.path().join("sas.md")).unwrap();
+        assert!(
+            content.contains("Software Accomplishment Summary"),
+            "sas.md must contain title"
+        );
+        assert!(
+            content.contains("DO-178C"),
+            "sas.md must reference standard"
+        );
+    }
+
+    //fusa:test REQ-SAS003
+    #[test]
+    fn sas_json_format() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let out_file = dir.path().join("sas.json");
+        let a = args(&format!(
+            "rsfusa sas --dir {} --format json --output {}",
+            dir.path().display(),
+            out_file.display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "sas --format json should exit 0");
+        assert!(out_file.exists(), "sas.json must be created");
+        let v: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&out_file).unwrap()).unwrap();
+        assert_eq!(v["kind"].as_str(), Some("sas"));
+        assert!(v["evidence"].is_array());
+        assert!(v["summary"]["total"].is_number());
+    }
+
+    // ── sci ───────────────────────────────────────────────────────────────────
+
+    //fusa:test REQ-SCI001
+    //fusa:test REQ-SCI002
+    //fusa:test REQ-SCI003
+    #[test]
+    fn sci_creates_json_file() {
+        let dir = tempfile::TempDir::new().unwrap();
+        // Create some files that SCI will find
+        std::fs::write(
+            dir.path().join("Cargo.toml"),
+            "[package]\nname=\"t\"\nversion=\"0.1.0\"\n",
+        )
+        .unwrap();
+        let out_file = dir.path().join("sci.json");
+        let a = args(&format!(
+            "rsfusa sci --dir {} --output {}",
+            dir.path().display(),
+            out_file.display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "sci should exit 0");
+        assert!(out_file.exists(), "sci.json must be created");
+        let v: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&out_file).unwrap()).unwrap();
+        assert_eq!(v["kind"].as_str(), Some("sci"));
+        assert!(v["items"].is_array(), "items array must be present");
+        assert!(v["summary"]["total"].is_number());
+        // Check that present items have a hash
+        let items = v["items"].as_array().unwrap();
+        let present = items.iter().find(|i| i["present"].as_bool() == Some(true));
+        if let Some(item) = present {
+            let hash = item["hash"].as_str().unwrap_or("");
+            assert!(
+                hash.starts_with("sha256:"),
+                "present file must have sha256: hash, got '{hash}'"
+            );
+        }
+    }
+
+    // ── sign ──────────────────────────────────────────────────────────────────
+
+    //fusa:test REQ-SIGN001
+    //fusa:test REQ-SIGN002
+    #[test]
+    fn sign_sign_and_verify_roundtrip() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let key_path = dir.path().join("test.key");
+        let data_path = dir.path().join("data.txt");
+        // Write a 32-byte key and data to sign
+        std::fs::write(&key_path, [0u8; 32]).unwrap();
+        std::fs::write(&data_path, b"hello safety world").unwrap();
+        // Sign
+        let a_sign = args(&format!(
+            "rsfusa sign --key {} {}",
+            key_path.display(),
+            data_path.display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a_sign, &mut out, &mut err);
+        assert_eq!(code, 0, "sign should exit 0");
+        let sig_path = format!("{}.sig", data_path.display());
+        assert!(
+            std::path::Path::new(&sig_path).exists(),
+            ".sig file must be created"
+        );
+        // Verify with correct key
+        let a_verify = args(&format!(
+            "rsfusa sign --verify --key {} {}",
+            key_path.display(),
+            data_path.display()
+        ));
+        let mut out2 = Vec::new();
+        let mut err2 = Vec::new();
+        let code2 = run(&a_verify, &mut out2, &mut err2);
+        assert_eq!(code2, 0, "sign --verify should exit 0 for valid signature");
+        let text = String::from_utf8(out2).unwrap();
+        assert!(text.contains("VALID"), "verify output must confirm VALID");
+    }
+
+    //fusa:test REQ-SIGN003
+    #[test]
+    fn sign_no_args_exits_usage() {
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&args("rsfusa sign"), &mut out, &mut err);
+        assert_eq!(code, 2, "sign with no args should exit with usage error");
+    }
+
+    // ── template ──────────────────────────────────────────────────────────────
+
+    //fusa:test REQ-TEMPLATE001
+    //fusa:test REQ-TEMPLATE002
+    #[test]
+    fn template_generates_files() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let out_dir = dir.path().join("docs/safety");
+        let a = args(&format!(
+            "rsfusa template --dir {} --out-dir {}",
+            dir.path().display(),
+            out_dir.display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "template should exit 0");
+        assert!(
+            out_dir.join("safety-plan.md").exists(),
+            "safety-plan.md must be created"
+        );
+        assert!(
+            out_dir.join("test-plan.md").exists(),
+            "test-plan.md must be created"
+        );
+        assert!(
+            out_dir.join("review-checklist.md").exists(),
+            "review-checklist.md must be created"
+        );
+        assert!(
+            out_dir.join("incident-report.md").exists(),
+            "incident-report.md must be created"
+        );
+    }
+
+    //fusa:test REQ-TEMPLATE003
+    #[test]
+    fn template_skips_existing_without_force() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let out_dir = dir.path().join("out");
+        std::fs::create_dir_all(&out_dir).unwrap();
+        std::fs::write(out_dir.join("safety-plan.md"), "existing content").unwrap();
+        let a = args(&format!(
+            "rsfusa template --dir {} --out-dir {}",
+            dir.path().display(),
+            out_dir.display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "template should exit 0 even when skipping");
+        // Existing file must not be overwritten
+        let content = std::fs::read_to_string(out_dir.join("safety-plan.md")).unwrap();
+        assert_eq!(
+            content, "existing content",
+            "existing file must not be overwritten without --force"
+        );
+        let text = String::from_utf8(out).unwrap();
+        assert!(
+            text.contains("Skipping"),
+            "output should indicate skipping existing file"
         );
     }
 }

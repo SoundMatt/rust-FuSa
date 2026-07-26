@@ -1,5 +1,8 @@
 // `rsfusa sci` — Software Configuration Index (DO-178C §11.16).
 //fusa:req REQ-CFG001
+//fusa:req REQ-SCI001
+//fusa:req REQ-SCI002
+//fusa:req REQ-SCI003
 
 use crate::config::load;
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};

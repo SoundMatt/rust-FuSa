@@ -1324,6 +1324,251 @@
       "text": "The coverage command shall fail with exit code 1 when --mcdc is enabled and any annotated function has uncovered MC/DC conditions below the threshold.",
       "standard": "do178c",
       "level": "HLR"
+    },
+    {
+      "id": "REQ-BADGE001",
+      "title": "SVG status badge generation",
+      "text": "The badge command shall generate an SVG status badge reflecting the check-report summary (errors, warnings, passing).",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-BADGE002",
+      "title": "Badge colour semantics",
+      "text": "The badge shall use red for errors, yellow for warnings, and green for passing status.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-BADGE003",
+      "title": "Badge --output file",
+      "text": "When --output is specified the badge shall be written to that file; otherwise it is printed to stdout.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-COUPLING001",
+      "title": "Module import analysis",
+      "text": "The coupling command shall scan Rust source files and identify inter-module imports (use crate::).",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-COUPLING002",
+      "title": "High-coupling detection",
+      "text": "The coupling command shall flag modules exceeding a configurable import threshold as WARNING findings.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-COUPLING003",
+      "title": "Coupling report output",
+      "text": "The coupling command shall write a structured coupling-report.json containing module list, data findings, and control findings.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-DISP001",
+      "title": "Disposition list",
+      "text": "The disposition command shall list all entries in .fusa-dispositions.json in text or JSON format.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-DISP002",
+      "title": "Disposition add",
+      "text": "The disposition add sub-command shall append a new entry with rule, file, status, note, and by fields.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-DISP003",
+      "title": "Disposition status validation",
+      "text": "The disposition command shall reject status values other than accepted, deferred, or rejected.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-FIX001",
+      "title": "Fixable findings report",
+      "text": "The fix command shall display only findings that carry a non-empty remediation guidance string.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-FIX002",
+      "title": "Fix JSON format",
+      "text": "The fix command shall support --format json and emit a fix-report with schemaVersion, kind, and findings array.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-HOOKS001",
+      "title": "Hook status display",
+      "text": "The hooks show sub-command shall display the current state of the git pre-commit hook.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-HOOKS002",
+      "title": "Hook install",
+      "text": "The hooks install sub-command shall write a pre-commit hook that runs rsfusa check --strict.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-HOOKS003",
+      "title": "Hook remove",
+      "text": "The hooks remove sub-command shall delete the pre-commit hook only when it was installed by rsfusa.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-IMPACT001",
+      "title": "Changed file detection",
+      "text": "The impact command shall obtain the list of changed files via git diff --name-only.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-IMPACT002",
+      "title": "Impacted requirement detection",
+      "text": "The impact command shall scan changed files for //fusa:req annotations and report the affected requirement IDs.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-IMPACT003",
+      "title": "Stale artifact detection",
+      "text": "The impact command shall identify known output artifacts that are older than the newest changed source file.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-METRICS001",
+      "title": "Metrics snapshot recording",
+      "text": "The metrics record sub-command shall append a timestamped snapshot to .fusa-metrics.json.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-METRICS002",
+      "title": "Metrics time series display",
+      "text": "The metrics show sub-command shall display a tabular time series of recorded snapshots.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-METRICS003",
+      "title": "Metrics snapshot fields",
+      "text": "Each snapshot shall include errorCount, warningCount, coveragePct, tracedRequirements, and totalRequirements.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-PR001",
+      "title": "Problem reports init",
+      "text": "The pr init sub-command shall create an empty .fusa-problems.json file.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-PR002",
+      "title": "Problem reports add and close",
+      "text": "The pr add sub-command shall append a new problem report; pr close shall set its status to closed.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-PR003",
+      "title": "Problem report classification",
+      "text": "Problem reports shall support severity (critical/major/minor/observation) and phase fields.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SAS001",
+      "title": "Software Accomplishment Summary generation",
+      "text": "The sas command shall generate a Software Accomplishment Summary document (DO-178C \u00a711.20) as sas.md.",
+      "standard": "do178c",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SAS002",
+      "title": "SAS evidence checklist",
+      "text": "The SAS shall include a table of lifecycle evidence items with present/missing status.",
+      "standard": "do178c",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SAS003",
+      "title": "SAS JSON format",
+      "text": "When --format json is given the sas command shall write a structured JSON report to the output path.",
+      "standard": "do178c",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SCI001",
+      "title": "Software Configuration Index generation",
+      "text": "The sci command shall generate a Software Configuration Index (DO-178C \u00a711.16) as sci.json.",
+      "standard": "do178c",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SCI002",
+      "title": "SCI required item validation",
+      "text": "The SCI shall flag required lifecycle data items that are not present in the project directory.",
+      "standard": "do178c",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SCI003",
+      "title": "SCI file hash",
+      "text": "The SCI shall compute a SHA-256 hash for each present file and include it in the items array.",
+      "standard": "do178c",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SIGN001",
+      "title": "HMAC-SHA256 file signing",
+      "text": "The sign command shall compute an HMAC-SHA256 signature of the target file using the provided key and write it to <file>.sig.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SIGN002",
+      "title": "Signature verification",
+      "text": "The sign --verify command shall verify an HMAC-SHA256 signature and exit 0 on success or non-zero on mismatch.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SIGN003",
+      "title": "Key generation",
+      "text": "The sign --keygen command shall generate a 32-byte signing key and write it to fusa.key.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TEMPLATE001",
+      "title": "Safety documentation template generation",
+      "text": "The template command shall generate safety-plan.md, test-plan.md, review-checklist.md, and incident-report.md templates.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TEMPLATE002",
+      "title": "Template output directory",
+      "text": "Templates shall be written to docs/safety/ by default, overridable with --out-dir.",
+      "standard": "generic",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TEMPLATE003",
+      "title": "Template --force overwrite",
+      "text": "The template command shall skip existing files unless --force is given.",
+      "standard": "generic",
+      "level": "HLR"
     }
   ]
 }

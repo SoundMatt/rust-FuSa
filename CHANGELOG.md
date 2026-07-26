@@ -7,6 +7,20 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.3.1 — 2026-07-26
+
+### Added
+
+- **Smoke tests for 12 untested subcommands** — badge, coupling, disposition, fix, hooks, impact, metrics, pr, sas, sci, sign, and template each gain at least one unit test covering their primary behaviour (smoke test: run in a temp dir, assert exit code 0 and non-empty output). Tests carry `//fusa:test` annotations for the corresponding requirement IDs.
+- **Requirement annotations** — `//fusa:req` annotations added to all 12 previously unannotated cmd files (badge.rs, coupling.rs, disposition.rs, fix.rs, hooks.rs, impact.rs, metrics.rs, pr.rs, sas.rs, sci.rs, sign.rs, template.rs).
+- **35 new requirements** in `.fusa-reqs.json` covering REQ-BADGE001–003, REQ-COUPLING001–003, REQ-DISP001–003, REQ-FIX001–002, REQ-HOOKS001–003, REQ-IMPACT001–003, REQ-METRICS001–003, REQ-PR001–003, REQ-SAS001–003, REQ-SCI001–003, REQ-SIGN001–003, REQ-TEMPLATE001–003.
+
+### Tests
+
+- 21 new tests. Total: **105 tests**, all green.
+
+---
+
 ## v0.3.0 — 2026-07-26
 
 ### Added
