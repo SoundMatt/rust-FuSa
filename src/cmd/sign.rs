@@ -1,4 +1,7 @@
 // `rsfusa sign` — sign or verify files with HMAC-SHA256.
+//fusa:req REQ-SIGN001
+//fusa:req REQ-SIGN002
+//fusa:req REQ-SIGN003
 
 use crate::types::{EXIT_GATE_FAIL, EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};
 use hmac::{Hmac, Mac};

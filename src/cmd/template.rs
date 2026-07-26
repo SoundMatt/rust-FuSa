@@ -1,4 +1,7 @@
 // `rsfusa template` — generate safety documentation templates.
+//fusa:req REQ-TEMPLATE001
+//fusa:req REQ-TEMPLATE002
+//fusa:req REQ-TEMPLATE003
 
 use crate::config::load;
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};

@@ -1,4 +1,7 @@
 // `rsfusa badge [check-report.json]` — generate SVG status badge.
+//fusa:req REQ-BADGE001
+//fusa:req REQ-BADGE002
+//fusa:req REQ-BADGE003
 
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};
 use std::io::Write;

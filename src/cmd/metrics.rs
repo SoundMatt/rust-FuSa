@@ -1,4 +1,7 @@
 // `rsfusa metrics [record|show]` — safety metrics time series.
+//fusa:req REQ-METRICS001
+//fusa:req REQ-METRICS002
+//fusa:req REQ-METRICS003
 
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use serde::{Deserialize, Serialize};

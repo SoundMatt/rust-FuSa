@@ -1,4 +1,7 @@
 // `rsfusa hooks [install|remove|show]` — manage git pre-commit hooks.
+//fusa:req REQ-HOOKS001
+//fusa:req REQ-HOOKS002
+//fusa:req REQ-HOOKS003
 
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};
 use std::io::Write;

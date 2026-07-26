@@ -1,5 +1,8 @@
 // `rsfusa sas` — Software Accomplishment Summary (DO-178C §11.20).
 //fusa:req REQ-SC002
+//fusa:req REQ-SAS001
+//fusa:req REQ-SAS002
+//fusa:req REQ-SAS003
 
 use crate::config::load;
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};

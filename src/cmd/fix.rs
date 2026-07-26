@@ -1,4 +1,6 @@
 // `rsfusa fix` — show auto-fixable findings with remediation guidance.
+//fusa:req REQ-FIX001
+//fusa:req REQ-FIX002
 
 use crate::config::load;
 use crate::engine::default_registry;

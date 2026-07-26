@@ -1,5 +1,8 @@
 // `rsfusa coupling` — data and control coupling analysis between Rust modules.
 // Writes coupling-report.json.
+//fusa:req REQ-COUPLING001
+//fusa:req REQ-COUPLING002
+//fusa:req REQ-COUPLING003
 
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use serde::Serialize;

@@ -1,4 +1,7 @@
 // `rsfusa pr [init|add|list|close]` — software problem report log.
+//fusa:req REQ-PR001
+//fusa:req REQ-PR002
+//fusa:req REQ-PR003
 
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use serde::{Deserialize, Serialize};

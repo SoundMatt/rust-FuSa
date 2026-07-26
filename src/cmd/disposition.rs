@@ -1,4 +1,7 @@
 // `rsfusa disposition [add|list|show]` — manage .fusa-dispositions.json.
+//fusa:req REQ-DISP001
+//fusa:req REQ-DISP002
+//fusa:req REQ-DISP003
 
 use crate::config::{load_dispositions, DispositionEntry, DispositionsFile};
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};
