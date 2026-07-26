@@ -9,8 +9,8 @@ WORKDIR /src
 COPY Cargo.toml Cargo.lock* ./
 COPY src ./src
 
-RUN cargo build --release --target x86_64-unknown-linux-musl \
-    && strip target/x86_64-unknown-linux-musl/release/rsfusa
+RUN cargo build --release \
+    && strip target/release/rsfusa
 
 # ── Runtime image ──────────────────────────────────────────────────────────
 
@@ -28,7 +28,7 @@ LABEL org.opencontainers.image.title="rust-FuSa" \
       io.x-fusa.binary="rsfusa" \
       io.x-fusa.spec-version="${SPEC_VERSION}"
 
-COPY --from=builder /src/target/x86_64-unknown-linux-musl/release/rsfusa /usr/local/bin/rsfusa
+COPY --from=builder /src/target/release/rsfusa /usr/local/bin/rsfusa
 
 WORKDIR /project
 ENTRYPOINT ["rsfusa"]

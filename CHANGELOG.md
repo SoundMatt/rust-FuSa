@@ -7,6 +7,18 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.3.4 — 2026-07-26
+
+### Fixed
+
+- **Dockerfile multi-platform build** — removed explicit `--target x86_64-unknown-linux-musl`
+  from the Docker build step. The Release CI builds `linux/amd64,linux/arm64` via QEMU, so
+  on the arm64 builder the explicit x86_64 target caused `can't find crate for 'std'`
+  (cross-compiler sysroot not installed). Using `cargo build --release` without an explicit
+  target lets `rust:alpine` use the native musl target for each platform.
+
+---
+
 ## v0.3.3 — 2026-07-26
 
 ### Fixed
