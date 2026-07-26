@@ -7,6 +7,16 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.3.3 — 2026-07-26
+
+### Fixed
+
+- **Cargo.lock version mismatch** — `Cargo.lock` was not updated when version was bumped
+  to 0.3.2, causing `cargo build --locked` in the Release CI to fail with "cannot update
+  the lock file". Lock file is now regenerated and committed at v0.3.3.
+
+---
+
 ## v0.3.2 — 2026-07-26
 
 ### Fixed
