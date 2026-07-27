@@ -1,5 +1,6 @@
 // `rsfusa diff <baseline.json> <current.json>` — compare two check reports.
 // Exits 1 if new findings are introduced (§4.2 fingerprint-based).
+//fusa:req REQ-DIFF001
 
 use crate::types::{
     EXIT_GATE_FAIL, EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION,

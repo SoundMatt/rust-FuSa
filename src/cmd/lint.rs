@@ -1,4 +1,5 @@
 // `rsfusa lint` — run only LINT* rules (coding standard checks).
+//fusa:req REQ-LINT007
 
 use crate::config::load;
 use crate::engine::Registry;

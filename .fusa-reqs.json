@@ -1583,6 +1583,41 @@
       "text": "The template command shall skip existing files unless --force is given.",
       "standard": "generic",
       "level": "HLR"
+    },
+    {
+      "id": "REQ-ANA007",
+      "title": "Analyze subcommand",
+      "text": "The tool shall provide a dedicated analyze subcommand that runs only the ANA* rule subset and emits a conformant JSON report.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-LINT007",
+      "title": "Lint subcommand",
+      "text": "The tool shall provide a dedicated lint subcommand that runs only the LINT* rule subset and emits a conformant JSON report.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CYBER021",
+      "title": "Cyber subcommand output file",
+      "text": "The cyber command shall write findings to cyber-report.json by default, or to the path given by --output.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-DIFF001",
+      "title": "Fingerprint-based report diff",
+      "text": "The diff command shall compare two check reports by finding fingerprint, classifying each as introduced, resolved, or unchanged, and shall exit 1 if any finding was introduced.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-INIT001",
+      "title": "Init scaffolds project files",
+      "text": "The init command shall create a .fusa.json configuration file and a .fusa-reqs.json requirements file in the target directory.",
+      "standard": "iso26262",
+      "level": "HLR"
     }
   ]
 }

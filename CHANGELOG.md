@@ -7,6 +7,32 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.3.8 — 2026-07-27
+
+### Added
+
+- **Function-tag coverage: 86% → 100%** — eight source files carried zero
+  `//fusa:req` tags and so contributed zero covered `pub fn`s to
+  `trace --func-coverage`: `src/report.rs` (JSON/SARIF/HTML rendering) and
+  six CLI-wrapper files, `src/cmd/{analyze,auditpack,cyber,diff,init,lint}.rs`.
+  `src/report.rs` now carries the existing `REQ-RPT001`, `REQ-RPT002`,
+  `REQ-RPT003`, `REQ-HTML001-003` tags (previously only referenced from
+  `cmd/check.rs`, never from the file that actually implements them).
+  `cmd/auditpack.rs` now carries the existing `REQ-AUDIT001`/`REQ-AUDIT002`
+  as a second, genuine impl location (the CLI entry point that drives
+  `pack()` end-to-end). Five new HLR requirements were registered for
+  CLI-surface behaviour that had no requirement at all: `REQ-ANA007`
+  (dedicated `analyze` subcommand), `REQ-LINT007` (dedicated `lint`
+  subcommand), `REQ-CYBER021` (`cyber`'s `cyber-report.json` / `--output`
+  file-write behaviour), `REQ-DIFF001` (fingerprint-based report diff), and
+  `REQ-INIT001` (`init` scaffolds `.fusa.json` + `.fusa-reqs.json`) — all
+  five are tested by existing `main.rs` integration tests, now tagged, plus
+  one new test, `diff_detects_introduced_and_resolved`, since the only prior
+  `diff` test (`diff_no_args`) never exercised the actual fingerprint-diff
+  logic. `src/cmd/mod.rs` (pure module declarations, no `pub fn`) is the only
+  remaining untagged file and does not affect the gate's denominator.
+- `.fusa-reqs.json` requirement count: 226 → 231.
+
 ## v0.3.7 — 2026-07-27
 
 ### Added

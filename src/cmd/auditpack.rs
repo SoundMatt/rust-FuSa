@@ -1,3 +1,7 @@
+// `rsfusa audit-pack` — bundle evidence files into a single ZIP with manifest.
+//fusa:req REQ-AUDIT001
+//fusa:req REQ-AUDIT002
+
 use crate::auditpack::{pack, AUDIT_PACK_FILE};
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};
 use std::io::Write;

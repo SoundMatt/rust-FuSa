@@ -331,6 +331,7 @@ mod tests {
     //fusa:test REQ-CFG002
     //fusa:test REQ-CFG003
     //fusa:test REQ-REQQ001
+    //fusa:test REQ-INIT001
     #[test]
     fn init_creates_files() {
         let dir = tempfile::TempDir::new().unwrap();
@@ -354,6 +355,43 @@ mod tests {
         let mut err = Vec::new();
         let code = run(&args("rsfusa diff"), &mut out, &mut err);
         assert_eq!(code, 2);
+    }
+
+    //fusa:test REQ-DIFF001
+    #[test]
+    fn diff_detects_introduced_and_resolved() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let baseline = dir.path().join("baseline.json");
+        let current = dir.path().join("current.json");
+        std::fs::write(
+            &baseline,
+            r#"{"findings":[
+                {"fingerprint":"a","ruleId":"ANA001","location":{"file":"x.rs","line":1},"message":"m"},
+                {"fingerprint":"b","ruleId":"ANA002","location":{"file":"x.rs","line":2},"message":"m"}
+            ]}"#,
+        )
+        .unwrap();
+        std::fs::write(
+            &current,
+            r#"{"findings":[
+                {"fingerprint":"b","ruleId":"ANA002","location":{"file":"x.rs","line":2},"message":"m"},
+                {"fingerprint":"c","ruleId":"ANA003","location":{"file":"x.rs","line":3},"message":"m"}
+            ]}"#,
+        )
+        .unwrap();
+        let a = args(&format!(
+            "rsfusa diff {} {} --format json",
+            baseline.display(),
+            current.display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 1, "diff should exit 1 when a finding is introduced");
+        let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
+        assert_eq!(v["summary"]["introduced"].as_u64(), Some(1));
+        assert_eq!(v["summary"]["resolved"].as_u64(), Some(1));
+        assert_eq!(v["summary"]["unchanged"].as_u64(), Some(1));
     }
 
     //fusa:test REQ-CLI011
@@ -1873,6 +1911,7 @@ mod tests {
     //fusa:test REQ-ANA003
     //fusa:test REQ-ANA004
     //fusa:test REQ-ANA006
+    //fusa:test REQ-ANA007
     #[test]
     fn analyze_json_schema() {
         let dir = tempfile::TempDir::new().unwrap();
@@ -1891,6 +1930,7 @@ mod tests {
 
     //fusa:test REQ-LINT005
     //fusa:test REQ-LINT006
+    //fusa:test REQ-LINT007
     #[test]
     fn lint_json_schema() {
         let dir = tempfile::TempDir::new().unwrap();
@@ -1920,6 +1960,7 @@ mod tests {
     //fusa:test REQ-CYBER019
     //fusa:test REQ-CYBER020
     //fusa:test REQ-CYBER005
+    //fusa:test REQ-CYBER021
     #[test]
     fn cyber_json_schema() {
         let dir = tempfile::TempDir::new().unwrap();

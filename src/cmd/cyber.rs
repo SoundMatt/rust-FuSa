@@ -1,4 +1,5 @@
 // `rsfusa cyber` — cybersecurity static analysis (CYBER001–CYBER020). Writes cyber-report.json.
+//fusa:req REQ-CYBER021
 
 use crate::config::load;
 use crate::cyber;

@@ -1,4 +1,10 @@
 // Report rendering: text, JSON, SARIF (§4, §2.9).
+//fusa:req REQ-RPT001
+//fusa:req REQ-RPT002
+//fusa:req REQ-RPT003
+//fusa:req REQ-HTML001
+//fusa:req REQ-HTML002
+//fusa:req REQ-HTML003
 
 use crate::types::{Finding, Severity, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use serde::Serialize;

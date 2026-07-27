@@ -1,3 +1,6 @@
+// `rsfusa init` — scaffold a new project's .fusa.json and .fusa-reqs.json.
+//fusa:req REQ-INIT001
+
 use crate::config::{save, FusaConfig, CONFIG_FILE, REQS_FILE};
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};
 use std::io::Write;

@@ -1,4 +1,5 @@
 // `rsfusa analyze` — run only ANA* static analysis rules.
+//fusa:req REQ-ANA007
 
 use crate::analyze;
 use crate::config::load;
