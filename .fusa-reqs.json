@@ -520,6 +520,20 @@
       "level": "HLR"
     },
     {
+      "id": "REQ-TRACE008",
+      "title": "Function annotation density gate (--func-coverage)",
+      "text": "The trace command shall support --func-coverage N, gating on the percentage of public functions whose containing file carries at least one //fusa:req annotation (x-FuSa spec \u00a71.4.1 file-header interim convention); N=0 disables the gate and the tool shall exit 1 when the density is below N.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TRACE009",
+      "title": "Dangling test-tag detection",
+      "text": "The trace annotation scan shall emit a WARNING finding for a //fusa:test <ID> annotation whose ID does not exist in .fusa-reqs.json, treated the same as a malformed annotation (x-FuSa spec \u00a71.4.1 item 3).",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
       "id": "REQ-RPT001",
       "title": "JSON report schema",
       "text": "Check reports shall include findings[], summary.errors, summary.warnings, and summary.infos fields.",

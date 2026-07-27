@@ -11,6 +11,8 @@
 //fusa:req REQ-TRACE-HLR002
 //fusa:req REQ-TRACE-HLR003
 //fusa:req REQ-TRACE-HLR004
+//fusa:req REQ-TRACE008
+//fusa:req REQ-TRACE009
 
 use crate::config::{load_reqs, FusaConfig, Requirement};
 use crate::types::{
@@ -234,27 +236,14 @@ pub fn build(project_root: &Path, cfg: &FusaConfig) -> Result<(Matrix, Vec<Findi
         (vec![], vec![])
     };
 
-    let mut tags = Vec::new();
-    let mut parse_findings = scan_annotations(project_root, cfg, &mut tags)?;
-    findings.append(&mut parse_findings);
+    // Requirement ids known to .fusa-reqs.json — used by scan_annotations to flag
+    // dangling references (§1.4.1 item 3) in the same pass as malformed annotations.
+    let req_ids: std::collections::HashSet<&str> =
+        requirements.iter().map(|r| r.id.as_str()).collect();
 
-    // Validate referenced requirement ids exist
-    let req_ids: HashMap<&str, ()> = requirements.iter().map(|r| (r.id.as_str(), ())).collect();
-    for tag in &tags {
-        if !req_ids.contains_key(tag.requirement_id.as_str()) {
-            findings.push(Finding::new(
-                "REQ002",
-                Severity::Warning,
-                format!(
-                    "annotation references unknown requirement id: {}",
-                    tag.requirement_id
-                ),
-                Location::at(tag.file.clone(), tag.line),
-                Category::Requirement,
-                "add the requirement to .fusa-reqs.json or fix the id",
-            ));
-        }
-    }
+    let mut tags = Vec::new();
+    let mut parse_findings = scan_annotations(project_root, cfg, &req_ids, &mut tags)?;
+    findings.append(&mut parse_findings);
 
     let coverage = compute_coverage(&requirements, &tags);
 
@@ -279,8 +268,10 @@ pub fn build(project_root: &Path, cfg: &FusaConfig) -> Result<(Matrix, Vec<Findi
 fn scan_annotations(
     root: &Path,
     cfg: &FusaConfig,
+    req_ids: &std::collections::HashSet<&str>,
     tags: &mut Vec<Tag>,
 ) -> Result<Vec<Finding>, String> {
+    //fusa:req REQ-TRACE009
     let mut findings = Vec::new();
     for entry in WalkDir::new(root)
         .into_iter()
@@ -305,12 +296,29 @@ fn scan_annotations(
             let lineno = (i + 1) as u32;
             if let Some(kind) = annotation_kind(line) {
                 match extract_req_id(line, kind) {
-                    Ok(id) => tags.push(Tag {
-                        requirement_id: id,
-                        file: rel.clone(),
-                        line: lineno,
-                        kind: kind.clone(),
-                    }),
+                    Ok(id) => {
+                        // Dangling-reference detection (§1.4.1 item 3): an annotation
+                        // whose id is not registered in .fusa-reqs.json is treated the
+                        // same as a malformed annotation — a WARNING, never silently
+                        // accepted. Applies to every tag kind (impl/test/sec-test); the
+                        // test->req direction is the one newly required by the spec.
+                        if !req_ids.contains(id.as_str()) {
+                            findings.push(Finding::new(
+                                "REQ002",
+                                Severity::Warning,
+                                format!("annotation references unknown requirement id: {id}"),
+                                Location::at(rel.clone(), lineno),
+                                Category::Requirement,
+                                "add the requirement to .fusa-reqs.json or fix the id",
+                            ));
+                        }
+                        tags.push(Tag {
+                            requirement_id: id,
+                            file: rel.clone(),
+                            line: lineno,
+                            kind: kind.clone(),
+                        });
+                    }
                     Err(e) => findings.push(Finding::new(
                         "REQ003",
                         Severity::Warning,
@@ -443,6 +451,181 @@ fn compute_coverage(requirements: &[Requirement], tags: &[Tag]) -> Coverage {
         llr_count: opt_llr,
         hlr_with_llr: opt_hlr_with_llr,
     }
+}
+
+/// Public-function annotation density (x-FuSa spec §1.4.1 item 2, `--func-coverage`).
+///
+/// rust-FuSa's current tagging convention is **file-header** placement (a tag
+/// block at the top of each file, not per-function) — an interim state the
+/// spec explicitly permits. So a `pub fn` counts as "covered" if its
+/// containing file carries at least one `impl`-kind (`//fusa:req`) tag
+/// anywhere in it, not necessarily directly above the function.
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FuncCoverage {
+    pub total: usize,
+    pub covered: usize,
+}
+
+impl FuncCoverage {
+    /// Percentage covered, 0 when `total` is zero.
+    pub fn pct(&self) -> u32 {
+        self.covered
+            .checked_mul(100)
+            .and_then(|v| v.checked_div(self.total))
+            .unwrap_or(0) as u32
+    }
+}
+
+/// Scan the project for `pub fn` declarations and compute file-header
+/// annotation density: `--func-coverage N` (§1.4.1 item 2).
+///
+/// `tags` must be the `scan_annotations` result for the same root (used to
+/// determine which files already carry an `impl`-kind tag). Skips the
+/// top-level `tests/` integration-test directory, `build.rs`, and the body
+/// of any `#[cfg(test)]` item, since unit-test helpers aren't part of the
+/// public API surface this gate measures.
+///
+//fusa:req REQ-TRACE008
+pub fn scan_func_coverage(
+    root: &Path,
+    cfg: &FusaConfig,
+    tags: &[Tag],
+) -> Result<FuncCoverage, String> {
+    let mut annotated_files: std::collections::HashSet<&str> = std::collections::HashSet::new();
+    for tag in tags {
+        if tag.kind == TagKind::Impl {
+            annotated_files.insert(tag.file.as_str());
+        }
+    }
+
+    let mut fc = FuncCoverage::default();
+
+    for entry in WalkDir::new(root)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.file_type().is_file())
+    {
+        let path = entry.path();
+        if path.extension().and_then(|s| s.to_str()) != Some("rs") {
+            continue;
+        }
+        let rel = path
+            .strip_prefix(root)
+            .unwrap_or(path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        if is_excluded(&rel, &cfg.exclude_patterns) {
+            continue;
+        }
+        if rel.starts_with("tests/") || rel == "build.rs" {
+            continue;
+        }
+
+        let content = std::fs::read_to_string(path).map_err(|e| format!("read {rel}: {e}"))?;
+        let file_annotated = annotated_files.contains(rel.as_str());
+
+        // Track brace depth to skip over #[cfg(test)] items entirely — a
+        // best-effort scan, not a full parser.
+        let mut depth: i32 = 0;
+        let mut test_skip_from: Option<i32> = None;
+        let mut pending_test_attr = false;
+
+        for line in content.lines() {
+            let t = line.trim();
+
+            if let Some(base) = test_skip_from {
+                depth += brace_delta(t);
+                if depth <= base {
+                    test_skip_from = None;
+                }
+                continue;
+            }
+
+            if t.starts_with("#[cfg(test)") || t.starts_with("#[cfg(all(test") {
+                pending_test_attr = true;
+                depth += brace_delta(t);
+                continue;
+            }
+            if t.starts_with("#[") {
+                depth += brace_delta(t);
+                continue;
+            }
+
+            if pending_test_attr {
+                pending_test_attr = false;
+                let base = depth;
+                depth += brace_delta(t);
+                if depth > base {
+                    test_skip_from = Some(base);
+                }
+                continue;
+            }
+
+            if is_public_fn_decl(t) {
+                fc.total += 1;
+                if file_annotated {
+                    fc.covered += 1;
+                }
+            }
+
+            depth += brace_delta(t);
+        }
+    }
+
+    Ok(fc)
+}
+
+/// Net `{`/`}` delta for a source line, ignoring braces inside `"..."`
+/// string literals and stopping at a `//` line comment. Best-effort only —
+/// not a full lexer.
+fn brace_delta(line: &str) -> i32 {
+    let mut in_string = false;
+    let mut delta = 0i32;
+    let mut chars = line.chars().peekable();
+    while let Some(c) = chars.next() {
+        match c {
+            '\\' if in_string => {
+                chars.next(); // skip escaped char
+            }
+            '"' => in_string = !in_string,
+            '{' if !in_string => delta += 1,
+            '}' if !in_string => delta -= 1,
+            '/' if !in_string && chars.peek() == Some(&'/') => break,
+            _ => {}
+        }
+    }
+    delta
+}
+
+/// True if the trimmed line is a `pub fn` (or `pub async/const/unsafe/extern
+/// fn`) declaration. Excludes `pub(crate)`/`pub(super)` — those aren't part
+/// of the public API surface this gate measures.
+fn is_public_fn_decl(line: &str) -> bool {
+    let Some(mut rest) = line.strip_prefix("pub ") else {
+        return false;
+    };
+    loop {
+        let mut matched = false;
+        for prefix in [
+            "async ",
+            "const ",
+            "unsafe ",
+            "extern \"C\" ",
+            "extern \"Rust\" ",
+            "extern ",
+        ] {
+            if let Some(r) = rest.strip_prefix(prefix) {
+                rest = r;
+                matched = true;
+                break;
+            }
+        }
+        if !matched {
+            break;
+        }
+    }
+    rest.starts_with("fn ") || rest.starts_with("fn(")
 }
 
 pub fn render_text<W: Write + ?Sized>(w: &mut W, matrix: &Matrix) -> std::io::Result<()> {

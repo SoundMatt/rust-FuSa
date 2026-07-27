@@ -9,8 +9,10 @@
 //fusa:req REQ-TRACE-HLR002
 //fusa:req REQ-TRACE-HLR003
 //fusa:req REQ-TRACE-HLR004
+//fusa:req REQ-TRACE008
+//fusa:req REQ-TRACE009
 use crate::config::load;
-use crate::trace::{build, render_md, render_text, validate_hlr_llr, Coverage};
+use crate::trace::{build, render_md, render_text, scan_func_coverage, validate_hlr_llr, Coverage};
 use crate::types::{EXIT_GATE_FAIL, EXIT_OK, EXIT_RUNTIME, EXIT_USAGE};
 use std::io::Write;
 use std::path::PathBuf;
@@ -40,12 +42,32 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         }
     };
 
-    let (mut matrix, _findings) = match build(&project_root, &cfg) {
+    let (mut matrix, findings) = match build(&project_root, &cfg) {
         Ok(r) => r,
         Err(e) => {
             writeln!(stderr, "rsfusa trace: {e}").ok();
             return EXIT_RUNTIME;
         }
+    };
+    // Annotation-scan findings (malformed annotations, dangling requirement
+    // ids — §1.4.1 item 3): WARNING-only, never gate the exit code, but must
+    // not be silently dropped.
+    for f in &findings {
+        writeln!(stderr, "rsfusa trace: [{:?}] {}", f.severity, f.message).ok();
+    }
+
+    // Function annotation density (§1.4.1 item 2, --func-coverage). Computed
+    // from the full tag set before --gaps trims matrix.tags below.
+    let func_coverage = if opts.func_coverage > 0 {
+        match scan_func_coverage(&project_root, &cfg, &matrix.tags) {
+            Ok(fc) => Some(fc),
+            Err(e) => {
+                writeln!(stderr, "rsfusa trace: scan func coverage: {e}").ok();
+                return EXIT_RUNTIME;
+            }
+        }
+    } else {
+        None
     };
 
     // HLR/LLR validation.
@@ -82,6 +104,8 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         &matrix.coverage,
         opts.req_coverage,
         opts.sec_tested,
+        opts.func_coverage,
+        func_coverage.as_ref(),
         hlr_gate_fail,
         stderr,
     );
@@ -125,11 +149,32 @@ fn check_gates(
     cov: &Coverage,
     req_coverage: u32,
     sec_tested: u32,
+    func_coverage: u32,
+    fc: Option<&crate::trace::FuncCoverage>,
     hlr_gate_fail: bool,
     stderr: &mut dyn Write,
 ) -> i32 {
     let total = cov.total_requirements;
     let mut fail = hlr_gate_fail;
+
+    // --func-coverage (§1.4.1 item 2) has its own denominator (public
+    // functions, not requirements) so it gates independently of whether any
+    // requirements are defined at all.
+    if func_coverage > 0 {
+        if let Some(fc) = fc {
+            if fc.total > 0 {
+                let pct = fc.pct();
+                if pct < func_coverage {
+                    writeln!(
+                        stderr,
+                        "rsfusa trace: func-coverage gate failed: {pct}% < required {func_coverage}%"
+                    )
+                    .ok();
+                    fail = true;
+                }
+            }
+        }
+    }
 
     if total == 0 {
         return if fail { EXIT_GATE_FAIL } else { EXIT_OK };
@@ -171,6 +216,7 @@ struct Opts {
     gaps: bool,
     req_coverage: u32,
     sec_tested: u32,
+    func_coverage: u32,
     strict: bool,
     strict_hlr_llr: bool,
 }
@@ -183,6 +229,7 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
         gaps: false,
         req_coverage: 0,
         sec_tested: 0,
+        func_coverage: 0,
         strict: false,
         strict_hlr_llr: false,
     };
@@ -201,7 +248,8 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
             }
             "--strict-hlr-llr" => opts.strict_hlr_llr = true,
             "--no-color" => {}
-            flag @ ("--dir" | "--format" | "--output" | "--req-coverage" | "--sec-tested") => {
+            flag @ ("--dir" | "--format" | "--output" | "--req-coverage" | "--sec-tested"
+            | "--func-coverage") => {
                 if i + 1 >= args.len() {
                     writeln!(stderr, "rsfusa trace: {flag} requires an argument").ok();
                     return None;
@@ -218,6 +266,9 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                     "--sec-tested" => {
                         opts.sec_tested = val.parse().unwrap_or(0);
                     }
+                    "--func-coverage" => {
+                        opts.func_coverage = val.parse().unwrap_or(0);
+                    }
                     _ => {}
                 }
             }
@@ -232,6 +283,8 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
                     opts.req_coverage = v.parse().unwrap_or(0);
                 } else if let Some(v) = other.strip_prefix("--sec-tested=") {
                     opts.sec_tested = v.parse().unwrap_or(0);
+                } else if let Some(v) = other.strip_prefix("--func-coverage=") {
+                    opts.func_coverage = v.parse().unwrap_or(0);
                 } else {
                     writeln!(stderr, "rsfusa trace: unknown flag: {other}").ok();
                     return None;

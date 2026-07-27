@@ -1111,6 +1111,129 @@ mod tests {
         );
     }
 
+    //fusa:test REQ-TRACE008
+    #[test]
+    fn trace_func_coverage_gate_fails_below_threshold() {
+        // §1.4.1 item 2: file-header convention — a pub fn counts as covered
+        // if its containing file carries at least one //fusa:req tag.
+        let dir = tempfile::TempDir::new().unwrap();
+        let src = dir.path().join("src");
+        std::fs::create_dir(&src).unwrap();
+        // Tagged file: 1 pub fn, covered.
+        std::fs::write(src.join("lib.rs"), "//fusa:req REQ-A\npub fn tagged() {}\n").unwrap();
+        // Untagged file: 1 pub fn, uncovered.
+        std::fs::write(src.join("other.rs"), "pub fn untagged() {}\n").unwrap();
+        // 1/2 = 50% density.
+        let a = args(&format!(
+            "rsfusa trace --dir {} --func-coverage 80",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(
+            code,
+            1,
+            "--func-coverage 80 should fail at 50% density: {}",
+            String::from_utf8_lossy(&err)
+        );
+        let errtext = String::from_utf8(err).unwrap();
+        assert!(
+            errtext.contains("func-coverage gate failed"),
+            "should report the func-coverage gate failure: {errtext}"
+        );
+    }
+
+    //fusa:test REQ-TRACE008
+    #[test]
+    fn trace_func_coverage_gate_passes_at_or_above_threshold() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let src = dir.path().join("src");
+        std::fs::create_dir(&src).unwrap();
+        std::fs::write(src.join("lib.rs"), "//fusa:req REQ-A\npub fn tagged() {}\n").unwrap();
+        // 1/1 = 100% density.
+        let a = args(&format!(
+            "rsfusa trace --dir {} --func-coverage 100",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "100% density should pass --func-coverage 100");
+    }
+
+    //fusa:test REQ-TRACE008
+    #[test]
+    fn trace_func_coverage_zero_disables_gate() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let src = dir.path().join("src");
+        std::fs::create_dir(&src).unwrap();
+        std::fs::write(src.join("lib.rs"), "pub fn untagged() {}\n").unwrap();
+        let a = args(&format!(
+            "rsfusa trace --dir {} --func-coverage 0",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "--func-coverage 0 must disable the gate");
+    }
+
+    //fusa:test REQ-TRACE009
+    #[test]
+    fn trace_dangling_test_tag_produces_warning() {
+        // §1.4.1 item 3: a //fusa:test <ID> tag with no matching requirement
+        // must be a WARNING finding, the same as a malformed annotation —
+        // never silently accepted.
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::write(
+            dir.path().join(".fusa-reqs.json"),
+            r#"{"requirements":[{"id":"REQ-A","title":"A","text":"A","standard":"generic","level":"HLR"}]}"#,
+        )
+        .unwrap();
+        let src = dir.path().join("src");
+        std::fs::create_dir(&src).unwrap();
+        std::fs::write(
+            src.join("lib.rs"),
+            "//fusa:req REQ-A\npub fn x() {}\n//fusa:test REQ-DOES-NOT-EXIST\nfn t() {}\n",
+        )
+        .unwrap();
+        let a = args(&format!("rsfusa trace --dir {}", dir.path().display()));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0, "a dangling-id WARNING must not gate the exit code");
+        let errtext = String::from_utf8(err).unwrap();
+        assert!(
+            errtext.contains("unknown requirement id: REQ-DOES-NOT-EXIST"),
+            "dangling //fusa:test id must produce a visible warning: {errtext}"
+        );
+    }
+
+    //fusa:test REQ-TRACE009
+    #[test]
+    fn trace_build_reports_dangling_id_finding() {
+        // Unit-level check directly on trace::build's returned findings, independent
+        // of how the CLI layer chooses to surface them.
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::write(
+            dir.path().join(".fusa-reqs.json"),
+            r#"{"requirements":[{"id":"REQ-A","title":"A","text":"A","standard":"generic","level":"HLR"}]}"#,
+        )
+        .unwrap();
+        let src = dir.path().join("src");
+        std::fs::create_dir(&src).unwrap();
+        std::fs::write(src.join("lib.rs"), "//fusa:test REQ-GHOST\nfn t() {}\n").unwrap();
+        let cfg = crate::config::FusaConfig::new("t", "generic");
+        let (_matrix, findings) = crate::trace::build(dir.path(), &cfg).unwrap();
+        assert!(
+            findings.iter().any(|f| f.rule_id == "REQ002"
+                && f.severity == crate::types::Severity::Warning
+                && f.message.contains("REQ-GHOST")),
+            "dangling //fusa:test id should produce a REQ002 WARNING finding: {findings:?}"
+        );
+    }
+
     //fusa:test REQ-COMP001
     //fusa:test REQ-COMP002
     #[test]

@@ -7,6 +7,37 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.3.7 — 2026-07-27
+
+### Added
+
+- **`trace --func-coverage N`** (x-FuSa spec §1.4.1 item 2) — gates on
+  public-function annotation density using rust-FuSa's file-header tagging
+  convention: a `pub fn` counts as covered if its containing `.rs` file
+  carries at least one `//fusa:req` tag anywhere in it (the interim
+  placement granularity §1.4.1 explicitly permits, pending a future
+  per-function retrofit). `N=0` disables the gate (default); the command
+  exits `1` when density falls below `N`. New `trace::scan_func_coverage`
+  skips the top-level `tests/` integration-test directory, `build.rs`, and
+  the body of any `#[cfg(test)]` item, since test helpers aren't part of the
+  public API surface this gate measures.
+- **Dangling `//fusa:test <ID>` detection** (x-FuSa spec §1.4.1 item 3) — an
+  annotation referencing a requirement id that doesn't exist in
+  `.fusa-reqs.json` now produces a `REQ002` WARNING finding, the same
+  treatment as a malformed annotation, moved into `scan_annotations` itself
+  so the check runs in the same pass instead of a separate post-scan loop.
+
+### Fixed
+
+- **`rsfusa trace` silently dropped its own annotation-scan findings** —
+  `cmd::trace::run` bound `trace::build`'s second return value to `_findings`
+  and never looked at it again, so malformed-annotation and dangling-id
+  `WARNING`s (already computed, just never surfaced) never reached the user
+  on any invocation. `trace` now prints them to stderr alongside the
+  existing HLR/LLR validation output — required for the new dangling-id
+  check to actually be "never silently accepted" per §1.4.1, rather than
+  computed and discarded like before.
+
 ## v0.3.6 — 2026-07-27
 
 ### Fixed
