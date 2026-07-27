@@ -262,7 +262,7 @@ mod tests {
         assert_eq!(code, 0);
         let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
         assert_eq!(v["tool"], "rust-FuSa");
-        assert_eq!(v["specVersion"], "1.10.4");
+        assert_eq!(v["specVersion"], types::SPEC_VERSION);
     }
 
     //fusa:test REQ-CLI010
@@ -445,7 +445,7 @@ mod tests {
         let code = run(&a, &mut out, &mut err);
         assert!(code == 0 || code == 1);
         let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
-        assert_eq!(v["schemaVersion"], "1.10.4");
+        assert_eq!(v["schemaVersion"], types::SPEC_VERSION);
         assert_eq!(v["tool"], "rust-FuSa");
         assert!(v["findings"].is_array());
         assert!(v["summary"]["errors"].is_number());
@@ -735,8 +735,8 @@ mod tests {
         assert_eq!(code, 0);
         let text = String::from_utf8(out).unwrap();
         assert!(
-            text.contains("0.3.1"),
-            "version string should contain 0.3.1"
+            text.contains(types::VERSION),
+            "version string should contain current version"
         );
         assert!(
             text.contains("rust-FuSa"),
@@ -1155,7 +1155,7 @@ mod tests {
         assert!(code == 0 || code == 1);
         let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
         assert_eq!(v["kind"].as_str(), Some("comp-report"));
-        assert_eq!(v["schemaVersion"].as_str(), Some("1.10.4"));
+        assert_eq!(v["schemaVersion"].as_str(), Some(types::SPEC_VERSION));
         assert!(v["threshold"].as_u64().is_some());
         assert!(v["results"].is_array());
         assert!(v["totalFunctions"].as_u64().unwrap() >= 1);
@@ -1313,7 +1313,7 @@ mod tests {
         let content = std::fs::read(&out_file).unwrap();
         let v: serde_json::Value = serde_json::from_slice(&content).unwrap();
         assert_eq!(v["kind"].as_str(), Some("check-report"));
-        assert_eq!(v["schemaVersion"].as_str(), Some("1.10.4"));
+        assert_eq!(v["schemaVersion"].as_str(), Some(types::SPEC_VERSION));
     }
 
     // §2.2: comp --output redirects; stdout must be empty.
@@ -1762,7 +1762,7 @@ mod tests {
         let code = run(&a, &mut out, &mut err);
         assert!(code == 0 || code == 1);
         let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
-        assert_eq!(v["schemaVersion"].as_str(), Some("1.10.4"));
+        assert_eq!(v["schemaVersion"].as_str(), Some(types::SPEC_VERSION));
         assert!(v["findings"].is_array());
     }
 
@@ -1780,7 +1780,7 @@ mod tests {
         let code = run(&a, &mut out, &mut err);
         assert!(code == 0 || code == 1);
         let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
-        assert_eq!(v["schemaVersion"].as_str(), Some("1.10.4"));
+        assert_eq!(v["schemaVersion"].as_str(), Some(types::SPEC_VERSION));
         assert!(v["findings"].is_array());
     }
 

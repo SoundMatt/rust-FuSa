@@ -215,6 +215,187 @@ struct Opts {
     output: Option<String>,
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sv(v: &[&str]) -> Vec<String> {
+        v.iter().map(|x| x.to_string()).collect()
+    }
+
+    // ── parse ─────────────────────────────────────────────────────────────
+
+    //fusa:test REQ-VULN001
+    #[test]
+    fn parse_no_args_ok() {
+        let mut err = Vec::new();
+        let opts = parse(&[], &mut err).unwrap();
+        assert!(opts.dir.is_none());
+        assert!(opts.output.is_none());
+    }
+
+    //fusa:test REQ-VULN001
+    #[test]
+    fn parse_dir_flag() {
+        let mut err = Vec::new();
+        let opts = parse(&sv(&["--dir", "/some/path"]), &mut err).unwrap();
+        assert_eq!(opts.dir.as_ref().unwrap().to_str().unwrap(), "/some/path");
+    }
+
+    //fusa:test REQ-VULN001
+    #[test]
+    fn parse_dir_eq_form() {
+        let mut err = Vec::new();
+        let opts = parse(&sv(&["--dir=/some/path"]), &mut err).unwrap();
+        assert_eq!(opts.dir.as_ref().unwrap().to_str().unwrap(), "/some/path");
+    }
+
+    //fusa:test REQ-VULN001
+    #[test]
+    fn parse_output_flag() {
+        let mut err = Vec::new();
+        let opts = parse(&sv(&["--output", "out.json"]), &mut err).unwrap();
+        assert_eq!(opts.output.as_deref(), Some("out.json"));
+    }
+
+    //fusa:test REQ-VULN001
+    #[test]
+    fn parse_output_eq_form() {
+        let mut err = Vec::new();
+        let opts = parse(&sv(&["--output=out.json"]), &mut err).unwrap();
+        assert_eq!(opts.output.as_deref(), Some("out.json"));
+    }
+
+    //fusa:test REQ-VULN001
+    #[test]
+    fn parse_missing_dir_value() {
+        let mut err = Vec::new();
+        assert!(parse(&sv(&["--dir"]), &mut err).is_none());
+        assert!(String::from_utf8(err)
+            .unwrap()
+            .contains("requires an argument"));
+    }
+
+    //fusa:test REQ-VULN001
+    #[test]
+    fn parse_missing_output_value() {
+        let mut err = Vec::new();
+        assert!(parse(&sv(&["--output"]), &mut err).is_none());
+    }
+
+    //fusa:test REQ-VULN001
+    #[test]
+    fn parse_unknown_flag() {
+        let mut err = Vec::new();
+        assert!(parse(&sv(&["--bad"]), &mut err).is_none());
+        assert!(String::from_utf8(err).unwrap().contains("unknown flag"));
+    }
+
+    // ── process_audit_json ────────────────────────────────────────────────
+
+    //fusa:test REQ-VULN002
+    #[test]
+    fn process_audit_json_empty_string() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let out_path = dir.path().join("vuln.json").to_string_lossy().into_owned();
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = process_audit_json("", &out_path, true, &mut out, &mut err);
+        // Invalid JSON → 0 vulns, file still written
+        assert_eq!(code, 0);
+        assert!(std::path::Path::new(&out_path).exists());
+    }
+
+    //fusa:test REQ-VULN002
+    #[test]
+    fn process_audit_json_no_vulns() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let out_path = dir.path().join("vuln.json").to_string_lossy().into_owned();
+        let json = r#"{"vulnerabilities":{"list":[]}}"#;
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = process_audit_json(json, &out_path, true, &mut out, &mut err);
+        assert_eq!(code, 0);
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("No known vulnerabilities"));
+        let report: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&out_path).unwrap()).unwrap();
+        assert_eq!(report["summary"]["vulnerabilities"], 0);
+    }
+
+    //fusa:test REQ-VULN002
+    #[test]
+    fn process_audit_json_with_vulns() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let out_path = dir.path().join("vuln.json").to_string_lossy().into_owned();
+        let json = serde_json::json!({
+            "vulnerabilities": {
+                "list": [{
+                    "advisory": {"id": "RUSTSEC-2023-0001", "title": "Bad Thing", "url": "https://rustsec.org"},
+                    "package": {"name": "some-crate", "version": "1.0.0"}
+                }]
+            }
+        }).to_string();
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = process_audit_json(&json, &out_path, false, &mut out, &mut err);
+        assert_eq!(code, 1);
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("1 vulnerabilities"));
+        let report: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&out_path).unwrap()).unwrap();
+        assert_eq!(report["summary"]["vulnerabilities"], 1);
+        assert_eq!(report["findings"][0]["id"], "RUSTSEC-2023-0001");
+    }
+
+    //fusa:test REQ-VULN002
+    #[test]
+    fn process_audit_json_write_error() {
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        // Write to an invalid path
+        let code = process_audit_json("{}", "/nonexistent/dir/vuln.json", true, &mut out, &mut err);
+        assert_eq!(code, 3);
+        assert!(!String::from_utf8(err).unwrap().is_empty());
+    }
+
+    // ── scan_cargo_lock ───────────────────────────────────────────────────
+
+    //fusa:test REQ-VULN003
+    #[test]
+    fn scan_cargo_lock_no_lock_file() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let out_path = dir.path().join("vuln.json").to_string_lossy().into_owned();
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = scan_cargo_lock(dir.path(), &out_path, &mut out, &mut err);
+        assert_eq!(code, 3);
+        assert!(String::from_utf8(err)
+            .unwrap()
+            .contains("Cargo.lock not found"));
+    }
+
+    //fusa:test REQ-VULN003
+    #[test]
+    fn scan_cargo_lock_with_lock_file() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let lock_content = "[[package]]\nname = \"foo\"\nversion = \"1.0.0\"\n\n[[package]]\nname = \"bar\"\nversion = \"2.0.0\"\n";
+        std::fs::write(dir.path().join("Cargo.lock"), lock_content).unwrap();
+
+        let out_path = dir.path().join("vuln.json").to_string_lossy().into_owned();
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = scan_cargo_lock(dir.path(), &out_path, &mut out, &mut err);
+        assert_eq!(code, 0);
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("2 packages"));
+        let report: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&out_path).unwrap()).unwrap();
+        assert_eq!(report["scanned"], 2);
+        assert_eq!(report["scanner"], "cargo-lock-scan");
+    }
+}
+
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
     let mut opts = Opts {
         dir: None,

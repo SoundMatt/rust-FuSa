@@ -102,6 +102,219 @@ struct Opts {
     force: bool,
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sv(v: &[&str]) -> Vec<String> {
+        v.iter().map(|x| x.to_string()).collect()
+    }
+
+    // ── parse ─────────────────────────────────────────────────────────────
+
+    //fusa:test REQ-CFG001
+    #[test]
+    fn parse_basic_args() {
+        let mut err = Vec::new();
+        let opts = parse(
+            &sv(&["--name", "myproj", "--standard", "iso26262"]),
+            &mut err,
+        )
+        .unwrap();
+        assert_eq!(opts.name.as_deref(), Some("myproj"));
+        assert_eq!(opts.standard.as_deref(), Some("iso26262"));
+        assert!(!opts.force);
+    }
+
+    //fusa:test REQ-CFG001
+    #[test]
+    fn parse_force_flag() {
+        let mut err = Vec::new();
+        let opts = parse(&sv(&["--force"]), &mut err).unwrap();
+        assert!(opts.force);
+    }
+
+    //fusa:test REQ-CFG001
+    #[test]
+    fn parse_dir_flag() {
+        let mut err = Vec::new();
+        let opts = parse(&sv(&["--dir", "/tmp/proj"]), &mut err).unwrap();
+        assert_eq!(opts.dir.as_ref().unwrap().to_str().unwrap(), "/tmp/proj");
+    }
+
+    //fusa:test REQ-CFG001
+    #[test]
+    fn parse_dir_eq_form() {
+        let mut err = Vec::new();
+        let opts = parse(&sv(&["--dir=/tmp/proj"]), &mut err).unwrap();
+        assert_eq!(opts.dir.as_ref().unwrap().to_str().unwrap(), "/tmp/proj");
+    }
+
+    //fusa:test REQ-CFG001
+    #[test]
+    fn parse_asil_flag() {
+        let mut err = Vec::new();
+        let opts = parse(&sv(&["--asil", "B"]), &mut err).unwrap();
+        assert_eq!(opts.asil.as_deref(), Some("B"));
+        assert!(opts.sil.is_none());
+        assert!(opts.dal.is_none());
+    }
+
+    //fusa:test REQ-CFG001
+    #[test]
+    fn parse_sil_flag() {
+        let mut err = Vec::new();
+        let opts = parse(&sv(&["--sil", "3"]), &mut err).unwrap();
+        assert_eq!(opts.sil.as_deref(), Some("3"));
+    }
+
+    //fusa:test REQ-CFG001
+    #[test]
+    fn parse_dal_flag() {
+        let mut err = Vec::new();
+        let opts = parse(&sv(&["--dal", "A"]), &mut err).unwrap();
+        assert_eq!(opts.dal.as_deref(), Some("A"));
+    }
+
+    //fusa:test REQ-CFG001
+    #[test]
+    fn parse_project_version_flag() {
+        let mut err = Vec::new();
+        let opts = parse(&sv(&["--project-version", "1.2.3"]), &mut err).unwrap();
+        assert_eq!(opts.project_version.as_deref(), Some("1.2.3"));
+    }
+
+    //fusa:test REQ-CFG001
+    #[test]
+    fn parse_name_eq_form() {
+        let mut err = Vec::new();
+        let opts = parse(&sv(&["--name=myproj"]), &mut err).unwrap();
+        assert_eq!(opts.name.as_deref(), Some("myproj"));
+    }
+
+    //fusa:test REQ-CFG001
+    #[test]
+    fn parse_missing_value_returns_none() {
+        let mut err = Vec::new();
+        assert!(parse(&sv(&["--name"]), &mut err).is_none());
+        assert!(String::from_utf8(err)
+            .unwrap()
+            .contains("requires an argument"));
+    }
+
+    //fusa:test REQ-CFG001
+    #[test]
+    fn parse_unknown_flag_returns_none() {
+        let mut err = Vec::new();
+        assert!(parse(&sv(&["--unknown"]), &mut err).is_none());
+        assert!(String::from_utf8(err).unwrap().contains("unknown flag"));
+    }
+
+    // ── run ───────────────────────────────────────────────────────────────
+
+    //fusa:test REQ-CFG001
+    //fusa:test REQ-CFG002
+    #[test]
+    fn run_creates_config_and_reqs() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&[
+                "--dir",
+                dir.path().to_str().unwrap(),
+                "--name",
+                "testproj",
+                "--standard",
+                "iso26262",
+            ]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+        assert!(dir.path().join(crate::config::CONFIG_FILE).exists());
+        assert!(dir.path().join(crate::config::REQS_FILE).exists());
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("Created"));
+    }
+
+    //fusa:test REQ-CFG003
+    #[test]
+    fn run_force_overwrites() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let args = sv(&[
+            "--dir",
+            dir.path().to_str().unwrap(),
+            "--name",
+            "proj",
+            "--standard",
+            "iso26262",
+        ]);
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        run(&args, &mut out, &mut err);
+
+        // Second run without force — files already exist
+        let mut out2 = Vec::new();
+        let mut err2 = Vec::new();
+        let code2 = run(&args, &mut out2, &mut err2);
+        assert_eq!(code2, 0);
+        let e2 = String::from_utf8(err2).unwrap();
+        assert!(e2.contains("already exists"));
+
+        // Third run with force — should succeed silently
+        let force_args = sv(&[
+            "--dir",
+            dir.path().to_str().unwrap(),
+            "--name",
+            "proj",
+            "--standard",
+            "iso26262",
+            "--force",
+        ]);
+        let mut out3 = Vec::new();
+        let mut err3 = Vec::new();
+        let code3 = run(&force_args, &mut out3, &mut err3);
+        assert_eq!(code3, 0);
+    }
+
+    //fusa:test REQ-CFG001
+    #[test]
+    fn run_with_asil() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&[
+                "--dir",
+                dir.path().to_str().unwrap(),
+                "--name",
+                "proj",
+                "--standard",
+                "iso26262",
+                "--asil",
+                "D",
+            ]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+        let config_path = dir.path().join(crate::config::CONFIG_FILE);
+        let cfg: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(config_path).unwrap()).unwrap();
+        assert_eq!(cfg["asil"], "D");
+    }
+
+    //fusa:test REQ-CFG001
+    #[test]
+    fn run_parse_fails_returns_usage() {
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&sv(&["--bad-flag"]), &mut out, &mut err);
+        assert_eq!(code, 2);
+    }
+}
+
 fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
     let mut opts = Opts {
         dir: None,

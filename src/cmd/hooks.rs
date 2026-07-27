@@ -177,3 +177,273 @@ fn parse_dir(args: &[String]) -> Option<PathBuf> {
     }
     None
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sv(v: &[&str]) -> Vec<String> {
+        v.iter().map(|x| x.to_string()).collect()
+    }
+
+    fn make_fake_git_dir() -> tempfile::TempDir {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir_all(dir.path().join(".git").join("hooks")).unwrap();
+        dir
+    }
+
+    // ── run / unknown subcommand ──────────────────────────────────────────
+
+    //fusa:test REQ-HOOKS001
+    #[test]
+    fn run_unknown_subcommand() {
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&sv(&["badcmd"]), &mut out, &mut err);
+        assert_eq!(code, 2);
+        assert!(String::from_utf8(err)
+            .unwrap()
+            .contains("unknown subcommand"));
+    }
+
+    // ── cmd_show ─────────────────────────────────────────────────────────
+
+    //fusa:test REQ-HOOKS002
+    #[test]
+    fn cmd_show_no_hook() {
+        let dir = make_fake_git_dir();
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&["show", "--dir", dir.path().to_str().unwrap()]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("No pre-commit hook"));
+    }
+
+    //fusa:test REQ-HOOKS002
+    #[test]
+    fn cmd_status_alias() {
+        let dir = make_fake_git_dir();
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&["status", "--dir", dir.path().to_str().unwrap()]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+    }
+
+    //fusa:test REQ-HOOKS002
+    #[test]
+    fn cmd_show_existing_managed_hook() {
+        let dir = make_fake_git_dir();
+        let hook_path = dir.path().join(HOOK_PATH);
+        std::fs::write(&hook_path, HOOK_SCRIPT).unwrap();
+
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&["show", "--dir", dir.path().to_str().unwrap()]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("managed by rsfusa"));
+    }
+
+    //fusa:test REQ-HOOKS002
+    #[test]
+    fn cmd_show_existing_unmanaged_hook() {
+        let dir = make_fake_git_dir();
+        let hook_path = dir.path().join(HOOK_PATH);
+        std::fs::write(&hook_path, "#!/bin/sh\necho hello\n").unwrap();
+
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&["show", "--dir", dir.path().to_str().unwrap()]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("not managed by rsfusa"));
+    }
+
+    // ── cmd_install ───────────────────────────────────────────────────────
+
+    //fusa:test REQ-HOOKS001
+    #[test]
+    fn cmd_install_success() {
+        let dir = make_fake_git_dir();
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&["install", "--dir", dir.path().to_str().unwrap()]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("Hook installed"));
+        let hook_path = dir.path().join(HOOK_PATH);
+        assert!(hook_path.exists());
+        let content = std::fs::read_to_string(&hook_path).unwrap();
+        assert!(content.contains("rsfusa"));
+    }
+
+    //fusa:test REQ-HOOKS001
+    #[test]
+    fn cmd_install_already_installed() {
+        let dir = make_fake_git_dir();
+        let hook_path = dir.path().join(HOOK_PATH);
+        std::fs::write(&hook_path, HOOK_SCRIPT).unwrap();
+
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&["install", "--dir", dir.path().to_str().unwrap()]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("already installed"));
+    }
+
+    //fusa:test REQ-HOOKS001
+    #[test]
+    fn cmd_install_foreign_hook_fails() {
+        let dir = make_fake_git_dir();
+        let hook_path = dir.path().join(HOOK_PATH);
+        std::fs::write(&hook_path, "#!/bin/sh\necho custom\n").unwrap();
+
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&["install", "--dir", dir.path().to_str().unwrap()]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 3);
+        assert!(String::from_utf8(err).unwrap().contains("already exists"));
+    }
+
+    //fusa:test REQ-HOOKS001
+    #[test]
+    fn cmd_install_no_git_dir() {
+        let dir = tempfile::TempDir::new().unwrap(); // no .git/hooks
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&["install", "--dir", dir.path().to_str().unwrap()]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 3);
+        assert!(String::from_utf8(err).unwrap().contains("not found"));
+    }
+
+    // ── cmd_remove ────────────────────────────────────────────────────────
+
+    //fusa:test REQ-HOOKS003
+    #[test]
+    fn cmd_remove_no_hook_ok() {
+        let dir = make_fake_git_dir();
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&["remove", "--dir", dir.path().to_str().unwrap()]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("No hook found"));
+    }
+
+    //fusa:test REQ-HOOKS003
+    #[test]
+    fn cmd_uninstall_alias() {
+        let dir = make_fake_git_dir();
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&["uninstall", "--dir", dir.path().to_str().unwrap()]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+    }
+
+    //fusa:test REQ-HOOKS003
+    #[test]
+    fn cmd_remove_managed_hook() {
+        let dir = make_fake_git_dir();
+        let hook_path = dir.path().join(HOOK_PATH);
+        std::fs::write(&hook_path, HOOK_SCRIPT).unwrap();
+
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&["remove", "--dir", dir.path().to_str().unwrap()]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+        assert!(!hook_path.exists());
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("Hook removed"));
+    }
+
+    //fusa:test REQ-HOOKS003
+    #[test]
+    fn cmd_remove_foreign_hook_fails() {
+        let dir = make_fake_git_dir();
+        let hook_path = dir.path().join(HOOK_PATH);
+        std::fs::write(&hook_path, "#!/bin/sh\necho custom\n").unwrap();
+
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&["remove", "--dir", dir.path().to_str().unwrap()]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 3);
+        assert!(String::from_utf8(err)
+            .unwrap()
+            .contains("not installed by rsfusa"));
+    }
+
+    // ── parse_dir ─────────────────────────────────────────────────────────
+
+    //fusa:test REQ-HOOKS001
+    #[test]
+    fn parse_dir_flag() {
+        let args: Vec<String> = vec!["--dir".to_string(), "/tmp/proj".to_string()];
+        let result = parse_dir(&args);
+        assert_eq!(result.unwrap().to_str().unwrap(), "/tmp/proj");
+    }
+
+    //fusa:test REQ-HOOKS001
+    #[test]
+    fn parse_dir_eq_form() {
+        let args: Vec<String> = vec!["--dir=/tmp/proj".to_string()];
+        let result = parse_dir(&args);
+        assert_eq!(result.unwrap().to_str().unwrap(), "/tmp/proj");
+    }
+
+    //fusa:test REQ-HOOKS001
+    #[test]
+    fn parse_dir_none() {
+        let args: Vec<String> = vec![];
+        assert!(parse_dir(&args).is_none());
+    }
+}

@@ -7,6 +7,26 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.3.5 — 2026-07-27
+
+### Fixed
+
+- **SPEC_VERSION** updated from `1.10.4` to `1.10.12` to match x-FuSa spec.
+- **VERSION constant** updated from `0.3.1` to `0.3.5` to match `Cargo.toml`.
+- **Hardcoded version assertions** in existing tests updated to use constants.
+
+### Added
+
+- **Coverage expansion** — added `#[cfg(test)]` modules in five low-coverage files:
+  - `src/cmd/diff.rs` (parse, load_report, run — all code paths)
+  - `src/cmd/req.rs` (cmd_show, cmd_import, cmd_export, csv_escape, truncate)
+  - `src/report.rs` (render_json, render_text, render_sarif, render_html, html_escape, CheckReport::new)
+  - `src/cmd/vuln.rs` (parse, process_audit_json, scan_cargo_lock)
+  - `src/cmd/hooks.rs` (cmd_install, cmd_remove, cmd_show, parse_dir)
+  - `src/cmd/init.rs` (parse, run with all flag combinations)
+
+---
+
 ## v0.3.4 — 2026-07-26
 
 ### Fixed

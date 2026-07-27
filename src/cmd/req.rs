@@ -240,3 +240,362 @@ fn csv_escape(s: &str) -> String {
         s.to_string()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sv(v: &[&str]) -> Vec<String> {
+        v.iter().map(|x| x.to_string()).collect()
+    }
+
+    // ── csv_escape ────────────────────────────────────────────────────────
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn csv_escape_plain() {
+        assert_eq!(csv_escape("hello"), "hello");
+    }
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn csv_escape_with_comma() {
+        assert_eq!(csv_escape("a,b"), "\"a,b\"");
+    }
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn csv_escape_with_quote() {
+        assert_eq!(csv_escape("say \"hi\""), "\"say \"\"hi\"\"\"");
+    }
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn csv_escape_with_newline() {
+        assert_eq!(csv_escape("line1\nline2"), "\"line1\nline2\"");
+    }
+
+    // ── truncate ──────────────────────────────────────────────────────────
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn truncate_short_string() {
+        assert_eq!(truncate("hello", 10), "hello");
+    }
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn truncate_exact_length() {
+        assert_eq!(truncate("hello", 5), "hello");
+    }
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn truncate_long_string() {
+        let result = truncate("hello world", 8);
+        assert!(result.len() <= 10); // includes ellipsis character
+        assert!(result.starts_with("hello w"));
+    }
+
+    // ── run (unknown subcommand) ──────────────────────────────────────────
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn run_unknown_subcommand() {
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&sv(&["bad"]), &mut out, &mut err);
+        assert_eq!(code, 2);
+        let e = String::from_utf8(err).unwrap();
+        assert!(e.contains("unknown subcommand"));
+    }
+
+    // ── cmd_show ─────────────────────────────────────────────────────────
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn cmd_show_no_reqs_file() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&["show", "--dir", dir.path().to_str().unwrap()]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 3);
+    }
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn cmd_show_with_reqs_file() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let reqs_json = r#"{"requirements":[{"id":"REQ-001","title":"First requirement"}]}"#;
+        std::fs::write(dir.path().join(".fusa-reqs.json"), reqs_json).unwrap();
+
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&["show", "--dir", dir.path().to_str().unwrap()]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("1 requirements"));
+        assert!(text.contains("REQ-001"));
+    }
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn cmd_show_json_format() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let reqs_json = r#"{"requirements":[{"id":"REQ-002"}]}"#;
+        std::fs::write(dir.path().join(".fusa-reqs.json"), reqs_json).unwrap();
+
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&[
+                "show",
+                "--dir",
+                dir.path().to_str().unwrap(),
+                "--format",
+                "json",
+            ]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+        let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
+        assert!(v["requirements"].is_array());
+    }
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn cmd_list_alias_works() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::write(dir.path().join(".fusa-reqs.json"), r#"{"requirements":[]}"#).unwrap();
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&["list", "--dir", dir.path().to_str().unwrap()]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+    }
+
+    // ── cmd_import ────────────────────────────────────────────────────────
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn cmd_import_no_file_flag() {
+        // Pass "import" with no positional args and no --file flag so that
+        // parse_flag returns None and find() returns None → EXIT_USAGE.
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&sv(&["import"]), &mut out, &mut err);
+        assert_eq!(code, 2);
+        assert!(String::from_utf8(err).unwrap().contains("--file"));
+    }
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn cmd_import_missing_file() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&[
+                "import",
+                "--dir",
+                dir.path().to_str().unwrap(),
+                "--file",
+                "/nonexistent/reqs.json",
+            ]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 3);
+    }
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn cmd_import_invalid_json() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let bad_file = dir.path().join("bad.json");
+        std::fs::write(&bad_file, "not json").unwrap();
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&[
+                "import",
+                "--dir",
+                dir.path().to_str().unwrap(),
+                "--file",
+                bad_file.to_str().unwrap(),
+            ]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 3);
+    }
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn cmd_import_valid_reqs_file_format() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let import_file = dir.path().join("import.json");
+        let json = r#"{"requirements":[{"id":"REQ-NEW-001","title":"New Requirement"}]}"#;
+        std::fs::write(&import_file, json).unwrap();
+
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&[
+                "import",
+                "--dir",
+                dir.path().to_str().unwrap(),
+                "--file",
+                import_file.to_str().unwrap(),
+            ]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+        let text = String::from_utf8(out).unwrap();
+        assert!(text.contains("1 requirements"));
+
+        // Verify file was written
+        let reqs_path = dir.path().join(".fusa-reqs.json");
+        assert!(reqs_path.exists());
+        let written: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(reqs_path).unwrap()).unwrap();
+        assert_eq!(written["requirements"].as_array().unwrap().len(), 1);
+    }
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn cmd_import_array_format() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let import_file = dir.path().join("import.json");
+        let json = r#"[{"id":"REQ-ARR-001","title":"Array Format"}]"#;
+        std::fs::write(&import_file, json).unwrap();
+
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&[
+                "import",
+                "--dir",
+                dir.path().to_str().unwrap(),
+                "--file",
+                import_file.to_str().unwrap(),
+            ]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+    }
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn cmd_import_skips_duplicates() {
+        let dir = tempfile::TempDir::new().unwrap();
+        // Pre-populate
+        let existing = r#"{"requirements":[{"id":"REQ-DUP-001"}]}"#;
+        std::fs::write(dir.path().join(".fusa-reqs.json"), existing).unwrap();
+
+        let import_file = dir.path().join("import.json");
+        let json = r#"{"requirements":[{"id":"REQ-DUP-001"},{"id":"REQ-NEW-002"}]}"#;
+        std::fs::write(&import_file, json).unwrap();
+
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&[
+                "import",
+                "--dir",
+                dir.path().to_str().unwrap(),
+                "--file",
+                import_file.to_str().unwrap(),
+            ]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+        let text = String::from_utf8(out).unwrap();
+        // Only 1 new req should be added (duplicate skipped)
+        assert!(text.contains("1 requirements"));
+    }
+
+    // ── cmd_export ────────────────────────────────────────────────────────
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn cmd_export_no_reqs_file() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&["export", "--dir", dir.path().to_str().unwrap()]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 3);
+    }
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn cmd_export_csv_default() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let reqs_json = r#"{"requirements":[{"id":"REQ-001","title":"First","text":"Desc","standard":"iso26262","level":"ASIL-B"}]}"#;
+        std::fs::write(dir.path().join(".fusa-reqs.json"), reqs_json).unwrap();
+
+        let out_file = dir.path().join("requirements.csv");
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&[
+                "export",
+                "--dir",
+                dir.path().to_str().unwrap(),
+                "--output",
+                out_file.to_str().unwrap(),
+            ]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+        assert!(out_file.exists());
+        let csv = std::fs::read_to_string(&out_file).unwrap();
+        assert!(csv.contains("REQ-001"));
+        assert!(csv.starts_with("ID,Title"));
+    }
+
+    //fusa:test REQ-REQQ003
+    #[test]
+    fn cmd_export_json_format() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let reqs_json = r#"{"requirements":[{"id":"REQ-001"}]}"#;
+        std::fs::write(dir.path().join(".fusa-reqs.json"), reqs_json).unwrap();
+
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(
+            &sv(&[
+                "export",
+                "--dir",
+                dir.path().to_str().unwrap(),
+                "--format",
+                "json",
+            ]),
+            &mut out,
+            &mut err,
+        );
+        assert_eq!(code, 0);
+        let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
+        assert!(v["requirements"].is_array());
+    }
+}
