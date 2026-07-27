@@ -32,11 +32,18 @@ jobs:
         run: cargo build --release --target ${{ matrix.target }} --locked
       - name: Strip
         run: strip target/${{ matrix.target }}/release/rsfusa || true
+      - name: Rename binary to unique per-target artifact name
+        # Both matrix targets build a binary literally named "rsfusa"; if both
+        # keep that filename, the github-release job's `files: artifacts/**/*`
+        # glob uploads two release assets with the same name, which the
+        # GitHub API resolves as a create-then-update race (intermittent
+        # 404 "Not Found" on the update call — the failure that broke v0.3.5).
+        run: cp target/${{ matrix.target }}/release/rsfusa ${{ matrix.artifact }}
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
-          path: target/${{ matrix.target }}/release/rsfusa
+          path: ${{ matrix.artifact }}
 
   github-release:
     name: GitHub Release

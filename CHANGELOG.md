@@ -7,6 +7,26 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.3.6 — 2026-07-27
+
+### Fixed
+
+- **CI: clippy `items_after_test_module` errors** in `src/cmd/diff.rs`,
+  `src/cmd/init.rs`, `src/cmd/vuln.rs` — the v0.3.5 coverage-expansion commit
+  added `#[cfg(test)] mod tests { ... }` blocks in the middle of each file,
+  with the `parse()` function defined after the test module. Moved `parse()`
+  above the test module in all three files (clippy denies items placed after
+  a test module). Also removed a redundant `use std::io::Write;` inside
+  `diff.rs`'s test module (already brought in via `use super::*;`).
+- **Release workflow: intermittent asset-name collision** — both release
+  matrix targets (`x86_64-unknown-linux-musl`, `aarch64-unknown-linux-musl`)
+  build a binary literally named `rsfusa`; uploading both under that same
+  filename let `softprops/action-gh-release`'s create-then-update sequence
+  race, occasionally 404ing on the second asset (broke the v0.3.5 release).
+  `.github/workflows/release.yml` now copies each target's binary to its
+  matrix-specific artifact name (`rsfusa-linux-amd64` / `rsfusa-linux-arm64`)
+  before upload, so the two release assets never collide on filename.
+
 ## v0.3.5 — 2026-07-27
 
 ### Fixed

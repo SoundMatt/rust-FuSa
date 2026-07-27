@@ -215,6 +215,42 @@ struct Opts {
     output: Option<String>,
 }
 
+fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
+    let mut opts = Opts {
+        dir: None,
+        output: None,
+    };
+    let mut i = 0;
+    while i < args.len() {
+        match args[i].as_str() {
+            flag @ ("--dir" | "--output") => {
+                if i + 1 >= args.len() {
+                    writeln!(stderr, "rsfusa vuln: {flag} requires an argument").ok();
+                    return None;
+                }
+                i += 1;
+                match flag {
+                    "--dir" => opts.dir = Some(PathBuf::from(args[i].clone())),
+                    "--output" => opts.output = Some(args[i].clone()),
+                    _ => {}
+                }
+            }
+            other => {
+                if let Some(v) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(v));
+                } else if let Some(v) = other.strip_prefix("--output=") {
+                    opts.output = Some(v.to_string());
+                } else {
+                    writeln!(stderr, "rsfusa vuln: unknown flag: {other}").ok();
+                    return None;
+                }
+            }
+        }
+        i += 1;
+    }
+    Some(opts)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -394,40 +430,4 @@ mod tests {
         assert_eq!(report["scanned"], 2);
         assert_eq!(report["scanner"], "cargo-lock-scan");
     }
-}
-
-fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut opts = Opts {
-        dir: None,
-        output: None,
-    };
-    let mut i = 0;
-    while i < args.len() {
-        match args[i].as_str() {
-            flag @ ("--dir" | "--output") => {
-                if i + 1 >= args.len() {
-                    writeln!(stderr, "rsfusa vuln: {flag} requires an argument").ok();
-                    return None;
-                }
-                i += 1;
-                match flag {
-                    "--dir" => opts.dir = Some(PathBuf::from(args[i].clone())),
-                    "--output" => opts.output = Some(args[i].clone()),
-                    _ => {}
-                }
-            }
-            other => {
-                if let Some(v) = other.strip_prefix("--dir=") {
-                    opts.dir = Some(PathBuf::from(v));
-                } else if let Some(v) = other.strip_prefix("--output=") {
-                    opts.output = Some(v.to_string());
-                } else {
-                    writeln!(stderr, "rsfusa vuln: unknown flag: {other}").ok();
-                    return None;
-                }
-            }
-        }
-        i += 1;
-    }
-    Some(opts)
 }

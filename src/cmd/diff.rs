@@ -168,10 +168,51 @@ struct Opts {
     format: Option<String>,
 }
 
+fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
+    let mut positional = Vec::new();
+    let mut format = None;
+    let mut i = 0;
+    while i < args.len() {
+        match args[i].as_str() {
+            "--format" => {
+                if i + 1 >= args.len() {
+                    writeln!(stderr, "rsfusa diff: --format requires an argument").ok();
+                    return None;
+                }
+                i += 1;
+                format = Some(args[i].clone());
+            }
+            other => {
+                if let Some(v) = other.strip_prefix("--format=") {
+                    format = Some(v.to_string());
+                } else if !other.starts_with("--") {
+                    positional.push(other.to_string());
+                } else {
+                    writeln!(stderr, "rsfusa diff: unknown flag: {other}").ok();
+                    return None;
+                }
+            }
+        }
+        i += 1;
+    }
+    if positional.len() < 2 {
+        writeln!(
+            stderr,
+            "rsfusa diff: usage: rsfusa diff <baseline.json> <current.json>"
+        )
+        .ok();
+        return None;
+    }
+    Some(Opts {
+        baseline: positional[0].clone(),
+        current: positional[1].clone(),
+        format,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::Write;
 
     fn s(v: &[&str]) -> Vec<String> {
         v.iter().map(|x| x.to_string()).collect()
@@ -443,46 +484,4 @@ mod tests {
         let text = String::from_utf8(out).unwrap();
         assert!(text.contains("Introduced"));
     }
-}
-
-fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut positional = Vec::new();
-    let mut format = None;
-    let mut i = 0;
-    while i < args.len() {
-        match args[i].as_str() {
-            "--format" => {
-                if i + 1 >= args.len() {
-                    writeln!(stderr, "rsfusa diff: --format requires an argument").ok();
-                    return None;
-                }
-                i += 1;
-                format = Some(args[i].clone());
-            }
-            other => {
-                if let Some(v) = other.strip_prefix("--format=") {
-                    format = Some(v.to_string());
-                } else if !other.starts_with("--") {
-                    positional.push(other.to_string());
-                } else {
-                    writeln!(stderr, "rsfusa diff: unknown flag: {other}").ok();
-                    return None;
-                }
-            }
-        }
-        i += 1;
-    }
-    if positional.len() < 2 {
-        writeln!(
-            stderr,
-            "rsfusa diff: usage: rsfusa diff <baseline.json> <current.json>"
-        )
-        .ok();
-        return None;
-    }
-    Some(Opts {
-        baseline: positional[0].clone(),
-        current: positional[1].clone(),
-        format,
-    })
 }

@@ -102,6 +102,67 @@ struct Opts {
     force: bool,
 }
 
+fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
+    let mut opts = Opts {
+        dir: None,
+        name: None,
+        standard: None,
+        asil: None,
+        sil: None,
+        dal: None,
+        project_version: None,
+        force: false,
+    };
+
+    let mut i = 0;
+    while i < args.len() {
+        match args[i].as_str() {
+            "--force" => opts.force = true,
+            flag @ ("--dir" | "--name" | "--standard" | "--asil" | "--sil" | "--dal"
+            | "--project-version") => {
+                if i + 1 >= args.len() {
+                    writeln!(stderr, "rsfusa init: {flag} requires an argument").ok();
+                    return None;
+                }
+                i += 1;
+                let val = args[i].clone();
+                match flag {
+                    "--dir" => opts.dir = Some(PathBuf::from(val)),
+                    "--name" => opts.name = Some(val),
+                    "--standard" => opts.standard = Some(val),
+                    "--asil" => opts.asil = Some(val),
+                    "--sil" => opts.sil = Some(val),
+                    "--dal" => opts.dal = Some(val),
+                    "--project-version" => opts.project_version = Some(val),
+                    _ => {}
+                }
+            }
+            other => {
+                if let Some(val) = other.strip_prefix("--dir=") {
+                    opts.dir = Some(PathBuf::from(val));
+                } else if let Some(val) = other.strip_prefix("--name=") {
+                    opts.name = Some(val.to_string());
+                } else if let Some(val) = other.strip_prefix("--standard=") {
+                    opts.standard = Some(val.to_string());
+                } else if let Some(val) = other.strip_prefix("--asil=") {
+                    opts.asil = Some(val.to_string());
+                } else if let Some(val) = other.strip_prefix("--sil=") {
+                    opts.sil = Some(val.to_string());
+                } else if let Some(val) = other.strip_prefix("--dal=") {
+                    opts.dal = Some(val.to_string());
+                } else if let Some(val) = other.strip_prefix("--project-version=") {
+                    opts.project_version = Some(val.to_string());
+                } else {
+                    writeln!(stderr, "rsfusa init: unknown flag: {other}").ok();
+                    return None;
+                }
+            }
+        }
+        i += 1;
+    }
+    Some(opts)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -313,65 +374,4 @@ mod tests {
         let code = run(&sv(&["--bad-flag"]), &mut out, &mut err);
         assert_eq!(code, 2);
     }
-}
-
-fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
-    let mut opts = Opts {
-        dir: None,
-        name: None,
-        standard: None,
-        asil: None,
-        sil: None,
-        dal: None,
-        project_version: None,
-        force: false,
-    };
-
-    let mut i = 0;
-    while i < args.len() {
-        match args[i].as_str() {
-            "--force" => opts.force = true,
-            flag @ ("--dir" | "--name" | "--standard" | "--asil" | "--sil" | "--dal"
-            | "--project-version") => {
-                if i + 1 >= args.len() {
-                    writeln!(stderr, "rsfusa init: {flag} requires an argument").ok();
-                    return None;
-                }
-                i += 1;
-                let val = args[i].clone();
-                match flag {
-                    "--dir" => opts.dir = Some(PathBuf::from(val)),
-                    "--name" => opts.name = Some(val),
-                    "--standard" => opts.standard = Some(val),
-                    "--asil" => opts.asil = Some(val),
-                    "--sil" => opts.sil = Some(val),
-                    "--dal" => opts.dal = Some(val),
-                    "--project-version" => opts.project_version = Some(val),
-                    _ => {}
-                }
-            }
-            other => {
-                if let Some(val) = other.strip_prefix("--dir=") {
-                    opts.dir = Some(PathBuf::from(val));
-                } else if let Some(val) = other.strip_prefix("--name=") {
-                    opts.name = Some(val.to_string());
-                } else if let Some(val) = other.strip_prefix("--standard=") {
-                    opts.standard = Some(val.to_string());
-                } else if let Some(val) = other.strip_prefix("--asil=") {
-                    opts.asil = Some(val.to_string());
-                } else if let Some(val) = other.strip_prefix("--sil=") {
-                    opts.sil = Some(val.to_string());
-                } else if let Some(val) = other.strip_prefix("--dal=") {
-                    opts.dal = Some(val.to_string());
-                } else if let Some(val) = other.strip_prefix("--project-version=") {
-                    opts.project_version = Some(val.to_string());
-                } else {
-                    writeln!(stderr, "rsfusa init: unknown flag: {other}").ok();
-                    return None;
-                }
-            }
-        }
-        i += 1;
-    }
-    Some(opts)
 }
