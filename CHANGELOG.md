@@ -7,6 +7,42 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.3.9 — 2026-07-27
+
+### Fixed
+
+- **Duplicate Docker-publishing workflows raced on every tag push (#33)** —
+  `.github/workflows/docker-publish.yml` and `release.yml`'s `docker` job
+  both triggered on `v*` tag pushes and both published
+  `ghcr.io/soundmatt/rust-fusa`. `docker-publish.yml` (added in v0.2.9) had
+  no QEMU/buildx setup, no `platforms:`, and never passed the `VERSION`
+  build-arg, so whenever it "won" the race — which happened for every tag
+  where `release.yml`'s docker job failed (v0.2.9–v0.3.3) — the published
+  image was silently single-platform (`amd64`-only, not the multi-arch
+  index the project claims) with OCI labels falling back to the
+  Dockerfile's stale hardcoded defaults (`VERSION=0.2.7`). Deleted
+  `docker-publish.yml` entirely; `release.yml`'s `docker` job (proper
+  QEMU+buildx multi-arch build, correct `VERSION` build-arg, plus the
+  FuSaOps release-notification dispatch that `docker-publish.yml` never
+  had) is the sole publisher going forward.
+- **v0.3.5 GitHub release had zero binary assets** — CI run `30271879221`'s
+  `github-release` job failed on the asset-name collision fixed in v0.3.6,
+  while the (now-deleted) `docker-publish.yml` "succeeded" independently
+  and masked the failure from the Actions summary. The release body now
+  notes the missing assets and points to v0.3.6+ for a working download.
+
+### Changed
+
+- README.md and docs/tool-safety-manual.md version headers updated from
+  stale 0.2.8/0.2.7 to 0.3.9.
+- README's commands header corrected from "All 44 commands" to
+  "All 43 commands" — `do178c`/`do178` is a single command with two
+  aliases in `src/main.rs`'s dispatch table, not two commands; the
+  MUST/SHOULD/MAY table below the header (9 + 14 + 20 = 43 rows) was
+  already correct.
+
+---
+
 ## v0.3.8 — 2026-07-27
 
 ### Added
@@ -183,6 +219,33 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.2.8] — 2026-06-13
+
+### Added
+
+- 10 new requirements to `.fusa-reqs.json` matching go-FuSa coverage:
+  `REQ-LOC-REL001` (project-relative paths), `REQ-CAP-STD001` (canonical
+  standard IDs), `REQ-TRACE-MD001` (trace md format), `REQ-REPORT-MD001`
+  (gap report md format), `REQ-ISO21434-001/002/003`, `REQ-UNECE-001/002/003`
+- `--format md` support for all standards gap-report commands
+- 14 new tests for previously-untested requirements (`iso21434_gap_report`,
+  `unece_gap_report`, `trace_md_output`, `gap_report_md_output`, and others)
+
+### Fixed
+
+- `//fusa:req` annotations added across `src/` to cover 31 previously
+  untraced requirements: `CFG002-008`, `CLI002/007/009/010`, `ERR001-003`,
+  `IEC62443001-005`, `NF003`, `REQQ001-003`, `RUNTIME001-003`, `SLSA001-005`
+
+### Changed
+
+- Requirement traceability and test coverage: 81.7%/50.6% → **100%/100%**
+  (174 requirements)
+- Total tests: 53 → **67**
+- Version bumped to **0.2.8**
+
+---
+
 ## [0.2.7] — 2026-06-13
 
 ### Fixed
@@ -280,6 +343,19 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `capabilities` output updated to list all **44 commands** (was 43)
 - README and docs updated to reflect 44-command surface
 - Docker image `ARG VERSION` updated to 0.2.3
+
+---
+
+## [0.2.2] — 2026-06-12
+
+Tag/version-string mismatch: the code shipped under git tag `v0.2.2` sets
+its internal `VERSION` constant to `0.2.1` (the version-bump commit was
+tagged one number ahead of the string it actually wrote). Its functional
+content — completing docs for the `iec62443`/`slsa` commands added the
+previous commit — is the same content documented under the `[0.2.1]`
+heading below; there is no separate `v0.2.2` changelog entry to write
+beyond noting the mismatch. Superseded by `[0.2.3]`, which corrected the
+version string to match its tag.
 
 ---
 
