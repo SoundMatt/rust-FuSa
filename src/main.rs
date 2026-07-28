@@ -1,5 +1,5 @@
 // rsfusa — rust-FuSa functional safety toolkit for Rust projects.
-// Implements x-FuSa spec v1.10 (§1.1: language=rust, binary=rsfusa).
+// Implements x-FuSa spec v1.14 (§1.1: language=rust, binary=rsfusa).
 //fusa:req REQ-NF001
 //fusa:req REQ-NF002
 //fusa:req REQ-NF003
@@ -12,7 +12,9 @@
 #![allow(dead_code)]
 
 mod analyze;
+mod attestation;
 mod auditpack;
+mod canonjson;
 mod cmd;
 mod config;
 mod cyber;
@@ -22,6 +24,7 @@ mod qualify;
 mod release;
 mod report;
 mod rules;
+mod stub;
 mod trace;
 mod types;
 
@@ -462,7 +465,60 @@ mod tests {
         let mut err = Vec::new();
         let code = run(&a, &mut out, &mut err);
         assert_eq!(code, 0);
-        assert!(dir.path().join(".fusa-hara.json").exists());
+        let path = dir.path().join(".fusa-hara.json");
+        assert!(path.exists());
+        let v: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+        // x-FuSa spec §1.2.5 / §1.6 rule 1: an honestly-empty scaffold, never
+        // a dummy hazard row.
+        assert!(v["operationalSituations"].as_array().unwrap().is_empty());
+        assert!(v["hazards"].as_array().unwrap().is_empty());
+        assert!(v["safetyGoals"].as_array().unwrap().is_empty());
+    }
+
+    //fusa:test REQ-HARA006
+    //fusa:test REQ-HARA007
+    #[test]
+    fn hara_show_json_reports_completeness_and_dangling_fssr_ref() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::write(
+            dir.path().join(".fusa-hara.json"),
+            r#"{
+                "project": "demo",
+                "standard": "iso26262",
+                "operationalSituations": [{"id": "OS-001", "description": "highway driving"}],
+                "hazards": [{
+                    "id": "H-001",
+                    "description": "unintended acceleration while cruise control is engaged",
+                    "situations": ["OS-001"],
+                    "risk": {"severity": "S3", "exposure": "E4", "controllability": "C2"},
+                    "safetyGoals": ["SG-001"]
+                }],
+                "safetyGoals": [{
+                    "id": "SG-001",
+                    "description": "the system shall not accelerate unintentionally",
+                    "hazards": ["H-001"],
+                    "asil": "ASIL-C",
+                    "fssrRefs": ["REQ-NONEXISTENT-999"]
+                }]
+            }"#,
+        )
+        .unwrap();
+        let a = args(&format!(
+            "rsfusa hara show --dir {} --format json",
+            dir.path().display()
+        ));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        run(&a, &mut out, &mut err);
+        let v: serde_json::Value = serde_json::from_str(&String::from_utf8(out).unwrap()).unwrap();
+        assert_eq!(v["kind"].as_str(), Some("hara-report"));
+        // risk.asil MUST be derived (S3/E4/C2 -> ASIL-C per Table 4), not merely echoed.
+        assert_eq!(v["hazards"][0]["risk"]["asil"].as_str(), Some("ASIL-C"));
+        assert_eq!(v["completeness"]["totalHazards"], 1);
+        assert_eq!(v["completeness"]["danglingReferences"], 1);
+        let findings = v["findings"].as_array().unwrap();
+        assert!(findings.iter().any(|f| f["ruleId"] == "REQ002"));
     }
 
     //fusa:test REQ-RPT001
@@ -657,6 +713,8 @@ mod tests {
     //fusa:test REQ-FMEA004
     //fusa:test REQ-FMEA005
     //fusa:test REQ-FMEA006
+    //fusa:test REQ-FMEA007
+    //fusa:test REQ-FMEA008
     #[test]
     fn fmea_creates_files() {
         let dir = tempfile::TempDir::new().unwrap();
@@ -673,6 +731,19 @@ mod tests {
         assert_eq!(code, 0);
         assert!(dir.path().join("fmea.json").exists());
         assert!(dir.path().join("fmea.csv").exists());
+        let v: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(dir.path().join("fmea.json")).unwrap())
+                .unwrap();
+        assert_eq!(v["kind"].as_str(), Some("fmea-report"));
+        let entries = v["entries"].as_array().unwrap();
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]["failureMode"]
+            .as_str()
+            .unwrap()
+            .contains("compute"));
+        assert!(v["summary"]["componentsInProject"].is_number());
+        assert!(v["summary"]["coveragePct"].is_number());
+        assert!(v["summary"]["componentInventoryMethod"].is_string());
     }
 
     //fusa:test REQ-BOUNDARY001
@@ -728,6 +799,7 @@ mod tests {
     //fusa:test REQ-SC003
     //fusa:test REQ-SC004
     //fusa:test REQ-SC005
+    //fusa:test REQ-SAFETYCASE002
     #[test]
     fn safety_case_creates_files() {
         let dir = tempfile::TempDir::new().unwrap();
@@ -742,6 +814,20 @@ mod tests {
         assert!(dir.path().join("safety-case.json").exists());
         assert!(dir.path().join("safety-case.md").exists());
         assert!(dir.path().join("safety-case.mermaid").exists());
+        let v: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(dir.path().join("safety-case.json")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(v["kind"].as_str(), Some("safety-case"));
+        let nodes = v["nodes"].as_array().unwrap();
+        assert!(nodes.iter().any(|n| n["type"] == "goal"));
+        assert!(nodes.iter().any(|n| n["type"] == "strategy"));
+        assert!(v["edges"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|e| e["type"] == "supportedBy" || e["type"] == "inContextOf"));
+        assert!(v["completeness"]["totalGoals"].is_number());
     }
 
     //fusa:test REQ-TARA001
@@ -749,11 +835,17 @@ mod tests {
     //fusa:test REQ-TARA003
     //fusa:test REQ-TARA004
     //fusa:test REQ-TARA005
+    //fusa:test REQ-TARA006
+    //fusa:test REQ-TARA007
     #[test]
     fn tara_creates_files() {
         let dir = tempfile::TempDir::new().unwrap();
         std::fs::create_dir(dir.path().join("src")).unwrap();
-        std::fs::write(dir.path().join("src/lib.rs"), "fn foo() {}").unwrap();
+        std::fs::write(
+            dir.path().join("src/lib.rs"),
+            "fn foo() { let _key = \"hardcoded_password_123\"; }",
+        )
+        .unwrap();
         let a = args(&format!("rsfusa tara --dir {}", dir.path().display()));
         let mut out = Vec::new();
         let mut err = Vec::new();
@@ -761,6 +853,20 @@ mod tests {
         assert_eq!(code, 0);
         assert!(dir.path().join("tara.json").exists());
         assert!(dir.path().join("tara.md").exists());
+        let v: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(dir.path().join("tara.json")).unwrap())
+                .unwrap();
+        assert_eq!(v["kind"].as_str(), Some("tara-report"));
+        assert!(v["threats"].is_array());
+        assert!(v["summary"]["assetsInProject"].is_number());
+        assert!(v["summary"]["assetInventoryMethod"].is_string());
+        if let Some(t) = v["threats"].as_array().unwrap().first() {
+            assert!(t["impact"]["safety"].is_string());
+            assert!(t["impact"]["financial"].is_string());
+            assert!(t["impact"]["operational"].is_string());
+            assert!(t["impact"]["privacy"].is_string());
+            assert!(t["treatment"].is_string());
+        }
     }
 
     //fusa:test REQ-NF001
@@ -2791,6 +2897,7 @@ mod tests {
     }
 
     //fusa:test REQ-SAS003
+    //fusa:test REQ-SAS004
     #[test]
     fn sas_json_format() {
         let dir = tempfile::TempDir::new().unwrap();
@@ -2808,7 +2915,17 @@ mod tests {
         let v: serde_json::Value =
             serde_json::from_str(&std::fs::read_to_string(&out_file).unwrap()).unwrap();
         assert_eq!(v["kind"].as_str(), Some("sas"));
-        assert!(v["evidence"].is_array());
+        assert!(
+            v["checklist"].is_array(),
+            "checklist array must be present (x-FuSa spec §9.3)"
+        );
+        let checklist = v["checklist"].as_array().unwrap();
+        assert_eq!(
+            checklist.len(),
+            20,
+            "DO-178C §11 has twenty life-cycle data items"
+        );
+        assert!(checklist[0]["clause"].as_str().is_some());
         assert!(v["summary"]["total"].is_number());
     }
 
@@ -2817,6 +2934,7 @@ mod tests {
     //fusa:test REQ-SCI001
     //fusa:test REQ-SCI002
     //fusa:test REQ-SCI003
+    //fusa:test REQ-SCI004
     #[test]
     fn sci_creates_json_file() {
         let dir = tempfile::TempDir::new().unwrap();
@@ -2840,16 +2958,19 @@ mod tests {
         let v: serde_json::Value =
             serde_json::from_str(&std::fs::read_to_string(&out_file).unwrap()).unwrap();
         assert_eq!(v["kind"].as_str(), Some("sci"));
-        assert!(v["items"].is_array(), "items array must be present");
-        assert!(v["summary"]["total"].is_number());
-        // Check that present items have a hash
-        let items = v["items"].as_array().unwrap();
-        let present = items.iter().find(|i| i["present"].as_bool() == Some(true));
-        if let Some(item) = present {
-            let hash = item["hash"].as_str().unwrap_or("");
+        assert!(
+            v["artifacts"].is_array(),
+            "artifacts array must be present (x-FuSa spec §9.3)"
+        );
+        let artifacts = v["artifacts"].as_array().unwrap();
+        assert!(!artifacts.is_empty(), "Cargo.toml should be indexed");
+        for a in artifacts {
+            assert!(a["file"].as_str().is_some());
+            assert!(a["version"].as_str().is_some());
+            let hash = a["hash"].as_str().unwrap_or("");
             assert!(
                 hash.starts_with("sha256:"),
-                "present file must have sha256: hash, got '{hash}'"
+                "every artifact must have a sha256: hash, got '{hash}'"
             );
         }
     }

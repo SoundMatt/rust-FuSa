@@ -101,7 +101,11 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
             "iec62443":    ["text", "json"],
             "slsa":        ["text", "json"],
             "sci":         ["json", "md"],
-            "sas":         ["md", "json"]
+            "sas":         ["md", "json"],
+            "fmea":        ["text", "json", "csv"],
+            "hara":        ["text", "json"],
+            "tara":        ["text", "json", "md"],
+            "safety-case": ["text", "json", "md", "mermaid"]
         },
         "standards": [
             "iso26262", "iec61508", "do178c", "iso21434",
@@ -115,7 +119,8 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
             "cyber": ["CYBER001", "CYBER002", "CYBER003", "CYBER004", "CYBER005",
                       "CYBER006", "CYBER007", "CYBER008", "CYBER009", "CYBER010",
                       "CYBER011", "CYBER012", "CYBER013", "CYBER014", "CYBER015",
-                      "CYBER016", "CYBER017", "CYBER018", "CYBER019", "CYBER020"]
+                      "CYBER016", "CYBER017", "CYBER018", "CYBER019", "CYBER020"],
+            "stub": ["FUSA-STUB001", "FUSA-STUB002"]
         }
     });
 

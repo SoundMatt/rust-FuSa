@@ -1,130 +1,382 @@
 {
-  "generatedAt": "2026-06-11T19:06:56.985201+00:00",
-  "items": [
+  "artifacts": [
     {
-      "category": "Planning",
+      "file": ".fusa-hara.json",
+      "hash": "sha256:98eaa9ceab59e5e409b561db6066f4739c9f139d775afeb81fa6f8cae0d09f2a",
+      "version": "0.1.0"
+    },
+    {
+      "file": ".fusa-reqs.json",
+      "hash": "sha256:4b19444a88f9cbeadd49755173130519260dbb7c405aea7f054b9658a90166e4",
+      "version": "0.1.0"
+    },
+    {
       "file": ".fusa.json",
       "hash": "sha256:a02e7609a22f7dbc096df56c1429b7f0ffdce2f37fa0daa2fcf32e0d8aedc3e6",
-      "name": "Safety Plan",
-      "present": true,
-      "required": true
+      "version": "0.1.0"
     },
     {
-      "category": "Requirements",
-      "file": ".fusa-reqs.json",
-      "hash": "sha256:57b45b9ee2de2979cc26c02f3e0b4c0fbfa1edb1c9efb92148b8b9afc01c18f5",
-      "name": "Software Requirements",
-      "present": true,
-      "required": true
+      "file": "Cargo.lock",
+      "hash": "sha256:ef3472a2c167df6c406507444d9ccfbab6dbb5b6503cd2bc0b7e38bd5c9ce459",
+      "version": "0.1.0"
     },
     {
-      "category": "Design",
+      "file": "Cargo.toml",
+      "hash": "sha256:54457113a8239d7f9b25c00ca2055d361b3f0591504b16d092d855ab20317714",
+      "version": "0.1.0"
+    },
+    {
+      "file": "artifact-manifest.json",
+      "hash": "sha256:c2f2a43472628aefdef63991a157fb4b8c9ec5035a4d5194af6b3272970ec191",
+      "version": "0.1.0"
+    },
+    {
+      "file": "boundary.dot",
+      "hash": "sha256:3b61ba3a0a6c33eb8c896e8a0c3e0394210330e5866a9e0110d7115e403c20fd",
+      "version": "0.1.0"
+    },
+    {
       "file": "boundary.mermaid",
       "hash": "sha256:ad8abe1b77c3875105351c9fc46441c0310b76bcf149449ed36e97916f198b8f",
-      "name": "Architecture Description",
-      "present": true,
-      "required": false
+      "version": "0.1.0"
     },
     {
-      "category": "Implementation",
-      "file": "src/",
-      "hash": "",
-      "name": "Source Code",
-      "present": true,
-      "required": true
-    },
-    {
-      "category": "Build",
-      "file": "Cargo.toml",
-      "hash": "sha256:eafbb109f43385d0726408369f9f5d0c3c0bb325c5065a86237d7a3ff37878dd",
-      "name": "Build Instructions",
-      "present": true,
-      "required": true
-    },
-    {
-      "category": "Build",
-      "file": "Cargo.lock",
-      "hash": "sha256:b3f439173c1972181031d65e464105bfa9e0f2b8c0383171dd0a8a0e78c388e1",
-      "name": "Cargo Lock",
-      "present": true,
-      "required": true
-    },
-    {
-      "category": "Verification",
       "file": "check-report.json",
       "hash": "sha256:eb1a993d6fe5ab65634df27fcfcc1ed57749eb79a5084417fb89a839022a4f61",
-      "name": "Check Report",
-      "present": true,
-      "required": false
+      "version": "0.1.0"
     },
     {
-      "category": "Testing",
-      "file": ".fusa-evidence.json",
-      "hash": "",
-      "name": "Test Evidence",
-      "present": false,
-      "required": true
+      "file": "cyber-report.json",
+      "hash": "sha256:249f099042147e46f7d2c5df357ac2536cdfbea4cc735ac0d817c6ae89ce8250",
+      "version": "0.1.0"
     },
     {
-      "category": "Traceability",
-      "file": "trace.json",
-      "hash": "sha256:fcfec0b7378acce3da7c9d9e8f0a1b27dd40e1e5c5d346c56688a7941285992a",
-      "name": "Trace Matrix",
-      "present": true,
-      "required": false
+      "file": "fmea.json",
+      "hash": "sha256:7d01f2fd8742e0eb7b4297dcfebd404790d0604c9245703930c4804e64936a1c",
+      "version": "0.1.0"
     },
     {
-      "category": "Qualification",
+      "file": "provenance.json",
+      "hash": "sha256:f04a88ce06bba6191edf2eea9ea1ea411889a80845c8192c56830838ee6e57c8",
+      "version": "0.1.0"
+    },
+    {
       "file": "qualify-report.json",
-      "hash": "sha256:e99a3eb983d03dcc97169a13da10093c427c29b28da3dbfeec2f26db7375b527",
-      "name": "Qualification Report",
-      "present": true,
-      "required": true
+      "hash": "sha256:26d9eec73f56faffa4675c4d215ad7b647d8984a19e2c205db87181eafeab058",
+      "version": "0.1.0"
     },
     {
-      "category": "Configuration",
+      "file": "results.sarif",
+      "hash": "sha256:cd171e280a39439e165aad0c87876f0cacad9bbe649031bfe0c85900348e8402",
+      "version": "0.1.0"
+    },
+    {
+      "file": "safety-case.json",
+      "hash": "sha256:2a73941256d21e9f908aca3938481b3107fd15566d23d443fa12636f5df1644b",
+      "version": "0.1.0"
+    },
+    {
+      "file": "sas.md",
+      "hash": "sha256:e66828514b3f3a5e3f013fc2fe77e996046c5ad505f08758dea5c81072c81e8c",
+      "version": "0.1.0"
+    },
+    {
       "file": "sbom.json",
       "hash": "sha256:252a942f90aa35e8adb3f94176c3885cae0f6fcc6e121ba4285a29e8b80e7815",
-      "name": "SBOM",
-      "present": true,
-      "required": true
+      "version": "0.1.0"
     },
     {
-      "category": "Safety",
-      "file": "fmea.json",
-      "hash": "sha256:08558936c88d1e4101bb7ab46b0bdfb7e74d74f3d3cf2f4554795d9e6623a9b3",
-      "name": "FMEA",
-      "present": true,
-      "required": false
+      "file": "sci.json",
+      "hash": "sha256:b019e5c88b723aa5876f08b54cadad6da343c6951476a84623b53de7a7415b71",
+      "version": "0.1.0"
     },
     {
-      "category": "Review",
-      "file": ".fusa-dispositions.json",
-      "hash": "",
-      "name": "Dispositions",
-      "present": false,
-      "required": false
+      "file": "src/analyze.rs",
+      "hash": "sha256:bc3aa18587d0b70b1ceb9e560bb8ba8799fa47857a3aad173093973f7a1aa2b7",
+      "version": "0.1.0"
     },
     {
-      "category": "Delivery",
-      "file": "audit-pack.zip",
-      "hash": "",
-      "name": "Audit Pack",
-      "present": false,
-      "required": false
+      "file": "src/attestation.rs",
+      "hash": "sha256:a3882021b44de4d68eb2773abeec46f04bc5f0b8c9c6cbdd0f61664d106daac1",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/auditpack.rs",
+      "hash": "sha256:65f471a3876d1ea0bd05640d6abbac55694a42074be83afe911b0156cad97d65",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/canonjson.rs",
+      "hash": "sha256:135018bf276ccb0c2b529d9f26b397e1b98dc3ed34b03397efe598a26594e3e9",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/analyze.rs",
+      "hash": "sha256:b022e718259f2f03a2cd2792dc0696dca71773846d4d6ce9238e20845a565b36",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/auditpack.rs",
+      "hash": "sha256:f5ec26e3f64356a7d3f5e3ffe9e6d1596852da32f3f883be85d5eb8c57a5cfec",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/badge.rs",
+      "hash": "sha256:6134203bf7e249f33758daba3d9dca6c04196ce962a0081e541bca0868f6a41d",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/boundary.rs",
+      "hash": "sha256:7b9578af143da8204d60afd18d716b70b82515283beb7cbf959be5a5fc7b6eca",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/capabilities.rs",
+      "hash": "sha256:ad9e3610e29920e2c55375077cebc47febaa86c23fc04051796bd7d64c94a0a8",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/check.rs",
+      "hash": "sha256:76ae57d7f8be04e8460a7c2ecc52b1bcd688d65765f6509a19bb131dd8fa6722",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/comp.rs",
+      "hash": "sha256:1075e68cddc3276bec52b0390a4ec72ae1cc881e601d24babc1b310b0aa05260",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/coupling.rs",
+      "hash": "sha256:8d316be7be6969c5cfd3ec131ac4add7948d853b05e9a73854f44550ba4589be",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/coverage.rs",
+      "hash": "sha256:2c723473df3b5d86912c595902eb6ab44fb6c8f02f7a8594716f80bddf529838",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/cyber.rs",
+      "hash": "sha256:2f0ca9601f76dccf38e1944203fb5769a2386626dfd0e530e27ec29a46468d68",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/diff.rs",
+      "hash": "sha256:efb0952c1c264c02262524d9652a4a6f2db2ea870bbe56cfc739ed005ac90606",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/disposition.rs",
+      "hash": "sha256:94593fda934c916bfd0863e6dd4d3a4df89c39683b602811eaecd38db1d13aba",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/fix.rs",
+      "hash": "sha256:0fb6182b6b18650ad24d43c1f008cdaf3b57f91854ad5210a9669d447c7a7f27",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/fmea.rs",
+      "hash": "sha256:e6a1bddccd1ad5d0b8431c02371a0b7aadc7fa31ba7ad3d8f7af6ba43739cf58",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/hara.rs",
+      "hash": "sha256:92ec849eb00543df18ccd2eaa9377c1a411346b7f28688c806441556000df7a1",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/hooks.rs",
+      "hash": "sha256:3e5a47d16d439f497728426e45d37eae75c5794ecb3674553fc622b6f76031bb",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/impact.rs",
+      "hash": "sha256:6bb0d81174b6f359c20903e78f500fe0d4079dcc702e404f082f65c379090327",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/init.rs",
+      "hash": "sha256:0422102feb6a886ce8f5dc8322c4e88e85fe87650d9cc43c0ede070986203c5f",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/lint.rs",
+      "hash": "sha256:164bae726b053bf4c614c3904515237ce0cf58a1591556e9a7b2a086414bdcec",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/metrics.rs",
+      "hash": "sha256:760238e1136f3d7a46a3cca31287b5a8ad5421bd70f390bae197af2240e2ff22",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/mod.rs",
+      "hash": "sha256:55d2577621032d01c645dee077c0968921cb722e58a1dc07bc66caff1b9edfd3",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/pr.rs",
+      "hash": "sha256:cb88e17094e43f68738890d75b5fda5ab689cc9b7dfccd2909e10cce67fe61b0",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/qualify.rs",
+      "hash": "sha256:adca25085babfb8d501c47b203a2b476ddb9087cb24f58878350a42851ffbf11",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/release.rs",
+      "hash": "sha256:d026b4be98e768468b67bad4ad33b53da0a7eaa17da7723e5c20649ef95260eb",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/req.rs",
+      "hash": "sha256:5e611230c321296eb812d888c35404f7b0e6d53b636dfa051987854b0896feda",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/safety_case.rs",
+      "hash": "sha256:5a7914d2be2c07392c547f7755b62e6981747dfc1a0fcd74d1c003faa24796f4",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/sas.rs",
+      "hash": "sha256:0333c47573aed7f363deaca90302cbe6c82f1f801c553d02eb0d545194250ab2",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/sci.rs",
+      "hash": "sha256:098010803d5663ad8643057694ce92e5b966cd47e6a53898d8cee6f1632465f2",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/sign.rs",
+      "hash": "sha256:4ba1367f3e140ca3893b02ccb2bd031b8a775196c874c5d26a7282607bcc5d32",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/standards.rs",
+      "hash": "sha256:9a69354a380d45650c9c33dae8520d69e3ebe3e83015e03eb89ed35dd161a90a",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/tara.rs",
+      "hash": "sha256:2986aae1c6333a94ec676b45325420454dbcee49c1dfbcdfa8d4adb49fb5db74",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/template.rs",
+      "hash": "sha256:b7bad220e546fc75721b95e35d23c7a2d1bd2ca8354e2ce29a413fa86f3db168",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/trace.rs",
+      "hash": "sha256:b7637d23871ece85497622ceaddacd1d11cb08236366ac82665096fdee6afb6d",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/verify.rs",
+      "hash": "sha256:0306fdca6509c3e3a5cd323f789b8ed27d83dff783f0a1b13ecc7abba72c25a7",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/version.rs",
+      "hash": "sha256:8c9f82dc5e08c98ac4a76394a9a5cee155d0f2dab50128e0a9003c047fcc9c6a",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cmd/vuln.rs",
+      "hash": "sha256:ef970699ba5038d2936eb652a1721ecf17eac8d3b5f3deddf3a42beffef59862",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/config.rs",
+      "hash": "sha256:731743f6702aa3d4dd97191d257b258c1ad2f6c45c28f926787989f42d802b74",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/cyber.rs",
+      "hash": "sha256:1815172b0479d9e54251faeeb6a1f1d43a4c6826b10f67cad19beefd7279c881",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/engine.rs",
+      "hash": "sha256:86c233a2ec316810931234b8cbf3062e04f7cc70261641cb5fe9ce650dfba292",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/lint.rs",
+      "hash": "sha256:da866c9a58c532d048ca93e4ad09ff708b81050cf914a1ffc946934137170d27",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/main 2.rs",
+      "hash": "sha256:3e6459daff0ff666a4e0f17f5e8fe0e00abeb9d2e4ab085a76098114a39486b7",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/main.rs",
+      "hash": "sha256:013b4db31b08f74cf0c69e3662d5cb99a25d5b4fd1bd376c548dee96a21bad41",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/qualify.rs",
+      "hash": "sha256:58f80060986dfa7760e9000c105d0438dbf98217e6d0f9e73d6c76f42e96cd50",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/release.rs",
+      "hash": "sha256:4b3c08d3e5435d9f855ebee288cbae6ef3d31893fcd9853056e96bf5a4cdd44f",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/report.rs",
+      "hash": "sha256:73d5a406dab3e47e3aa9ad7b3faa793dabc4391f90dd44ab897a287f5a456371",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/rules.rs",
+      "hash": "sha256:7c09488291e492096d69522821e9fd775c1ab528b56a4a4d26b98bfc1ece9a79",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/stub 2.rs",
+      "hash": "sha256:5d027bb90195abf3932a30bfcb748fb70b44721648308765963abf76f471d2ef",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/stub.rs",
+      "hash": "sha256:8af5d57f654373228280124fb7564cee672da95ac2c949a05f7e3ad265104a5e",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/trace.rs",
+      "hash": "sha256:b3582e8331425a0090fda782e4a2ae54dab0e4569475b056e07a931276d4d7ce",
+      "version": "0.1.0"
+    },
+    {
+      "file": "src/types.rs",
+      "hash": "sha256:96d1a95b1804dbe5bfb484115ddfac7cb1089215bc83929416c74180791a355d",
+      "version": "0.1.0"
+    },
+    {
+      "file": "tara.json",
+      "hash": "sha256:aa5f0b46040d01b3fc2101f2642618111e252ad4c834b880dcf71f46d5d60834",
+      "version": "0.1.0"
+    },
+    {
+      "file": "trace.json",
+      "hash": "sha256:fcfec0b7378acce3da7c9d9e8f0a1b27dd40e1e5c5d346c56688a7941285992a",
+      "version": "0.1.0"
     }
   ],
+  "generatedAt": "2026-07-28T19:35:00.572950+00:00",
   "kind": "sci",
   "language": "rust",
   "project": "rust-FuSa",
   "projectVersion": "0.1.0",
-  "schemaVersion": "1.9",
-  "summary": {
-    "missing": 3,
-    "present": 11,
-    "requiredMissing": 1,
-    "total": 14
-  },
+  "schemaVersion": "1.14.0",
   "tool": "rust-FuSa",
-  "toolVersion": "0.2.0"
+  "toolVersion": "0.3.11"
 }

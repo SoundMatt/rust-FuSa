@@ -49,7 +49,7 @@ pub fn register_all(reg: &mut Registry) {
     reg.register(Box::new(RuleUncheckedFromUtf8));
 }
 
-fn rust_sources(root: &Path, cfg: &FusaConfig) -> Vec<PathBuf> {
+pub(crate) fn rust_sources(root: &Path, cfg: &FusaConfig) -> Vec<PathBuf> {
     let mut files = Vec::new();
     for entry in WalkDir::new(root)
         .into_iter()

@@ -1618,6 +1618,146 @@
       "text": "The init command shall create a .fusa.json configuration file and a .fusa-reqs.json requirements file in the target directory.",
       "standard": "iso26262",
       "level": "HLR"
+    },
+    {
+      "id": "REQ-CANON001",
+      "title": "RFC 8785 JSON canonicalization",
+      "text": "The tool shall serialize a JSON value to a canonical form (object keys sorted lexicographically at every level, no insignificant whitespace) so that two semantically-identical documents produce byte-identical output regardless of source key order.",
+      "standard": "iso26262",
+      "level": "LLR"
+    },
+    {
+      "id": "REQ-CANON002",
+      "title": "sha256:-prefixed content hash",
+      "text": "The tool shall compute a reproducible sha256:-prefixed content hash over a value's canonical JSON serialization, for use by qualify.hash and attestation.contentHash.",
+      "standard": "iso26262",
+      "level": "LLR"
+    },
+    {
+      "id": "REQ-ATT001",
+      "title": "Attestation schema",
+      "text": "The tool shall represent an x-FuSa spec section 1.6.2 attestation object with status, implementationAuthor, independentReviewer, reviewedAt, and contentHash fields, defaulting an absent status to heuristic.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ATT002",
+      "title": "Attestation validity is fail-safe",
+      "text": "The tool shall treat an attestation as valid only when its status is reviewed, its independentReviewer differs from its implementationAuthor, and its contentHash matches the artifact's current content hash; every other case shall be treated as invalid.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-ATT003",
+      "title": "Attestation carry-forward on regeneration",
+      "text": "When an evidence-artifact command regenerates its output file, the tool shall carry forward an existing attestation only when it remains valid against the freshly computed content hash, and shall drop a stale attestation.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-STUB001",
+      "title": "FUSA-STUB001 placeholder detection",
+      "text": "The tool shall scan an evidence artifact's qualitative fields for a deny-listed placeholder/template text match and shall emit an ERROR finding with ruleId FUSA-STUB001 for each match.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-STUB002",
+      "title": "FUSA-STUB001 deny-list matching",
+      "text": "The placeholder-text scan shall match case-insensitively against the substrings replace with, example hazard, tbd, lorem ipsum, and fill in, and shall match a bracket-wrapped instructional phrase of the form open-bracket letter then any non-close-bracket characters then close-bracket.",
+      "standard": "iso26262",
+      "level": "LLR"
+    },
+    {
+      "id": "REQ-STUB003",
+      "title": "FUSA-STUB002 blanket-fallback detection",
+      "text": "For a group of at least ten entries sharing the same qualitative field, the tool shall compute the distinct-value ratio and shall emit a WARNING finding with ruleId FUSA-STUB002 when that ratio is below 0.1.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-STUB004",
+      "title": "FUSA-STUB gating",
+      "text": "The tool shall apply project dispositions to FUSA-STUB findings before gating, shall exit non-zero when an open FUSA-STUB001 finding remains, and shall exit non-zero on an open FUSA-STUB002 finding only under --strict or --require-attestation.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-CFG009",
+      "title": "Shared disposition matching",
+      "text": "The tool shall provide one shared implementation of section 4.1 disposition matching and application, reused identically by check and by every evidence-artifact command that gates on findings.",
+      "standard": "iso26262",
+      "level": "LLR"
+    },
+    {
+      "id": "REQ-HARA006",
+      "title": "HARA ASIL is derived, not accepted",
+      "text": "When standard is iso26262, the hara command shall derive each hazard's risk.asil from severity, exposure, and controllability per ISO 26262-3 Table 4, shall use the derived value in its report output, and shall emit a finding when the file's stored value disagrees.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-HARA007",
+      "title": "HARA referential integrity",
+      "text": "The hara command shall validate that every id referenced in hazards[].situations, hazards[].safetyGoals, safetyGoals[].hazards, and safetyGoals[].fssrRefs resolves within the file or, for fssrRefs, within .fusa-reqs.json, and shall report a dangling-reference count and findings for any that do not.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-HARA008",
+      "title": "HARA init scaffolds empty arrays",
+      "text": "The hara init subcommand shall write operationalSituations, hazards, and safetyGoals as empty arrays when .fusa-hara.json is absent, and shall never populate a dummy/example row.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-FMEA007",
+      "title": "FMEA content varies per entry",
+      "text": "The fmea command shall derive failureMode, effect, and cause text that includes the analyzed item's fully-qualified name, so that entries covering distinct functions produce measurably distinct text rather than one fixed string per signature shape.",
+      "standard": "iso26262",
+      "level": "LLR"
+    },
+    {
+      "id": "REQ-FMEA008",
+      "title": "FMEA coverage metrics",
+      "text": "The fmea command shall report summary.componentsAnalyzed, summary.componentsInProject (the same denominator as trace --func-coverage), summary.coveragePct, and summary.componentInventoryMethod, and shall support --min-coverage N to gate the exit code.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TARA006",
+      "title": "TARA SFOP impact and derived risk",
+      "text": "The tara command shall report each threat's impact as a safety/financial/operational/privacy object per ISO 21434 Clause 15.7, and shall derive risk as the higher of attackFeasibility and the highest single SFOP impact axis.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-TARA007",
+      "title": "TARA coverage metrics",
+      "text": "The tara command shall report summary.assetsAnalyzed, summary.assetsInProject, summary.coveragePct, and a summary.assetInventoryMethod string documenting how assetsInProject was enumerated, and shall support --min-coverage N to gate the exit code.",
+      "standard": "iso21434",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SAFETYCASE002",
+      "title": "Safety case GSN nodes/edges/completeness",
+      "text": "The safety-case command shall emit nodes[] using only the six GSN Community Standard v3 node types (goal, strategy, solution, context, assumption, justification), edges[] using only supportedBy or inContextOf, and a completeness object counting totalGoals, goalsWithEvidence, and undeveloped goals.",
+      "standard": "iso26262",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SAS004",
+      "title": "SAS DO-178C section 11 checklist",
+      "text": "The sas command's checklist shall enumerate all twenty DO-178C section 11 life-cycle data items with their clause numbers, marking an item present only when a real corresponding evidence file exists in the project.",
+      "standard": "do178c",
+      "level": "HLR"
+    },
+    {
+      "id": "REQ-SCI004",
+      "title": "SCI artifacts index real files",
+      "text": "The sci command's artifacts[] shall list only files that actually exist in the project, each with a real sha256:-prefixed hash of its current contents and the project's version string.",
+      "standard": "do178c",
+      "level": "HLR"
     }
   ]
 }
