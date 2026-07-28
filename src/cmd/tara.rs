@@ -3,14 +3,13 @@
 // register with an SFOP (Safety/Financial/Operational/Privacy) impact
 // rating per Clause 15.7, rather than one generic severity.
 //
-// NOTE: the master spec (§9.2) does not define a closed value enum or a
-// combination table for `impact`/`risk` the way it does for HARA's
-// severity/exposure/controllability -> ASIL (ISO 26262-3 Table 4,
-// §1.2.5) or for `attackFeasibility` (explicitly `high|medium|low|
-// very-low`). This tool reuses that same four-level domain for `impact`'s
-// SFOP axes and for `risk`, and derives `risk` as the higher of
-// `attackFeasibility` and the highest SFOP impact. Flagged upstream as a
-// spec ambiguity (SoundMatt/FuSaOps) rather than silently diverging.
+// `impact.{safety,financial,operational,privacy}` uses the x-FuSa family's
+// canonical closed enum `critical|major|moderate|negligible` — a distinct
+// scale from `attackFeasibility`'s `high|medium|low|very-low` — and `risk`
+// is `critical|high|medium|low`, derived from the family's canonical risk
+// combination table (highest SFOP impact x attackFeasibility). See
+// SoundMatt/FuSaOps `docs/x-fusa-spec.md` §9.2 "Closed enums" / "Risk
+// combination table" (clarified following SoundMatt/rust-FuSa#38 review).
 //fusa:req REQ-TARA001
 //fusa:req REQ-TARA002
 //fusa:req REQ-TARA003
@@ -38,7 +37,9 @@ use std::path::{Path, PathBuf};
 pub const TARA_JSON: &str = "tara.json";
 pub const TARA_MD: &str = "tara.md";
 
-/// §21434 Clause 15.7 SFOP impact rating.
+/// §21434 Clause 15.7 SFOP impact rating. Each axis is one of the x-FuSa
+/// family's canonical closed enum: `critical` | `major` | `moderate` |
+/// `negligible` (x-FuSa spec §9.2).
 #[derive(Serialize, Clone, Copy, Debug)]
 #[serde(rename_all = "camelCase")]
 struct Impact {
@@ -263,132 +264,138 @@ struct RuleProfile {
     impact: Impact,
 }
 
-/// Per-rule ISO 21434 profile: CWE, attack vector, attack-potential rating,
-/// and SFOP impact. Feasibility/impact levels are `high`|`medium`|`low`
-/// (see the module-level note on the `very-low` domain gap).
+/// Per-rule ISO 21434 profile: CWE, attack vector, attack-potential rating
+/// (`feasibility`, `high|medium|low|very-low`), and SFOP `impact`
+/// (`critical|major|moderate|negligible` — a distinct, non-interchangeable
+/// scale from `feasibility`'s, per x-FuSa spec §9.2).
 fn cyber_rule_profile(rule_id: &str) -> RuleProfile {
     let (cwe, attack_vector, feasibility, impact) = match rule_id {
         "CYBER001" => (
             "CWE-798",
             "local file/binary inspection",
             "high",
-            ("medium", "high", "medium", "high"),
+            ("moderate", "major", "moderate", "major"),
         ),
         "CYBER002" => (
             "CWE-89",
             "network request",
             "high",
-            ("low", "high", "medium", "high"),
+            ("negligible", "major", "moderate", "major"),
         ),
         "CYBER003" => (
             "CWE-22",
             "network request",
             "high",
-            ("low", "medium", "medium", "high"),
+            ("negligible", "moderate", "moderate", "major"),
         ),
         "CYBER004" => (
             "CWE-330",
             "local/network prediction",
             "medium",
-            ("medium", "medium", "low", "medium"),
+            ("moderate", "moderate", "negligible", "moderate"),
         ),
         "CYBER005" => (
             "CWE-190",
             "crafted input",
             "medium",
-            ("medium", "low", "medium", "low"),
+            ("moderate", "negligible", "moderate", "negligible"),
         ),
         "CYBER006" => (
             "CWE-319",
             "network eavesdropping",
             "high",
-            ("low", "medium", "low", "high"),
+            ("negligible", "moderate", "negligible", "major"),
         ),
         "CYBER007" => (
             "CWE-78",
             "network request",
             "high",
-            ("high", "high", "high", "high"),
+            ("major", "major", "major", "major"),
         ),
         "CYBER008" => (
             "CWE-327",
             "cryptanalysis",
             "medium",
-            ("low", "medium", "low", "high"),
+            ("negligible", "moderate", "negligible", "major"),
         ),
         "CYBER009" => (
             "CWE-532",
             "local log access",
             "medium",
-            ("low", "low", "low", "high"),
+            ("negligible", "negligible", "negligible", "major"),
         ),
         "CYBER010" => (
             "CWE-502",
             "crafted serialized input",
             "high",
-            ("high", "medium", "high", "medium"),
+            ("major", "moderate", "major", "moderate"),
         ),
         "CYBER011" => (
             "CWE-125",
             "crafted input",
             "medium",
-            ("medium", "low", "medium", "low"),
+            ("moderate", "negligible", "moderate", "negligible"),
         ),
         "CYBER012" => (
             "CWE-400",
             "resource exhaustion",
             "medium",
-            ("low", "medium", "high", "low"),
+            ("negligible", "moderate", "major", "negligible"),
         ),
         "CYBER013" => (
             "CWE-295",
             "network man-in-the-middle",
             "medium",
-            ("medium", "medium", "low", "high"),
+            ("moderate", "moderate", "negligible", "major"),
         ),
         "CYBER014" => (
             "CWE-367",
             "local race condition",
             "low",
-            ("medium", "low", "medium", "low"),
+            ("moderate", "negligible", "moderate", "negligible"),
         ),
         "CYBER015" => (
             "CWE-732",
             "local file access",
             "medium",
-            ("low", "low", "medium", "medium"),
+            ("negligible", "negligible", "moderate", "moderate"),
         ),
         "CYBER016" => (
             "CWE-526",
             "local environment inspection",
             "low",
-            ("low", "low", "low", "medium"),
+            ("negligible", "negligible", "negligible", "moderate"),
         ),
         "CYBER017" => (
             "CWE-22",
             "crafted path input",
             "high",
-            ("low", "medium", "medium", "high"),
+            ("negligible", "moderate", "moderate", "major"),
         ),
         "CYBER018" => (
             "CWE-415",
             "crafted input/timing",
             "low",
-            ("medium", "low", "medium", "low"),
+            ("moderate", "negligible", "moderate", "negligible"),
         ),
         "CYBER019" => (
             "CWE-134",
             "crafted format string input",
             "medium",
-            ("medium", "low", "medium", "low"),
+            ("moderate", "negligible", "moderate", "negligible"),
         ),
         "CYBER020" => (
             "CWE-20",
             "crafted input",
             "high",
-            ("medium", "medium", "medium", "medium"),
+            ("moderate", "moderate", "moderate", "moderate"),
         ),
-        _ => ("CWE-0", "unspecified", "low", ("low", "low", "low", "low")),
+        _ => (
+            "CWE-0",
+            "unspecified",
+            "low",
+            ("negligible", "negligible", "negligible", "negligible"),
+        ),
     };
     RuleProfile {
         cwe,
@@ -403,6 +410,8 @@ fn cyber_rule_profile(rule_id: &str) -> RuleProfile {
     }
 }
 
+/// `attackFeasibility` rank: `high` | `medium` | `low` | `very-low`
+/// (ISO 21434 attack-potential rating; unchanged domain).
 fn level_rank(l: &str) -> u8 {
     match l {
         "high" => 3,
@@ -413,8 +422,39 @@ fn level_rank(l: &str) -> u8 {
     }
 }
 
-/// `risk` per the module-level note: the higher of `attackFeasibility` and
-/// the highest single SFOP impact axis.
+/// SFOP `impact` axis rank: the x-FuSa family's canonical `critical` |
+/// `major` | `moderate` | `negligible` closed enum (x-FuSa spec §9.2) — a
+/// distinct scale from `attackFeasibility`'s, per the spec's explicit
+/// clarification that a tool MUST NOT substitute one vocabulary for the
+/// other even though both are 4-level.
+fn impact_rank(l: &str) -> u8 {
+    match l {
+        "critical" => 3,
+        "major" => 2,
+        "moderate" => 1,
+        "negligible" => 0,
+        _ => 0,
+    }
+}
+
+/// `risk` combination table (x-FuSa spec §9.2 "Risk combination table"):
+/// the x-FuSa family's own canonical feasibility x highest-SFOP-impact ->
+/// risk lookup, indexed `[impact_rank][feasibility_rank]`
+/// (`negligible`..`critical` / `very-low`..`high`, both ascending).
+const RISK_TABLE: [[&str; 4]; 4] = [
+    // negligible impact
+    ["low", "low", "low", "low"],
+    // moderate impact
+    ["low", "low", "medium", "medium"],
+    // major impact
+    ["medium", "medium", "high", "high"],
+    // critical impact
+    ["medium", "high", "critical", "critical"],
+];
+
+/// `risk` per the x-FuSa spec §9.2 risk combination table: looked up from
+/// the **highest-ranked** of the four SFOP impact axes against
+/// `attackFeasibility`.
 fn derive_risk(feasibility: &str, impact: &Impact) -> &'static str {
     let highest_impact = [
         impact.safety,
@@ -423,15 +463,10 @@ fn derive_risk(feasibility: &str, impact: &Impact) -> &'static str {
         impact.privacy,
     ]
     .into_iter()
-    .map(level_rank)
+    .map(impact_rank)
     .max()
     .unwrap_or(0);
-    match level_rank(feasibility).max(highest_impact) {
-        3 => "high",
-        2 => "medium",
-        1 => "low",
-        _ => "very-low",
-    }
+    RISK_TABLE[highest_impact as usize][level_rank(feasibility) as usize]
 }
 
 fn md_escape(s: &str) -> String {
@@ -503,30 +538,43 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
 mod tests {
     use super::*;
 
+    fn impact_of(l: &'static str) -> Impact {
+        Impact {
+            safety: l,
+            financial: l,
+            operational: l,
+            privacy: l,
+        }
+    }
+
+    /// x-FuSa spec §9.2 risk combination table, verified at its corners and
+    /// a mixed case (highest of the four SFOP axes wins, not an average).
     //fusa:test REQ-TARA006
     #[test]
-    fn derive_risk_takes_the_higher_of_feasibility_and_impact() {
+    fn derive_risk_follows_the_canonical_combination_table() {
+        assert_eq!(derive_risk("high", &impact_of("critical")), "critical");
+        assert_eq!(derive_risk("medium", &impact_of("critical")), "critical");
+        assert_eq!(derive_risk("low", &impact_of("critical")), "high");
+        assert_eq!(derive_risk("very-low", &impact_of("critical")), "medium");
+        assert_eq!(derive_risk("high", &impact_of("major")), "high");
+        assert_eq!(derive_risk("low", &impact_of("major")), "medium");
+        assert_eq!(derive_risk("high", &impact_of("moderate")), "medium");
+        assert_eq!(derive_risk("low", &impact_of("moderate")), "low");
+        assert_eq!(derive_risk("high", &impact_of("negligible")), "low");
+        assert_eq!(derive_risk("very-low", &impact_of("negligible")), "low");
+    }
+
+    //fusa:test REQ-TARA006
+    #[test]
+    fn derive_risk_uses_the_highest_sfop_axis_not_an_average() {
         let impact = Impact {
-            safety: "high",
-            financial: "low",
-            operational: "low",
-            privacy: "low",
+            safety: "critical",
+            financial: "negligible",
+            operational: "negligible",
+            privacy: "negligible",
         };
-        assert_eq!(derive_risk("low", &impact), "high");
-        let impact2 = Impact {
-            safety: "low",
-            financial: "low",
-            operational: "low",
-            privacy: "low",
-        };
-        assert_eq!(derive_risk("high", &impact2), "high");
-        let impact3 = Impact {
-            safety: "low",
-            financial: "low",
-            operational: "low",
-            privacy: "low",
-        };
-        assert_eq!(derive_risk("low", &impact3), "low");
+        // A single critical axis (safety) dominates three negligible ones.
+        assert_eq!(derive_risk("high", &impact), "critical");
     }
 
     //fusa:test REQ-TARA007
@@ -542,6 +590,37 @@ mod tests {
         let p = cyber_rule_profile("CYBER999");
         assert_eq!(p.cwe, "CWE-0");
         assert_eq!(p.feasibility, "low");
+        assert_eq!(p.impact.safety, "negligible");
+    }
+
+    /// x-FuSa spec §9.2 closed enums (MUST): `impact.*` MUST be one of
+    /// `critical|major|moderate|negligible` — NOT `attackFeasibility`'s
+    /// `high|medium|low|very-low` vocabulary — for every rule this tool
+    /// knows about, not just the ones exercised elsewhere in this suite.
+    //fusa:test REQ-TARA006
+    #[test]
+    fn every_known_rule_uses_the_canonical_impact_vocabulary() {
+        let canonical = ["critical", "major", "moderate", "negligible"];
+        for i in 1..=20 {
+            let rule_id = format!("CYBER{i:03}");
+            let p = cyber_rule_profile(&rule_id);
+            for level in [
+                p.impact.safety,
+                p.impact.financial,
+                p.impact.operational,
+                p.impact.privacy,
+            ] {
+                assert!(
+                    canonical.contains(&level),
+                    "{rule_id} impact {level:?} is not in the canonical SFOP enum"
+                );
+            }
+            assert!(
+                ["high", "medium", "low", "very-low"].contains(&p.feasibility),
+                "{rule_id} feasibility {:?} is not in the canonical attackFeasibility enum",
+                p.feasibility
+            );
+        }
     }
 
     //fusa:test REQ-TARA006
@@ -550,5 +629,13 @@ mod tests {
         assert!(level_rank("high") > level_rank("medium"));
         assert!(level_rank("medium") > level_rank("low"));
         assert!(level_rank("low") > level_rank("very-low"));
+    }
+
+    //fusa:test REQ-TARA006
+    #[test]
+    fn impact_rank_orders_correctly() {
+        assert!(impact_rank("critical") > impact_rank("major"));
+        assert!(impact_rank("major") > impact_rank("moderate"));
+        assert!(impact_rank("moderate") > impact_rank("negligible"));
     }
 }
