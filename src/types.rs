@@ -14,8 +14,8 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use unicode_normalization::UnicodeNormalization;
 
-pub const VERSION: &str = "0.3.11";
-pub const SPEC_VERSION: &str = "1.14.0";
+pub const VERSION: &str = "0.3.12";
+pub const SPEC_VERSION: &str = "1.15.0";
 pub const TOOL_NAME: &str = "rust-FuSa";
 pub const LANGUAGE: &str = "rust";
 

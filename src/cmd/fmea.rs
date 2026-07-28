@@ -91,6 +91,13 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
             .unwrap_or(path)
             .to_string_lossy()
             .replace('\\', "/");
+        // Same file-level exclusion `trace::scan_func_coverage` uses for the
+        // componentsInProject denominator below (x-FuSa spec §1.6 rule 4
+        // guidance) — a fixture/integration-test file here would otherwise
+        // inflate componentsAnalyzed past componentsInProject.
+        if crate::trace::is_excluded_from_component_scan(&rel) {
+            continue;
+        }
         let module = rel
             .strip_suffix(".rs")
             .unwrap_or(&rel)
@@ -102,8 +109,17 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         };
 
         let lines: Vec<&str> = content.lines().collect();
+        // Same #[cfg(test)] body exclusion `trace::scan_func_coverage` uses
+        // (x-FuSa spec §1.6 rule 4 guidance): a `pub fn` test helper inside
+        // a `#[cfg(test)]` module isn't part of the public API surface this
+        // scan measures, and counting it here (but not in the shared
+        // denominator) is what drove `coveragePct` above 100 previously.
+        let mut skipper = crate::trace::CfgTestSkipper::new();
         for (i, line) in lines.iter().enumerate() {
             let trimmed = line.trim();
+            if skipper.skip_line(trimmed) {
+                continue;
+            }
             if !is_pub_fn(trimmed) {
                 continue;
             }
@@ -159,10 +175,15 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         .map(|fc| fc.total)
         .unwrap_or(0);
     let components_analyzed = entries.len();
+    // x-FuSa spec §9.2 MUST: coveragePct must never exceed 100. The scan
+    // exclusions above keep componentsAnalyzed a subset of
+    // componentsInProject by construction, but this clamp is kept as a
+    // defensive backstop against future drift between the two scans.
     let coverage_pct = if components_in_project == 0 {
         100.0
     } else {
-        (components_analyzed as f64 * 1000.0 / components_in_project as f64).round() / 10.0
+        ((components_analyzed as f64 * 1000.0 / components_in_project as f64).round() / 10.0)
+            .min(100.0)
     };
 
     let high_priority = entries

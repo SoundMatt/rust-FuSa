@@ -7,6 +7,45 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.3.12 — 2026-07-28
+
+### Fixed
+
+- **`tara` `impact`/`risk` canonical enum vocabulary (SoundMatt/rust-FuSa#38
+  review, x-FuSa spec v1.14.1)** — `impact.{safety,financial,operational,
+  privacy}` now uses the closed `critical|major|moderate|negligible` SFOP
+  enum instead of reusing `attackFeasibility`'s `high|medium|low|very-low`
+  vocabulary, and `risk` is derived from the family's canonical
+  feasibility x highest-SFOP-impact combination table rather than
+  `max(feasibility, impact)`. All twenty `CYBER*` rule profiles remapped;
+  new tests assert the full table and that every known rule stays inside
+  the canonical enum.
+- **`fmea` `summary.coveragePct` could exceed 100 (x-FuSa spec v1.15.0
+  §9.2 MUST, SoundMatt/rust-FuSa#39)** — `fmea`'s own per-function scan
+  counted a `pub fn` test helper living inside a `#[cfg(test)]` module
+  (or, for a project with no `src/` directory, inside `tests/`) as an
+  analyzed component, while the shared `componentsInProject` denominator
+  (`trace::scan_func_coverage`) correctly excluded it — so
+  `componentsAnalyzed` could exceed `componentsInProject`. Fixed at the
+  root cause by having `fmea` reuse the exact same file/`#[cfg(test)]`
+  exclusion logic as `trace --func-coverage` (new `trace::CfgTestSkipper`
+  and `trace::is_excluded_from_component_scan`, extracted from
+  `scan_func_coverage` so both scans can't independently drift — spec
+  §1.6 rule 4 guidance), plus a defensive `.min(100.0)` clamp on both
+  `fmea` and `tara`'s `coveragePct` per the spec's explicit MUST. New
+  regression test builds a fixture with a non-trivial `#[cfg(test)]`
+  tree specifically to exercise the bug (a fixture without one can't).
+- **Attestation carry-forward (x-FuSa spec v1.15.0 §1.6.2 MUST)** —
+  audited: `fmea`/`tara`/`safety-case`/`sas` already read the prior saved
+  output's `attestation` via `attestation::read_existing` and carry it
+  forward via `attestation::carry_forward` before rebuilding, so a
+  `"reviewed"` review survives a content-unchanged re-run and is dropped
+  (treated as absent) the moment the content hash no longer matches —
+  already conformant, no code change needed. Added an end-to-end CLI
+  regression test (`fmea_attestation_carries_forward_and_goes_stale_on_edit`)
+  covering both the carry-forward and the staleness path, since only the
+  lower-level `attestation` module had unit coverage before.
+
 ## v0.3.11 — 2026-07-28
 
 ### Added
