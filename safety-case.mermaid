@@ -1,14 +1,14 @@
 graph TB
-  G1["Goal: The rust-FuSa software is free from unacceptable risk according to iso26262"] --> S1[Strategy: Evidence-based assurance]
-  S1 --> E0{"MISSING: Safety check report"}
-  S1 --> E1(["Requirements trace matrix"])
-  S1 --> E2{"MISSING: Test evidence bundle"}
-  S1 --> E3(["Qualification report"])
-  S1 --> E4(["SBOM"])
-  S1 --> E5(["FMEA"])
-  S1 --> E6(["TARA / threat analysis"])
-  S1 --> E7{"MISSING: Vulnerability scan"}
-  S1 --> E8{"MISSING: Coupling analysis"}
-  S1 --> E9(["Cybersecurity analysis"])
-  S1 --> E10(["Requirements file"])
-  S1 --> E11{"MISSING: Dispositions file"}
+  G1["The rust-FuSa software is free from unacceptable risk according to iso26262"] --> St1[Strategy: evidence categories]
+  St1 --> G2(["Safety check report"])
+  St1 --> G3(["Requirements trace matrix"])
+  St1 --> G4{"UNDEVELOPED: Test evidence bundle"}
+  St1 --> G5(["Qualification report"])
+  St1 --> G6(["SBOM"])
+  St1 --> G7(["FMEA"])
+  St1 --> G8(["TARA / threat analysis"])
+  St1 --> G9{"UNDEVELOPED: Vulnerability scan"}
+  St1 --> G10{"UNDEVELOPED: Coupling analysis"}
+  St1 --> G11(["Cybersecurity analysis"])
+  St1 --> G12(["Requirements file"])
+  St1 --> G13{"UNDEVELOPED: Dispositions file"}

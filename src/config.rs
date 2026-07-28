@@ -13,6 +13,7 @@
 //fusa:req REQ-REQQ001
 //fusa:req REQ-REQQ002
 
+use crate::types::{Disposition, Finding};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
@@ -282,4 +283,145 @@ pub struct DispositionsFile {
 pub fn load_dispositions(path: &Path) -> Option<DispositionsFile> {
     let data = std::fs::read_to_string(path).ok()?;
     serde_json::from_str(&data).ok()
+}
+
+/// §4.1 disposition matching, shared by every command that gates on
+/// `Finding`s (`check`, and the evidence-artifact commands' §1.6.1 FUSA-STUB
+/// findings): fingerprint first (primary key), then `ruleId` + `file` +
+/// `line` (fallback), with a file/line-less entry matching the whole rule
+/// project-wide.
+///
+//fusa:req REQ-CFG009
+pub fn disposition_matches(f: &Finding, entry: &DispositionEntry) -> bool {
+    if let Some(efp) = &entry.fingerprint {
+        if efp == &f.fingerprint {
+            return true;
+        }
+    }
+    if let Some(rule) = &entry.rule_id {
+        if rule == &f.rule_id {
+            if entry.file.is_none() && entry.line.is_none() {
+                return true; // rule-level match
+            }
+            let file_ok = entry
+                .file
+                .as_deref()
+                .map(|ef| ef == f.location.file)
+                .unwrap_or(true);
+            let line_ok = entry.line.map(|el| el == f.location.line).unwrap_or(true);
+            if file_ok && line_ok {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// Apply `entries` to `findings` in place, setting `Finding.disposition` on
+/// every match per [`disposition_matches`]. Findings are never removed —
+/// only their `disposition` field is set, matching §4.1's "marked, not
+/// dropped" rule.
+///
+//fusa:req REQ-CFG009
+pub fn apply_dispositions(findings: &mut [Finding], entries: &[DispositionEntry]) {
+    for f in findings.iter_mut() {
+        for entry in entries {
+            if disposition_matches(f, entry) {
+                f.disposition = match entry.status.as_str() {
+                    "accepted" => Some(Disposition::Accepted),
+                    "deferred" => Some(Disposition::Deferred),
+                    "rejected" => Some(Disposition::Rejected),
+                    _ => None,
+                };
+                break;
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod disposition_tests {
+    use super::*;
+    use crate::types::{Category, Location, Severity};
+
+    fn finding() -> Finding {
+        Finding::new(
+            "FUSA-STUB001",
+            Severity::Error,
+            "placeholder text",
+            Location::new("fmea.json"),
+            Category::Safety,
+            "fix it",
+        )
+    }
+
+    //fusa:test REQ-CFG009
+    #[test]
+    fn matches_by_fingerprint() {
+        let f = finding();
+        let entry = DispositionEntry {
+            fingerprint: Some(f.fingerprint.clone()),
+            rule_id: None,
+            file: None,
+            line: None,
+            status: "accepted".to_string(),
+            note: None,
+            by: None,
+            at: None,
+        };
+        assert!(disposition_matches(&f, &entry));
+    }
+
+    //fusa:test REQ-CFG009
+    #[test]
+    fn rule_level_entry_matches_any_location() {
+        let f = finding();
+        let entry = DispositionEntry {
+            fingerprint: None,
+            rule_id: Some("FUSA-STUB001".to_string()),
+            file: None,
+            line: None,
+            status: "accepted".to_string(),
+            note: None,
+            by: None,
+            at: None,
+        };
+        assert!(disposition_matches(&f, &entry));
+    }
+
+    //fusa:test REQ-CFG009
+    #[test]
+    fn mismatched_rule_does_not_match() {
+        let f = finding();
+        let entry = DispositionEntry {
+            fingerprint: None,
+            rule_id: Some("LINT001".to_string()),
+            file: None,
+            line: None,
+            status: "accepted".to_string(),
+            note: None,
+            by: None,
+            at: None,
+        };
+        assert!(!disposition_matches(&f, &entry));
+    }
+
+    //fusa:test REQ-CFG009
+    #[test]
+    fn apply_dispositions_sets_field_without_removing_findings() {
+        let mut findings = vec![finding()];
+        let entries = vec![DispositionEntry {
+            fingerprint: Some(findings[0].fingerprint.clone()),
+            rule_id: None,
+            file: None,
+            line: None,
+            status: "deferred".to_string(),
+            note: None,
+            by: None,
+            at: None,
+        }];
+        apply_dispositions(&mut findings, &entries);
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].disposition, Some(Disposition::Deferred));
+    }
 }

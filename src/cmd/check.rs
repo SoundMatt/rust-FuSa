@@ -178,50 +178,14 @@ fn apply_dispositions(
     mut findings: Vec<Finding>,
     dispositions: Option<&[DispositionEntry]>,
 ) -> Vec<Finding> {
-    let Some(entries) = dispositions else {
-        return findings;
-    };
-    for f in &mut findings {
-        for entry in entries {
-            if matches_disposition(f, entry) {
-                f.disposition = match entry.status.as_str() {
-                    "accepted" => Some(Disposition::Accepted),
-                    "deferred" => Some(Disposition::Deferred),
-                    "rejected" => Some(Disposition::Rejected),
-                    _ => None,
-                };
-                break;
-            }
-        }
+    if let Some(entries) = dispositions {
+        crate::config::apply_dispositions(&mut findings, entries);
     }
     findings
 }
 
 fn matches_disposition(f: &Finding, entry: &DispositionEntry) -> bool {
-    // Prefer fingerprint match (§4.1).
-    if let (Some(fp), Some(efp)) = (&Some(f.fingerprint.clone()), &entry.fingerprint) {
-        if fp == efp {
-            return true;
-        }
-    }
-    // Fallback: ruleId + file + line.
-    if let Some(rule) = &entry.rule_id {
-        if rule == &f.rule_id {
-            if entry.file.is_none() && entry.line.is_none() {
-                return true; // rule-level match
-            }
-            let file_ok = entry
-                .file
-                .as_deref()
-                .map(|ef| ef == f.location.file)
-                .unwrap_or(true);
-            let line_ok = entry.line.map(|el| el == f.location.line).unwrap_or(true);
-            if file_ok && line_ok {
-                return true;
-            }
-        }
-    }
-    false
+    crate::config::disposition_matches(f, entry)
 }
 
 struct Opts {

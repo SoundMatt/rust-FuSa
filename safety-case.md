@@ -3,14 +3,14 @@
 **Goal**: The rust-FuSa software is free from unacceptable risk according to iso26262  
 **Standard**: iso26262  
 **Project**: rust-FuSa  
-**Generated**: 2026-06-11T19:06:56Z  
+**Generated**: 2026-07-28T19:35:00Z  
 **Status**: INCOMPLETE  
 
 ## Evidence
 
 | Description | File | Required | Status |
 |-------------|------|----------|--------|
-| Safety check report | `check-report.json` | yes | :x: missing |
+| Safety check report | `check-report.json` | yes | :white_check_mark: present |
 | Requirements trace matrix | `trace.json` | yes | :white_check_mark: present |
 | Test evidence bundle | `.fusa-evidence.json` | yes | :x: missing |
 | Qualification report | `qualify-report.json` | yes | :white_check_mark: present |
@@ -23,4 +23,4 @@
 | Requirements file | `.fusa-reqs.json` | yes | :white_check_mark: present |
 | Dispositions file | `.fusa-dispositions.json` | no | :x: missing |
 
-> :warning: **2 required evidence items are missing.**
+> :warning: **1 required evidence items are missing.**

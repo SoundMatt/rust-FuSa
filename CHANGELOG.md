@@ -7,6 +7,98 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.3.11 — 2026-07-28
+
+### Added
+
+- **x-FuSa spec v1.13.0/v1.14.0 conformance for `hara`/`fmea`/`tara`/
+  `safety-case`/`sas`/`sci` (SoundMatt/FuSaOps#37)** — real field-level
+  schemas for the six evidence artifacts previously left tool-defined:
+  - `hara`: `.fusa-hara.json` now matches spec §1.2.5 exactly —
+    `operationalSituations[]`/`hazards[]`/`safetyGoals[]` as three
+    cross-referenced collections, `safetyGoals[].fssrRefs` (MUST, >=1
+    entry) linking into `.fusa-reqs.json`. `hara show --format json` now
+    derives `risk.asil` from severity x exposure x controllability against
+    the *literal* ISO 26262-3 Table 4 (replacing an earlier
+    `severity*exposure*controllability` score-threshold approximation that
+    silently disagreed with the real table on several combinations, e.g.
+    S3/E2/C2 — Table 4 says ASIL-A, the old score model said QM) rather
+    than accepting the file's stored value, flags any disagreement, and
+    reports a `completeness` block (hazard/safety-goal counts, dangling
+    cross-references). `hara init` scaffolds empty arrays, never a dummy
+    hazard row.
+  - `fmea`: `entries[]` now carry `item`/`failureMode`/`effect`/`cause`/
+    `severity`/`actionPriority`/`mitigations`/`requirementIds` per IEC
+    60812 / the AIAG-VDA Handbook; `failureMode`/`effect`/`cause` embed the
+    analyzed function's fully-qualified name so distinct functions produce
+    measurably distinct text. New `summary.componentsInProject` (the same
+    denominator `trace --func-coverage` uses)/`coveragePct`/
+    `componentInventoryMethod` and a `--min-coverage N` gate.
+  - `tara`: `threats[]` (not `entries`) with `impact` as an SFOP
+    (safety/financial/operational/privacy) object per ISO/SAE 21434 Clause
+    15.7, replacing one generic STRIDE-derived severity; `risk` derived
+    from `attackFeasibility` and the highest SFOP axis. New
+    `summary.assetsInProject`/`coveragePct`/`assetInventoryMethod` (each
+    scanned Rust source file counts as one candidate asset) and
+    `--min-coverage N`.
+  - `safety-case`: `nodes[]`/`edges[]`/`completeness` per the GSN
+    Community Standard v3 — the six real GSN node types (goal/strategy/
+    solution/context/assumption/justification) and edge types
+    (`supportedBy`/`inContextOf`), replacing the earlier flat
+    evidence-checklist-only JSON.
+  - `sas`: `checklist[]` now enumerates all twenty real DO-178C §11
+    life-cycle data items (PSAC through the SAS itself) with their clause
+    numbers, marking an item present only when a real corresponding file
+    exists — replacing a bespoke 14-item evidence list with informal
+    category names.
+  - `sci`: `artifacts[]` (`file`/`hash`/`version`) now indexes the
+    project's actual source files and configuration/evidence artifacts
+    with a real SHA-256 hash each, replacing a fixed named-item checklist
+    that mixed real hashes with presence/absence bookkeeping.
+- **§1.6.1 detection heuristics — `FUSA-STUB001`/`FUSA-STUB002`** — every
+  evidence-artifact command above now scans its own qualitative fields:
+  Rule A (`FUSA-STUB001`, always `ERROR`, disposition-suppressible only) is
+  a deny-list scan for literal placeholder/template text; Rule B
+  (`FUSA-STUB002`, `WARNING` by default, non-gating) flags a field whose
+  distinct-value ratio falls below 0.1 across >=10 entries — a single
+  hardcoded qualitative string applied regardless of the underlying
+  item. New `stub` module (shared by all six commands) and `config::
+  apply_dispositions`/`disposition_matches` (extracted from `check`, now
+  shared).
+- **§1.6.2 attestation** — an evidence artifact may carry an `attestation`
+  object (`status`/`implementationAuthor`/`independentReviewer`/
+  `reviewedAt`/`contentHash`, new `attestation` module). A non-stale,
+  genuinely independent (`independentReviewer != implementationAuthor`)
+  `"reviewed"` attestation suppresses Rule B; regenerating an artifact
+  recomputes the content hash and carries the attestation forward only
+  when it still matches, so one real review never silently covers a later,
+  unreviewed edit. `--strict`/`--require-attestation` on `fmea`/`hara`/
+  `tara`/`safety-case`/`sas` escalates an unsuppressed Rule B warning to
+  exit 1.
+- **RFC 8785-style JSON canonicalization** (new `canonjson` module) —
+  object keys sorted at every level, no insignificant whitespace — backs
+  both the new `contentHash` and is available for any future reproducible
+  `hash` field.
+- Migrated this project's own `.fusa-hara.json` to the new schema by hand
+  (it predates this change and had real, item-specific content — not
+  something to regenerate from a template) and re-derived every hazard's
+  ASIL against the corrected Table 4 implementation.
+
+### Fixed
+
+- `sci.json`'s `hash` field was already `sha256:`-prefixed (unlike the
+  equivalent bug FuSaOps found in its own Go packages), but `sas.json`
+  ignored `--dir`/wrote to a literal `sas.json` relative path when
+  `--format json` was requested without an explicit `--output` — it now
+  joins the project root like every other command.
+
+### Requirements
+
+- 20 new requirements registered (`REQ-CANON001-002`, `REQ-ATT001-003`,
+  `REQ-STUB001-004`, `REQ-CFG009`, `REQ-HARA006-008`, `REQ-FMEA007-008`,
+  `REQ-TARA006-007`, `REQ-SAFETYCASE002`, `REQ-SAS004`, `REQ-SCI004`);
+  251 total, all tagged and tested.
+
 ## v0.3.10 — 2026-07-27
 
 ### Fixed

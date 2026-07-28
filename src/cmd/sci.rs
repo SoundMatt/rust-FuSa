@@ -1,109 +1,61 @@
-// `rsfusa sci` — Software Configuration Index (DO-178C §11.16).
+// `rsfusa sci` — Software Configuration Index per DO-178C §11.16,
+// x-FuSa spec §9.3. Indexes the project's actual controlled files with a
+// real SHA-256 hash each — a placeholder or stale hash defeats the point of
+// a configuration index.
 //fusa:req REQ-CFG001
 //fusa:req REQ-SCI001
 //fusa:req REQ-SCI002
 //fusa:req REQ-SCI003
+//fusa:req REQ-SCI004
 
 use crate::config::load;
 use crate::types::{EXIT_OK, EXIT_RUNTIME, EXIT_USAGE, LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
+use serde::Serialize;
 use std::io::Write;
 use std::path::PathBuf;
 
 pub const SCI_FILE: &str = "sci.json";
 
-struct SciItem {
-    name: &'static str,
-    category: &'static str,
-    file: &'static str,
-    required: bool,
-}
-
-const SCI_ITEMS: &[SciItem] = &[
-    SciItem {
-        name: "Safety Plan",
-        category: "Planning",
-        file: ".fusa.json",
-        required: true,
-    },
-    SciItem {
-        name: "Software Requirements",
-        category: "Requirements",
-        file: ".fusa-reqs.json",
-        required: true,
-    },
-    SciItem {
-        name: "Architecture Description",
-        category: "Design",
-        file: "boundary.mermaid",
-        required: false,
-    },
-    SciItem {
-        name: "Source Code",
-        category: "Implementation",
-        file: "src/",
-        required: true,
-    },
-    SciItem {
-        name: "Build Instructions",
-        category: "Build",
-        file: "Cargo.toml",
-        required: true,
-    },
-    SciItem {
-        name: "Cargo Lock",
-        category: "Build",
-        file: "Cargo.lock",
-        required: true,
-    },
-    SciItem {
-        name: "Check Report",
-        category: "Verification",
-        file: "check-report.json",
-        required: false,
-    },
-    SciItem {
-        name: "Test Evidence",
-        category: "Testing",
-        file: ".fusa-evidence.json",
-        required: true,
-    },
-    SciItem {
-        name: "Trace Matrix",
-        category: "Traceability",
-        file: "trace.json",
-        required: false,
-    },
-    SciItem {
-        name: "Qualification Report",
-        category: "Qualification",
-        file: "qualify-report.json",
-        required: true,
-    },
-    SciItem {
-        name: "SBOM",
-        category: "Configuration",
-        file: "sbom.json",
-        required: true,
-    },
-    SciItem {
-        name: "FMEA",
-        category: "Safety",
-        file: "fmea.json",
-        required: false,
-    },
-    SciItem {
-        name: "Dispositions",
-        category: "Review",
-        file: ".fusa-dispositions.json",
-        required: false,
-    },
-    SciItem {
-        name: "Audit Pack",
-        category: "Delivery",
-        file: "audit-pack.zip",
-        required: false,
-    },
+/// Generated evidence artefacts (x-FuSa spec §1.3) plus the project's own
+/// configuration/requirements files — indexed only when they actually
+/// exist in the project.
+const CANDIDATE_FILES: &[&str] = &[
+    ".fusa.json",
+    ".fusa-reqs.json",
+    ".fusa-hara.json",
+    ".fusa-dispositions.json",
+    ".fusa-evidence.json",
+    ".fusa-problems.json",
+    "Cargo.toml",
+    "Cargo.lock",
+    "check-report.json",
+    "trace.json",
+    "qualify-report.json",
+    "sbom.json",
+    "provenance.json",
+    "artifact-manifest.json",
+    "fmea.json",
+    "tara.json",
+    "safety-case.json",
+    "sas.json",
+    "sas.md",
+    "sci.json",
+    "comp-report.json",
+    "cyber-report.json",
+    "boundary.dot",
+    "boundary.mermaid",
+    "results.sarif",
+    "audit-pack.zip",
 ];
+
+/// §9.3 `sci.json` `artifacts[]` entry.
+#[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+struct Artifact {
+    file: String,
+    hash: String,
+    version: String,
+}
 
 pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     let opts = match parse(args, stderr) {
@@ -115,44 +67,44 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         .dir
         .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
-    let cfg = load(&project_root.join(".fusa.json")).ok();
-    let project = cfg
-        .as_ref()
-        .map(|c| c.project.name.as_str())
-        .unwrap_or("unknown");
-    let version = cfg
-        .as_ref()
-        .map(|c| c.project.version.as_str())
-        .unwrap_or("0.0.0");
+    let cfg = load(&project_root.join(".fusa.json")).unwrap_or_else(|_| {
+        crate::config::FusaConfig::new(
+            project_root
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("project"),
+            "generic",
+        )
+    });
+    let project = cfg.project.name.clone();
+    let version = cfg.project.version.clone();
 
-    let mut items_json: Vec<serde_json::Value> = Vec::new();
-    let mut present_count = 0usize;
-    let mut required_missing = 0usize;
-
-    for item in SCI_ITEMS {
-        let path = project_root.join(item.file);
-        let present = path.exists();
-        if present {
-            present_count += 1;
+    let mut files: Vec<PathBuf> = Vec::new();
+    for name in CANDIDATE_FILES {
+        let p = project_root.join(name);
+        if p.is_file() {
+            files.push(p);
         }
-        if item.required && !present {
-            required_missing += 1;
-        }
+    }
+    files.extend(crate::cyber::rust_sources(&project_root, &cfg));
+    files.sort();
+    files.dedup();
 
-        let hash = if present && path.is_file() {
-            compute_file_hash(&path).unwrap_or_default()
-        } else {
-            String::new()
+    let mut artifacts: Vec<Artifact> = Vec::new();
+    for path in &files {
+        let rel = path
+            .strip_prefix(&project_root)
+            .unwrap_or(path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        let Some(hash) = compute_file_hash(path) else {
+            continue;
         };
-
-        items_json.push(serde_json::json!({
-            "name": item.name,
-            "category": item.category,
-            "file": item.file,
-            "required": item.required,
-            "present": present,
-            "hash": hash,
-        }));
+        artifacts.push(Artifact {
+            file: rel,
+            hash,
+            version: version.clone(),
+        });
     }
 
     let report = serde_json::json!({
@@ -164,13 +116,7 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         "generatedAt": chrono::Utc::now().to_rfc3339(),
         "project": project,
         "projectVersion": version,
-        "items": items_json,
-        "summary": {
-            "total": SCI_ITEMS.len(),
-            "present": present_count,
-            "missing": SCI_ITEMS.len() - present_count,
-            "requiredMissing": required_missing,
-        }
+        "artifacts": artifacts,
     });
 
     let out_path = opts
@@ -184,31 +130,17 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
              - **Project**: {project}\n\
              - **Version**: {version}\n\
              - **Generated**: {}\n\n\
-             ## Lifecycle Data Items\n\n\
-             | Name | Category | File | Required | Status | SHA-256 |\n\
-             |------|----------|------|----------|--------|---------|\n",
+             ## Configuration Items\n\n\
+             | File | Version | SHA-256 |\n\
+             |------|---------|---------|\n",
             chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ")
         );
-        for item in &items_json {
-            let status = if item["present"].as_bool().unwrap_or(false) {
-                ":white_check_mark:"
-            } else {
-                ":x:"
-            };
-            let hash = item["hash"].as_str().unwrap_or("");
-            let short_hash = if hash.len() > 12 { &hash[..12] } else { hash };
+        for a in &artifacts {
+            let short_hash = a.hash.strip_prefix("sha256:").unwrap_or(&a.hash);
+            let short_hash = &short_hash[..short_hash.len().min(12)];
             md.push_str(&format!(
-                "| {} | {} | `{}` | {} | {} | `{}` |\n",
-                item["name"].as_str().unwrap_or(""),
-                item["category"].as_str().unwrap_or(""),
-                item["file"].as_str().unwrap_or(""),
-                if item["required"].as_bool().unwrap_or(false) {
-                    "yes"
-                } else {
-                    "no"
-                },
-                status,
-                short_hash,
+                "| `{}` | {} | `{short_hash}` |\n",
+                a.file, a.version
             ));
         }
         let md_path = out_path.replace(".json", ".md");
@@ -222,7 +154,7 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     } else {
         match std::fs::write(
             &out_path,
-            serde_json::to_string_pretty(&report).unwrap() + "\n",
+            serde_json::to_string_pretty(&report).unwrap_or_default() + "\n",
         ) {
             Ok(_) => writeln!(stdout, "SCI written to {out_path}").ok(),
             Err(e) => {
@@ -232,18 +164,11 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         };
     }
 
-    writeln!(
-        stdout,
-        "Items: {}/{} present, {} required missing",
-        present_count,
-        SCI_ITEMS.len(),
-        required_missing
-    )
-    .ok();
+    writeln!(stdout, "Configuration items indexed: {}", artifacts.len()).ok();
     EXIT_OK
 }
 
-fn compute_file_hash(path: &PathBuf) -> Option<String> {
+fn compute_file_hash(path: &std::path::Path) -> Option<String> {
     use sha2::{Digest, Sha256};
     let data = std::fs::read(path).ok()?;
     let mut hasher = Sha256::new();
@@ -295,4 +220,30 @@ fn parse(args: &[String], stderr: &mut dyn Write) -> Option<Opts> {
         i += 1;
     }
     Some(opts)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    //fusa:test REQ-SCI004
+    #[test]
+    fn hash_is_sha256_prefixed() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("f.txt");
+        std::fs::write(&path, b"hello").unwrap();
+        let hash = compute_file_hash(&path).unwrap();
+        assert!(hash.starts_with("sha256:"));
+    }
+
+    //fusa:test REQ-SCI004
+    #[test]
+    fn hash_is_deterministic_for_same_content() {
+        let dir = tempfile::tempdir().unwrap();
+        let a = dir.path().join("a.txt");
+        let b = dir.path().join("b.txt");
+        std::fs::write(&a, b"same content").unwrap();
+        std::fs::write(&b, b"same content").unwrap();
+        assert_eq!(compute_file_hash(&a), compute_file_hash(&b));
+    }
 }

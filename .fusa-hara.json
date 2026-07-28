@@ -1,109 +1,128 @@
 {
-  "schemaVersion": "1.9",
-  "kind": "hara",
-  "tool": "rust-FuSa",
-  "toolVersion": "0.2.0",
-  "language": "rust",
-  "generatedAt": "2026-06-11T00:00:00Z",
+  "project": "rust-FuSa",
+  "standard": "iso26262",
+  "createdAt": "2026-06-11T00:00:00Z",
   "operationalSituations": [
     {
       "id": "OS-001",
-      "description": "Developer runs rsfusa during local development to check their Rust code",
-      "frequency": "daily"
+      "description": "Developer runs rsfusa during local development to check their Rust code"
     },
     {
       "id": "OS-002",
-      "description": "CI/CD pipeline runs rsfusa as an automated gate on pull requests and main branch pushes",
-      "frequency": "per-commit"
+      "description": "CI/CD pipeline runs rsfusa as an automated gate on pull requests and main branch pushes"
     },
     {
       "id": "OS-003",
-      "description": "Safety auditor reviews evidence bundles produced by rsfusa for certification submission",
-      "frequency": "per-release"
+      "description": "Safety auditor reviews evidence bundles produced by rsfusa for certification submission"
     }
   ],
   "hazards": [
     {
-      "hazardId": "H-001",
+      "id": "H-001",
       "description": "False negative: rsfusa fails to report a genuine safety rule violation in Rust source code",
-      "situation": "OS-001, OS-002",
-      "severity": "S3",
-      "exposure": "E4",
-      "controllability": "C3",
-      "asil": "ASIL-D",
-      "mitigation": "Qualification test suite (rsfusa qualify) verifies each rule detects known-bad inputs; CI gate enforces qualification on every build"
+      "source": "internal threat-model review, 2026-06-11",
+      "situations": ["OS-001", "OS-002"],
+      "risk": {
+        "severity": "S3",
+        "exposure": "E4",
+        "controllability": "C3",
+        "asil": "ASIL-D"
+      },
+      "safetyGoals": ["SG-001"]
     },
     {
-      "hazardId": "H-002",
-      "description": "Wrong ASIL determination: rsfusa derives incorrect integrity level from configuration parameters",
-      "situation": "OS-001",
-      "severity": "S3",
-      "exposure": "E2",
-      "controllability": "C2",
-      "asil": "ASIL-B",
-      "mitigation": "ASIL lookup table is derived directly from ISO 26262 Part 3 Table 4; HARA subcommand provides independent cross-check"
+      "id": "H-002",
+      "description": "Wrong ASIL determination: rsfusa derives an incorrect integrity level from configuration parameters",
+      "source": "internal threat-model review, 2026-06-11",
+      "situations": ["OS-001"],
+      "risk": {
+        "severity": "S3",
+        "exposure": "E2",
+        "controllability": "C2",
+        "asil": "ASIL-A"
+      },
+      "safetyGoals": ["SG-002"]
     },
     {
-      "hazardId": "H-003",
+      "id": "H-003",
       "description": "Silent failure: rsfusa encounters an internal error but exits 0, masking the failure from CI",
-      "situation": "OS-002",
-      "severity": "S2",
-      "exposure": "E4",
-      "controllability": "C2",
-      "asil": "ASIL-B",
-      "mitigation": "All error paths explicitly return EXIT_RUNTIME (3); qualification suite tests error exit codes; CI fails on unexpected exit codes"
+      "source": "internal threat-model review, 2026-06-11",
+      "situations": ["OS-002"],
+      "risk": {
+        "severity": "S2",
+        "exposure": "E4",
+        "controllability": "C2",
+        "asil": "ASIL-B"
+      },
+      "safetyGoals": ["SG-003"]
     },
     {
-      "hazardId": "H-004",
+      "id": "H-004",
       "description": "Evidence integrity violation: audit pack contents are tampered with after generation, undetected",
-      "situation": "OS-003",
-      "severity": "S2",
-      "exposure": "E1",
-      "controllability": "C1",
-      "asil": "ASIL-A",
-      "mitigation": "audit-pack generates manifest.json with SHA-256 per entry; rsfusa sign provides HMAC-SHA256 signing for offline verification"
+      "source": "internal threat-model review, 2026-06-11",
+      "situations": ["OS-003"],
+      "risk": {
+        "severity": "S2",
+        "exposure": "E1",
+        "controllability": "C1",
+        "asil": "QM"
+      },
+      "safetyGoals": ["SG-004"]
     },
     {
-      "hazardId": "H-005",
-      "description": "Configuration silently disables safety checks through excludePaths or disposition suppression",
-      "situation": "OS-001, OS-002",
-      "severity": "S2",
-      "exposure": "E3",
-      "controllability": "C2",
-      "asil": "ASIL-B",
-      "mitigation": "Dispositions are logged in .fusa-dispositions.json with mandatory rationale; rsfusa trace reports all suppressed requirements"
+      "id": "H-005",
+      "description": "Configuration silently disables safety checks through excludePatterns or disposition suppression",
+      "source": "internal threat-model review, 2026-06-11",
+      "situations": ["OS-001", "OS-002"],
+      "risk": {
+        "severity": "S2",
+        "exposure": "E3",
+        "controllability": "C2",
+        "asil": "ASIL-A"
+      },
+      "safetyGoals": ["SG-005"]
     }
   ],
   "safetyGoals": [
     {
       "id": "SG-001",
       "description": "rsfusa shall report every safety rule violation — no false negatives in qualified rules",
+      "hazards": ["H-001"],
       "asil": "ASIL-D",
-      "relatedHazard": "H-001"
+      "safeState": "the affected rule's qualification is treated as unproven and the CI gate does not pass until qualification is restored",
+      "fssrRefs": ["REQ-QUALIFY001", "REQ-QUALIFY003"]
     },
     {
       "id": "SG-002",
       "description": "ASIL allocation shall match the configured integrity level per ISO 26262 Part 3 Table 4",
-      "asil": "ASIL-B",
-      "relatedHazard": "H-002"
+      "hazards": ["H-002"],
+      "asil": "ASIL-A",
+      "safeState": "an ambiguous or unrecognised integrity value is rejected rather than silently defaulted",
+      "fssrRefs": ["REQ-HARA002", "REQ-HARA006"]
     },
     {
       "id": "SG-003",
-      "description": "rsfusa shall exit non-zero on any ERROR finding or internal analysis failure",
+      "description": "rsfusa shall exit non-zero on any ERROR finding or internal analysis failure — never exit 0 while masking a real problem",
+      "hazards": ["H-003"],
       "asil": "ASIL-B",
-      "relatedHazard": "H-003"
+      "safeState": "the process exits non-zero and CI treats the run as failed rather than passed",
+      "fssrRefs": ["REQ-CLI001", "REQ-ERR003"]
     },
     {
       "id": "SG-004",
-      "description": "Evidence bundles shall include SHA-256 hashes for all artefacts to enable tamper detection",
-      "asil": "ASIL-A",
-      "relatedHazard": "H-004"
+      "description": "Evidence bundles shall include a real SHA-256 hash for every artefact to enable tamper detection",
+      "hazards": ["H-004"],
+      "asil": "QM",
+      "safeState": "an artefact whose recomputed hash disagrees with its recorded hash is treated as untrusted evidence",
+      "fssrRefs": ["REQ-AUDIT002", "REQ-SCI004"]
     },
     {
       "id": "SG-005",
-      "description": "rsfusa shall emit a WARNING when safety checks are suppressed via disposition or excludePaths",
-      "asil": "ASIL-B",
-      "relatedHazard": "H-005"
+      "description": "Suppressing a finding via disposition shall never delete it from the record — it remains visible in check output and in disposition list, and only an accepted/deferred disposition (never a source-scanning exclusion) may exempt it from the exit-code gate",
+      "hazards": ["H-005"],
+      "asil": "ASIL-A",
+      "safeState": "an unmatched (orphaned) accepted/deferred disposition is itself reported as a WARNING rather than silently trusted",
+      "fssrRefs": ["REQ-ENG006", "REQ-DISP001"]
     }
   ]
 }

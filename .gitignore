@@ -15,4 +15,5 @@ tara.json
 safety-case.json
 coupling-report.json
 sci.json
+sas.json
 *.html
