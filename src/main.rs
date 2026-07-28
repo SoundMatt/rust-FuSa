@@ -796,12 +796,32 @@ mod tests {
         );
         assert_eq!(code, 0);
         let v: serde_json::Value = serde_json::from_slice(&out).unwrap();
-        let must_cmds = v["commands"]["must"].as_array().unwrap();
-        let should_cmds = v["commands"]["should"].as_array().unwrap();
-        let may_cmds = v["commands"]["may"].as_array().unwrap();
-        assert!(must_cmds.len() >= 9, "at least 9 MUST commands");
-        assert!(should_cmds.len() >= 13, "at least 13 SHOULD commands");
-        assert!(may_cmds.len() >= 18, "at least 18 MAY commands");
+        // §9.1 MUST: `commands` is a flat JSON array of command-name strings,
+        // not an object keyed by must/should/may tiers.
+        let cmds = v["commands"]
+            .as_array()
+            .expect("commands must be a flat array per spec §9.1");
+        assert!(cmds.len() >= 40, "at least 40 commands total, got {cmds:?}");
+        for c in cmds {
+            assert!(c.is_string(), "each command entry must be a string: {c:?}");
+        }
+        let cmd_strs: Vec<&str> = cmds.iter().map(|c| c.as_str().unwrap()).collect();
+        for must_cmd in [
+            "version",
+            "capabilities",
+            "init",
+            "check",
+            "report",
+            "trace",
+            "qualify",
+            "release",
+            "audit-pack",
+        ] {
+            assert!(
+                cmd_strs.contains(&must_cmd),
+                "MUST command {must_cmd} missing from commands[]"
+            );
+        }
     }
 
     //fusa:test REQ-ENG001
@@ -965,7 +985,6 @@ mod tests {
         assert!(has_cyber006, "CYBER006 should fire on http:// URL");
     }
 
-    //fusa:test REQ-FUSA043
     //fusa:test REQ-IEC62443001
     //fusa:test REQ-IEC62443005
     #[test]
@@ -984,7 +1003,6 @@ mod tests {
         );
     }
 
-    //fusa:test REQ-FUSA044
     //fusa:test REQ-IEC62443002
     //fusa:test REQ-IEC62443003
     //fusa:test REQ-IEC62443004
@@ -1022,7 +1040,6 @@ mod tests {
         );
     }
 
-    //fusa:test REQ-FUSA045
     //fusa:test REQ-SLSA001
     //fusa:test REQ-SLSA005
     #[test]
@@ -1037,7 +1054,6 @@ mod tests {
         assert!(text.contains("SLSA"), "output should mention SLSA");
     }
 
-    //fusa:test REQ-FUSA046
     //fusa:test REQ-SLSA002
     //fusa:test REQ-SLSA003
     //fusa:test REQ-SLSA004

@@ -7,6 +7,35 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.3.10 — 2026-07-27
+
+### Fixed
+
+- **`capabilities --format json` emitted `commands` as a must/should/may
+  tiered object instead of a flat array (#35)** — §9.1 MUST requires
+  `commands` to be a flat JSON array of command-name strings (e.g.
+  `["check","trace","qualify",...]`); the tiering object shape isn't part
+  of the documented spec output and broke generic FuSaOps-style
+  orchestration that expects `commands` to be iterable directly. `commands`
+  is now a flattened array (must+should+may concatenated, 43 entries); the
+  tiers remain as internal constants for anything that still needs them.
+
+### Audit
+
+- Requirement traceability audit (`trace --gaps`): 4 orphan `//fusa:test`
+  tags found and fixed — `REQ-FUSA043`–`REQ-FUSA046` on the `iec62443`/`slsa`
+  gap-report tests referenced ids that were never registered in
+  `.fusa-reqs.json` and duplicated coverage already carried by the tests'
+  other tags (`REQ-IEC62443001-005`, `REQ-SLSA001-005`); the stray tags were
+  removed rather than registering redundant requirements. Zero untested
+  requirements found (231/231 traced and tested, unchanged). Function-tag
+  coverage (`trace --func-coverage`, §1.4.1 item 2): 100%, no gaps.
+- Fixed stale `Dockerfile` `ARG VERSION=0.2.7` default (last updated at
+  v0.2.7; the last four version bumps had drifted past it) and version
+  headers in README.md / docs/tool-safety-manual.md.
+
+---
+
 ## v0.3.9 — 2026-07-27
 
 ### Fixed

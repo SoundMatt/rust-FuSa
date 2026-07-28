@@ -14,6 +14,63 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         return EXIT_USAGE;
     }
 
+    let commands_must = [
+        "version",
+        "capabilities",
+        "init",
+        "check",
+        "report",
+        "trace",
+        "qualify",
+        "release",
+        "audit-pack",
+    ];
+    let commands_should = [
+        "lint",
+        "analyze",
+        "diff",
+        "verify",
+        "vuln",
+        "cyber",
+        "coverage",
+        "coupling",
+        "comp",
+        "fmea",
+        "tara",
+        "safety-case",
+        "boundary",
+        "hara",
+    ];
+    let commands_may = [
+        "iso26262",
+        "iec61508",
+        "do178c",
+        "do178",
+        "iso21434",
+        "unece",
+        "misra",
+        "iec62443",
+        "slsa",
+        "disposition",
+        "badge",
+        "sas",
+        "sci",
+        "impact",
+        "metrics",
+        "fix",
+        "sign",
+        "req",
+        "pr",
+        "template",
+        "hooks",
+    ];
+    let commands: Vec<&str> = commands_must
+        .iter()
+        .chain(commands_should.iter())
+        .chain(commands_may.iter())
+        .copied()
+        .collect();
+
     let cap = serde_json::json!({
         "schemaVersion": SPEC_VERSION,
         "kind": "capabilities",
@@ -22,11 +79,7 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         "language": LANGUAGE,
         "generatedAt": chrono::Utc::now().to_rfc3339(),
         "specVersion": SPEC_VERSION,
-        "commands": {
-            "must": ["version", "capabilities", "init", "check", "report", "trace", "qualify", "release", "audit-pack"],
-            "should": ["lint", "analyze", "diff", "verify", "vuln", "cyber", "coverage", "coupling", "comp", "fmea", "tara", "safety-case", "boundary", "hara"],
-            "may": ["iso26262", "iec61508", "do178c", "do178", "iso21434", "unece", "misra", "iec62443", "slsa", "disposition", "badge", "sas", "sci", "impact", "metrics", "fix", "sign", "req", "pr", "template", "hooks"]
-        },
+        "commands": commands,
         "formats": {
             "check":       ["text", "json", "html", "sarif"],
             "report":      ["text", "json", "html", "sarif"],
