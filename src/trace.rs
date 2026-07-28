@@ -477,6 +477,83 @@ impl FuncCoverage {
     }
 }
 
+/// True when `rel` (project-root-relative, `/`-separated) is a file this
+/// scan's project-component denominator explicitly excludes: the
+/// top-level `tests/` integration-test directory, or `build.rs`. Exposed
+/// so other component/asset-inventory scanners (e.g. `fmea`'s own
+/// project-wide function scan) share this exact exclusion rather than
+/// maintaining a second, independently-drifting list — x-FuSa spec §1.6
+/// rule 4 guidance.
+///
+//fusa:req REQ-TRACE008
+pub fn is_excluded_from_component_scan(rel: &str) -> bool {
+    rel.starts_with("tests/") || rel == "build.rs"
+}
+
+/// Tracks, line by line, whether the current line of a Rust source file
+/// falls inside a `#[cfg(test)]` (or `#[cfg(all(test, ...))]`) item, so a
+/// per-function scanner can skip unit-test-only code the same way
+/// [`scan_func_coverage`] does. Feed every line of a file through
+/// [`Self::skip_line`] in file order; it tracks brace depth internally
+/// (best-effort, not a full parser) and returns `true` when that line is
+/// part of an excluded `#[cfg(test)]` region.
+///
+/// Exposed so other scanners (e.g. `fmea`'s own project-wide function
+/// scan) share this exact exclusion logic rather than maintaining a
+/// second, independently-drifting list — x-FuSa spec §1.6 rule 4
+/// guidance: reusing it is what keeps `fmea`'s `componentsAnalyzed`
+/// numerator and `componentsInProject` denominator counting the same
+/// things (a mismatch there is how `coveragePct` exceeds 100, §9.2).
+///
+//fusa:req REQ-TRACE008
+#[derive(Debug, Default)]
+pub struct CfgTestSkipper {
+    depth: i32,
+    skip_from: Option<i32>,
+    pending_test_attr: bool,
+}
+
+impl CfgTestSkipper {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Feed the next (already-trimmed) line of the file. Returns `true` if
+    /// this line should be excluded from a "real" project scan.
+    pub fn skip_line(&mut self, trimmed: &str) -> bool {
+        if let Some(base) = self.skip_from {
+            self.depth += brace_delta(trimmed);
+            if self.depth <= base {
+                self.skip_from = None;
+            }
+            return true;
+        }
+
+        if trimmed.starts_with("#[cfg(test)") || trimmed.starts_with("#[cfg(all(test") {
+            self.pending_test_attr = true;
+            self.depth += brace_delta(trimmed);
+            return true;
+        }
+        if trimmed.starts_with("#[") {
+            self.depth += brace_delta(trimmed);
+            return false;
+        }
+
+        if self.pending_test_attr {
+            self.pending_test_attr = false;
+            let base = self.depth;
+            self.depth += brace_delta(trimmed);
+            if self.depth > base {
+                self.skip_from = Some(base);
+            }
+            return true;
+        }
+
+        self.depth += brace_delta(trimmed);
+        false
+    }
+}
+
 /// Scan the project for `pub fn` declarations and compute file-header
 /// annotation density: `--func-coverage N` (§1.4.1 item 2).
 ///
@@ -518,47 +595,17 @@ pub fn scan_func_coverage(
         if is_excluded(&rel, &cfg.exclude_patterns) {
             continue;
         }
-        if rel.starts_with("tests/") || rel == "build.rs" {
+        if is_excluded_from_component_scan(&rel) {
             continue;
         }
 
         let content = std::fs::read_to_string(path).map_err(|e| format!("read {rel}: {e}"))?;
         let file_annotated = annotated_files.contains(rel.as_str());
 
-        // Track brace depth to skip over #[cfg(test)] items entirely — a
-        // best-effort scan, not a full parser.
-        let mut depth: i32 = 0;
-        let mut test_skip_from: Option<i32> = None;
-        let mut pending_test_attr = false;
-
+        let mut skipper = CfgTestSkipper::new();
         for line in content.lines() {
             let t = line.trim();
-
-            if let Some(base) = test_skip_from {
-                depth += brace_delta(t);
-                if depth <= base {
-                    test_skip_from = None;
-                }
-                continue;
-            }
-
-            if t.starts_with("#[cfg(test)") || t.starts_with("#[cfg(all(test") {
-                pending_test_attr = true;
-                depth += brace_delta(t);
-                continue;
-            }
-            if t.starts_with("#[") {
-                depth += brace_delta(t);
-                continue;
-            }
-
-            if pending_test_attr {
-                pending_test_attr = false;
-                let base = depth;
-                depth += brace_delta(t);
-                if depth > base {
-                    test_skip_from = Some(base);
-                }
+            if skipper.skip_line(t) {
                 continue;
             }
 
@@ -568,8 +615,6 @@ pub fn scan_func_coverage(
                     fc.covered += 1;
                 }
             }
-
-            depth += brace_delta(t);
         }
     }
 

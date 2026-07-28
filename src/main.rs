@@ -746,6 +746,127 @@ mod tests {
         assert!(v["summary"]["componentInventoryMethod"].is_string());
     }
 
+    /// Regression test for x-FuSa spec §9.2 ("`coveragePct` MUST NOT exceed
+    /// 100"): a `pub fn` test helper inside a `#[cfg(test)]` module must not
+    /// be counted in `componentsAnalyzed` when the shared
+    /// `componentsInProject` denominator (`trace::scan_func_coverage`)
+    /// excludes it, or `coveragePct` goes above 100. Needs a non-trivial
+    /// test-source tree to exercise — a fixture with no such tree can't
+    /// trigger the bug.
+    //fusa:test REQ-FMEA006
+    #[test]
+    fn fmea_coverage_pct_never_exceeds_100_with_cfg_test_pub_fn() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir(dir.path().join("src")).unwrap();
+        std::fs::write(
+            dir.path().join("src/lib.rs"),
+            concat!(
+                "pub fn compute(x: u32) -> u32 { x * 2 }\n",
+                "\n",
+                "#[cfg(test)]\n",
+                "mod tests {\n",
+                "    pub fn helper() -> i32 { 1 }\n",
+                "    #[test]\n",
+                "    fn helper_returns_one() { assert_eq!(helper(), 1); }\n",
+                "}\n",
+            ),
+        )
+        .unwrap();
+        let a = args(&format!("rsfusa fmea --dir {}", dir.path().display()));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0);
+        let v: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(dir.path().join("fmea.json")).unwrap())
+                .unwrap();
+        // Only `compute` is a real public API surface; `helper` lives inside
+        // `#[cfg(test)]` and must not be scanned as an entry.
+        let entries = v["entries"].as_array().unwrap();
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]["item"].as_str().unwrap().contains("compute"));
+
+        let coverage_pct = v["summary"]["coveragePct"].as_f64().unwrap();
+        assert!(
+            coverage_pct <= 100.0,
+            "coveragePct {coverage_pct} must not exceed 100"
+        );
+        assert_eq!(v["summary"]["componentsAnalyzed"].as_u64(), Some(1));
+        assert_eq!(v["summary"]["componentsInProject"].as_u64(), Some(1));
+    }
+
+    /// Regression test for x-FuSa spec §1.6.2 ("attestation carry-forward is
+    /// a MUST"): re-running `fmea` against a project whose saved fmea.json
+    /// already carries a genuine, non-stale `"reviewed"` attestation must
+    /// preserve it on the freshly-rebuilt output — never silently discard a
+    /// human's prior review. A content edit, conversely, must invalidate the
+    /// carried-forward attestation (contentHash mismatch => stale => absent).
+    //fusa:test REQ-ATT003
+    #[test]
+    fn fmea_attestation_carries_forward_and_goes_stale_on_edit() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir(dir.path().join("src")).unwrap();
+        std::fs::write(
+            dir.path().join("src/lib.rs"),
+            "pub fn compute(x: u32) -> u32 { x * 2 }\n",
+        )
+        .unwrap();
+
+        let run_fmea = |dir: &std::path::Path| -> serde_json::Value {
+            let a = args(&format!("rsfusa fmea --dir {}", dir.display()));
+            let mut out = Vec::new();
+            let mut err = Vec::new();
+            let code = run(&a, &mut out, &mut err);
+            assert_eq!(code, 0);
+            serde_json::from_str(&std::fs::read_to_string(dir.join("fmea.json")).unwrap()).unwrap()
+        };
+
+        // First run: no prior file, so no attestation to carry.
+        let first = run_fmea(dir.path());
+        assert!(first["attestation"].is_null());
+
+        // Inject a genuine, independent "reviewed" attestation pinned to the
+        // content hash the tool just wrote.
+        let content_hash = crate::canonjson::content_hash(&serde_json::json!({
+            "entries": first["entries"].clone(),
+        }));
+        let mut doc = first.clone();
+        doc["attestation"] = serde_json::json!({
+            "status": "reviewed",
+            "implementationAuthor": "auto",
+            "independentReviewer": "Jane Doe <jane@example.com>",
+            "reviewedAt": "2026-07-28T00:00:00Z",
+            "contentHash": content_hash,
+        });
+        std::fs::write(
+            dir.path().join("fmea.json"),
+            serde_json::to_string_pretty(&doc).unwrap() + "\n",
+        )
+        .unwrap();
+
+        // Re-run with unchanged source: the attestation must carry forward.
+        let second = run_fmea(dir.path());
+        assert_eq!(second["attestation"]["status"].as_str(), Some("reviewed"));
+        assert_eq!(
+            second["attestation"]["contentHash"].as_str(),
+            Some(content_hash.as_str())
+        );
+
+        // Edit the source so the rebuilt content hash changes: the stale
+        // attestation must NOT carry forward (treated as absent).
+        std::fs::write(
+            dir.path().join("src/lib.rs"),
+            "pub fn compute(x: u32) -> u32 { x * 2 }\npub fn other() -> u32 { 1 }\n",
+        )
+        .unwrap();
+        let third = run_fmea(dir.path());
+        assert!(
+            third["attestation"].is_null(),
+            "stale attestation must be dropped, not carried forward: {:?}",
+            third["attestation"]
+        );
+    }
+
     //fusa:test REQ-BOUNDARY001
     //fusa:test REQ-BOUNDARY002
     //fusa:test REQ-BOUNDARY003

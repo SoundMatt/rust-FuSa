@@ -131,10 +131,13 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         .map(|t| t.asset.as_str())
         .collect::<HashSet<_>>()
         .len();
+    // x-FuSa spec §9.2 MUST: coveragePct must never exceed 100. assetsAnalyzed
+    // is always a subset of the same `cyber::rust_sources` file list used for
+    // assetsInProject, but this clamp is kept as a defensive backstop.
     let coverage_pct = if assets_in_project == 0 {
         100.0
     } else {
-        (assets_analyzed as f64 * 1000.0 / assets_in_project as f64).round() / 10.0
+        ((assets_analyzed as f64 * 1000.0 / assets_in_project as f64).round() / 10.0).min(100.0)
     };
 
     let mut qual_fields = Vec::new();
