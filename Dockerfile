@@ -16,7 +16,7 @@ RUN cargo build --release \
 
 FROM alpine:3.21
 
-ARG VERSION=0.2.7
+ARG VERSION=0.3.10
 ARG SPEC_VERSION=1.10
 
 LABEL org.opencontainers.image.title="rust-FuSa" \
