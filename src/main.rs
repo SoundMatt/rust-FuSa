@@ -915,6 +915,110 @@ mod tests {
         );
     }
 
+    // Regression test for GitHub issue #46: `rsfusa verify` used to invoke
+    // `cargo test -- --test-output=immediate`, an invalid libtest flag (it's a
+    // cargo-nextest-only option). Every test binary rejected it, cargo test
+    // exited 101, and because the old parse_test_summary() silently fell back
+    // to (0, 0, 0) whenever no "test result:" line was found, this looked like
+    // a superficially legitimate "0 failed, 0 passed" result instead of the
+    // real failure. A real crate with real passing tests must actually run
+    // its tests and report the true counts, not a fake all-zero summary.
+    //fusa:test REQ-VERIFY001
+    //fusa:test REQ-VERIFY002
+    #[test]
+    fn verify_reports_real_test_counts_not_fake_zero_zero() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::write(
+            dir.path().join("Cargo.toml"),
+            "[package]\nname=\"t46\"\nversion=\"0.1.0\"\nedition=\"2021\"\n\n[lib]\ndoctest = false\n",
+        )
+        .unwrap();
+        std::fs::create_dir(dir.path().join("src")).unwrap();
+        std::fs::write(
+            dir.path().join("src/lib.rs"),
+            "pub fn add(a: i32, b: i32) -> i32 { a + b }\n\n#[test]\nfn one() { assert_eq!(add(1, 1), 2); }\n#[test]\nfn two() { assert_eq!(add(2, 2), 4); }\n",
+        )
+        .unwrap();
+
+        let a = args(&format!("rsfusa verify --dir {}", dir.path().display()));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        let stdout = String::from_utf8_lossy(&out);
+        let stderr = String::from_utf8_lossy(&err);
+
+        assert_eq!(
+            code, 0,
+            "a crate with real passing tests must exit 0, got {code}; stdout={stdout} stderr={stderr}"
+        );
+        assert!(
+            !stdout.contains("Tests FAILED: 0 failed, 0 passed"),
+            "must not report the fake bogus-zero failure summary; got: {stdout}"
+        );
+        assert!(
+            stdout.contains("Tests PASSED: 2 total, 2 passed"),
+            "must report the real test counts; got: {stdout}"
+        );
+
+        let evidence_path = dir.path().join(".fusa-evidence.json");
+        let text = std::fs::read_to_string(&evidence_path).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&text).unwrap();
+        assert_eq!(v["summary"]["total"], 2);
+        assert_eq!(v["summary"]["passed"], 2);
+        assert_eq!(v["summary"]["failed"], 0);
+        assert_eq!(v["testRun"]["exitCode"], 0);
+        assert_eq!(v["testRun"]["passed"], true);
+    }
+
+    // Defensive-fix regression test: if cargo test exits non-zero (e.g. a
+    // build/compile failure before the test harness ever runs) and no
+    // "test result:" line appears anywhere in its output, verify must treat
+    // that as a hard, clearly-labeled error — not silently coerce it into a
+    // fake "0 failed, 0 passed" success-shaped evidence file.
+    //fusa:test REQ-VERIFY001
+    //fusa:test REQ-VERIFY002
+    #[test]
+    fn verify_surfaces_hard_error_when_no_test_result_line_present() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::write(
+            dir.path().join("Cargo.toml"),
+            "[package]\nname=\"t46b\"\nversion=\"0.1.0\"\nedition=\"2021\"\n",
+        )
+        .unwrap();
+        std::fs::create_dir(dir.path().join("src")).unwrap();
+        // Deliberately invalid Rust: cargo test fails to compile, exits
+        // non-zero, and never reaches the point of printing "test result:".
+        std::fs::write(
+            dir.path().join("src/lib.rs"),
+            "this is not valid rust {{{\n",
+        )
+        .unwrap();
+
+        let a = args(&format!("rsfusa verify --dir {}", dir.path().display()));
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        let stdout = String::from_utf8_lossy(&out);
+        let stderr = String::from_utf8_lossy(&err);
+
+        assert_eq!(
+            code, 3,
+            "a compile failure with no test-result summary must be a distinct runtime error (3), got {code}; stdout={stdout} stderr={stderr}"
+        );
+        assert!(
+            !stdout.contains("Tests FAILED: 0 failed, 0 passed"),
+            "must not fold a hard failure into the fake 0/0/0 success shape; got: {stdout}"
+        );
+        assert!(
+            stderr.contains("without producing a"),
+            "must surface a clear error explaining tests never produced a summary; got: {stderr}"
+        );
+        assert!(
+            !dir.path().join(".fusa-evidence.json").exists(),
+            "must not write misleading evidence when tests never ran to completion"
+        );
+    }
+
     //fusa:test REQ-SC001
     //fusa:test REQ-SC002
     //fusa:test REQ-SC003
