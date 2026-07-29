@@ -7,6 +7,16 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.3.14 — 2026-07-28
+
+### Changed
+
+- Bumped `SPEC_VERSION` `1.15.0` → `1.15.2` — both intervening spec releases
+  (1.15.1: schemaVersion/specVersion format clarified to MAJOR.MINOR.PATCH;
+  1.15.2: §1.6.1 Rule A explicit false-positive example) are pure
+  documentation clarifications with no required behavior or wire-format
+  change, per the spec's own §14 changelog for each.
+
 ## v0.3.13 — 2026-07-28
 
 ### Fixed
