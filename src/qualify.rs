@@ -15,7 +15,6 @@
 use crate::engine::{Registry, RunResult};
 use crate::types::{LANGUAGE, SPEC_VERSION, TOOL_NAME, VERSION};
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 use std::path::Path;
 
@@ -456,7 +455,12 @@ fn write_case_files(dir: &Path, files: &BTreeMap<String, String>) -> Result<(), 
 }
 
 fn compute_hash(report: &Report) -> String {
-    // Per §6: sort results by name, remove hash, set generatedAt:"", RFC 8785 serialise.
+    // Per §6: sort results by name, remove hash, set generatedAt:"", then
+    // hash via true RFC 8785 (recursive lexicographic key sort) canonical-
+    // ization — the same `canonjson` helper used for the §1.6.2 attestation
+    // `contentHash` (fmea/tara/safety-case/sas). A hand-rolled struct with a
+    // fixed field-declaration order is NOT RFC 8785: `serde_json::to_string`
+    // emits keys in struct-declaration order, not sorted order.
     #[derive(Serialize)]
     #[serde(rename_all = "camelCase")]
     struct Canonical<'a> {
@@ -503,13 +507,82 @@ fn compute_hash(report: &Report) -> String {
         independent_test_executor: report.independent_test_executor.as_deref(),
     };
 
-    let json = serde_json::to_string(&c).expect("canonical serialise");
-    let mut hasher = Sha256::new();
-    hasher.update(json.as_bytes());
-    format!("sha256:{}", hex::encode(hasher.finalize()))
+    let value = serde_json::to_value(&c).expect("canonical value");
+    crate::canonjson::content_hash(&value)
 }
 
 pub fn save(path: &Path, report: &Report) -> std::io::Result<()> {
     let json = serde_json::to_string_pretty(report).expect("serialize qualify report");
     std::fs::write(path, json + "\n")
+}
+
+#[cfg(test)]
+mod hash_tests {
+    use super::*;
+    use crate::engine::default_registry;
+
+    /// §6 "hash": MUST be computed per RFC 8785 — keys sorted lexicographically
+    /// at *every* level, not just `results[]` sorted by name. A hand-rolled
+    /// struct serialised via `serde_json::to_string` emits keys in
+    /// struct-declaration order, which is not lexicographic (e.g.
+    /// `schemaVersion` before `kind` before `tool`, but sorted order is
+    /// `kind` < `schemaVersion` < `tool`). This test independently
+    /// reconstructs the true RFC 8785-canonical document (via `canonjson`,
+    /// the same helper the §1.6.2 attestation `contentHash` uses) and checks
+    /// it against the tool's emitted `hash`, so a regression back to
+    /// declaration-order serialisation would fail it.
+    //fusa:test REQ-QUALIFY004
+    #[test]
+    fn hash_matches_independent_rfc8785_canonicalization() {
+        let registry = default_registry();
+        let cases = builtin_cases();
+        let report = run(&registry, &cases);
+        let emitted = report.hash.clone().expect("hash MUST be emitted");
+
+        // Rebuild the same logical document independently, straight off the
+        // report's own serde_json::Value (so this test does not simply call
+        // the same private `Canonical` struct the implementation uses), sort
+        // results by name, blank generatedAt, drop hash, then canonicalize.
+        let mut value = serde_json::to_value(&report).expect("serialize report");
+        let obj = value.as_object_mut().expect("report is an object");
+        obj.remove("hash");
+        obj.insert(
+            "generatedAt".to_string(),
+            serde_json::Value::String(String::new()),
+        );
+        if let Some(results) = obj.get_mut("results").and_then(|r| r.as_array_mut()) {
+            results.sort_by(|a, b| {
+                a["name"]
+                    .as_str()
+                    .unwrap_or("")
+                    .cmp(b["name"].as_str().unwrap_or(""))
+            });
+        }
+        let expected = crate::canonjson::content_hash(&value);
+
+        assert_eq!(
+            emitted, expected,
+            "qualify hash must equal a true RFC 8785 (recursively key-sorted) \
+             canonicalization of the document, not one serialised in \
+             struct-declaration key order"
+        );
+    }
+
+    /// The hash must not depend on the order `results[]` happen to be
+    /// produced in — §6 step 1 requires sorting by `name` before hashing.
+    //fusa:test REQ-QUALIFY004
+    #[test]
+    fn hash_independent_of_case_order() {
+        let registry = default_registry();
+        let mut cases = builtin_cases();
+        let forward = run(&registry, &cases);
+
+        cases.reverse();
+        let reversed = run(&registry, &cases);
+
+        assert_eq!(
+            forward.hash, reversed.hash,
+            "hash must be stable regardless of the order cases were run in"
+        );
+    }
 }

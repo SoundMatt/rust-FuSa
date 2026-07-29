@@ -942,7 +942,7 @@
     {
       "id": "REQ-HARA003",
       "title": "HARA init template",
-      "text": "The hara init subcommand shall create a .fusa-hara.json template with one example hazard if the file does not exist.",
+      "text": "The hara init subcommand shall create a .fusa-hara.json template with empty operationalSituations, hazards, and safetyGoals arrays if the file does not exist.",
       "standard": "iso26262",
       "level": "HLR"
     },

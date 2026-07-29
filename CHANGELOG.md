@@ -7,6 +7,39 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.3.13 — 2026-07-28
+
+### Fixed
+
+- **`qualify --format json` `hash` not RFC 8785-canonical (x-FuSa spec §6,
+  SoundMatt/rust-FuSa#41)** — `compute_hash()` serialised its canonical
+  document with `serde_json::to_string`, which orders keys by struct
+  declaration, not lexicographically, so the emitted `hash` did not match
+  what a spec-conformant RFC 8785 recomputation produces. Now hashes via
+  `canonjson::content_hash()` (true recursive key-sorted
+  canonicalization), the same helper already used for the §1.6.2
+  attestation `contentHash`. New tests independently rebuild the
+  RFC 8785-canonical document and check it against the emitted hash, and
+  assert the hash is stable regardless of qualification-case run order.
+- **`REQ-HARA003` text stale/spec-contradicting (SoundMatt/rust-FuSa#43)**
+  — described `hara init` as scaffolding an example hazard row, which
+  x-FuSa spec §1.6 rule 1 explicitly forbids and which the code does not
+  do (it correctly emits empty arrays, per `REQ-HARA008` and its test).
+  Corrected the requirement text to match actual, spec-conformant
+  behavior.
+
+### Not changed
+
+- **`schemaVersion` full-precision vs. `MAJOR.MINOR`
+  (SoundMatt/rust-FuSa#42)** — filed against x-FuSa spec v1.15.0 text, but
+  spec v1.15.1 (2026-07-29) clarified §3.2/§12: `schemaVersion` (and
+  `specVersion`) is the tool's full `MAJOR.MINOR.PATCH` `SpecVersion`
+  constant emitted verbatim; the `"1.9"`-style two-part examples elsewhere
+  in the spec are historical, from when the spec itself was
+  MAJOR.MINOR-only. rust-FuSa already emits the full `SPEC_VERSION`
+  (`"1.15.0"`) for `schemaVersion` everywhere, so it was already
+  conformant — no code change needed. Closed with an explanatory comment.
+
 ## v0.3.12 — 2026-07-28
 
 ### Fixed
