@@ -7,6 +7,29 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.3.15 — 2026-07-29
+
+### Fixed
+
+- **`verify` invoked invalid `--test-output=immediate` cargo-test flag,
+  masking a total test-run failure as fake success
+  (SoundMatt/rust-FuSa#46)** — `rsfusa verify` ran
+  `cargo test -- --test-output=immediate`. `--test-output=immediate` is
+  not a real `cargo test`/libtest flag (it's a `cargo-nextest`-only
+  option); every test binary rejected it and `cargo test` exited 101
+  without running a single test. `parse_test_summary()` then silently
+  fell back to `(0, 0, 0)` whenever it found no `test result:` line,
+  so this was reported as an innocuous-looking
+  `Tests FAILED: 0 failed, 0 passed` and written to
+  `.fusa-evidence.json` as such, instead of surfacing the real
+  failure. Dropped the invalid argument (plain `cargo test` already
+  streams output as it runs), and `parse_test_summary()` now returns
+  `Option<(usize, usize, usize)>` — `None` when no `test result:` line
+  is present. `verify` treats "non-zero exit and no test-result line"
+  as a distinct hard error (prints the captured output and exits with
+  the runtime-error code, writing no evidence file at all) rather than
+  folding it into the same shape as a genuine zero-failure run.
+
 ## v0.3.14 — 2026-07-28
 
 ### Changed
