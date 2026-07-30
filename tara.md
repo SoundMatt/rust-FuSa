@@ -1,8 +1,8 @@
 # Threat Analysis and Risk Assessment (TARA)
 
 **Standard**: ISO/SAE 21434 Clause 15  
-**Generated**: 2026-07-30T20:03:04Z  
-**Tool**: rust-FuSa 0.3.16  
+**Generated**: 2026-07-30T20:12:39Z  
+**Tool**: rust-FuSa 0.3.17  
 
 ## Threat Register
 
