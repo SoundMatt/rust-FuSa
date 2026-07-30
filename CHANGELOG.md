@@ -7,6 +7,25 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.3.17 — 2026-07-30
+
+### Fixed
+
+- **Docker release build broken by the v0.3.16 builder-image pin
+  (`rust:1.83-alpine`) — surfaced by the newly-hardened release pipeline**
+  — v0.3.16 pinned the Dockerfile's builder stage to `rust:1.83-alpine`
+  (rust-FuSa-D016) and required `cargo build --release --locked` against
+  the committed `Cargo.lock` (rust-FuSa-D015). Combined, this broke the
+  tag-triggered `release.yml` Docker job: this repo's locked dependency
+  graph pulls in `hashbrown 0.17.1`, which requires Cargo's `edition2024`
+  feature — unavailable in Cargo 1.83.0 (stabilized in 1.85). The
+  `Build & Test` CI job never caught this because it installs
+  `dtolnay/rust-toolchain@stable` (unpinned, already new enough); only the
+  separately-pinned Docker builder image was affected. Bumped the pinned
+  builder tag to `rust:1.97-alpine`, matching the toolchain version CI
+  actually tests against, and verified `docker build` succeeds and the
+  resulting image runs `rsfusa version`/`rsfusa capabilities` correctly.
+
 ## v0.3.16 — 2026-07-30
 
 Third-party security audit remediation. Independently re-verified against the

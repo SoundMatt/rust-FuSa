@@ -1,7 +1,7 @@
 # §15: alpine base, static binary at /usr/local/bin/rsfusa, OCI + io.x-fusa.* labels.
 # Two-stage build: musl-linked static binary for minimal runtime image.
 
-FROM rust:1.83-alpine AS builder
+FROM rust:1.97-alpine AS builder
 
 RUN apk add --no-cache musl-dev
 
@@ -16,7 +16,7 @@ RUN cargo build --release --locked \
 
 FROM alpine:3.21
 
-ARG VERSION=0.3.16
+ARG VERSION=0.3.17
 ARG SPEC_VERSION=1.15.2
 
 LABEL org.opencontainers.image.title="rust-FuSa" \

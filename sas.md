@@ -8,8 +8,8 @@
 | Version | 0.1.0 |
 | Standard | iso26262 |
 | DAL/ASIL | unclassified |
-| Generated | 2026-07-30T20:03:05Z |
-| Tool | rust-FuSa 0.3.16 (spec 1.15.2) |
+| Generated | 2026-07-30T20:12:41Z |
+| Tool | rust-FuSa 0.3.17 (spec 1.15.2) |
 
 > **:warning: INFORMATIONAL ONLY.** This is **not** a certification-basis DO-178C §11.20 accomplishment summary. This project's configured standard is `iso26262` with DAL/ASIL `unclassified` — not an actively-classified `do178c` project with a real DAL. The checklist below is a heuristic §11 evidence-presence scan only and carries no certification weight until the project is genuinely classified under DO-178C.
 
@@ -42,4 +42,4 @@
 
 8 of 20 §11 data items have automatically-detected evidence in this repository.
 
-This SAS was generated automatically by rust-FuSa 0.3.16. A qualified safety engineer must review and sign this document before submission.
+This SAS was generated automatically by rust-FuSa 0.3.17. A qualified safety engineer must review and sign this document before submission.

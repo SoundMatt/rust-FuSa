@@ -24,49 +24,6 @@ graph LR
   rsfusa --> walkdir
   zip["zip"]
   rsfusa --> zip
-  stub_2["stub 2"]
-  stub_2 --> config
-  stub_2 --> types
-  engine["engine"]
-  engine --> config
-  engine --> types
-  cmd__hara["cmd::hara"]
-  cmd__hara --> attestation
-  cmd__hara --> config
-  cmd__hara --> stub
-  cmd__hara --> types
-  cmd__release["cmd::release"]
-  cmd__release --> auditpack
-  cmd__release --> release
-  cmd__release --> types
-  cmd__diff["cmd::diff"]
-  cmd__diff --> types
-  cmd__pr["cmd::pr"]
-  cmd__pr --> types
-  cmd__standards["cmd::standards"]
-  cmd__standards --> types
-  cmd__fmea["cmd::fmea"]
-  cmd__fmea --> attestation
-  cmd__fmea --> stub
-  cmd__fmea --> types
-  cmd__template["cmd::template"]
-  cmd__template --> config
-  cmd__template --> types
-  cmd__check["cmd::check"]
-  cmd__check --> config
-  cmd__check --> engine
-  cmd__check --> report
-  cmd__check --> types
-  cmd__coupling["cmd::coupling"]
-  cmd__coupling --> types
-  cmd__lint["cmd::lint"]
-  cmd__lint --> config
-  cmd__lint --> engine
-  cmd__lint --> lint
-  cmd__lint --> report
-  cmd__lint --> types
-  report["report"]
-  report --> types
   cmd__tara["cmd::tara"]
   cmd__tara --> attestation
   cmd__tara --> config
@@ -74,115 +31,158 @@ graph LR
   cmd__tara --> engine
   cmd__tara --> stub
   cmd__tara --> types
-  cmd__metrics["cmd::metrics"]
-  cmd__metrics --> types
-  cmd__comp["cmd::comp"]
-  cmd__comp --> types
+  cmd__hooks["cmd::hooks"]
+  cmd__hooks --> types
+  cmd__vuln["cmd::vuln"]
+  cmd__vuln --> types
+  cmd__fmea["cmd::fmea"]
+  cmd__fmea --> attestation
+  cmd__fmea --> stub
+  cmd__fmea --> types
   cmd__capabilities["cmd::capabilities"]
   cmd__capabilities --> types
   rules["rules"]
   rules --> config
   rules --> engine
   rules --> types
-  qualify["qualify"]
-  qualify --> engine
-  qualify --> types
-  cmd__qualify["cmd::qualify"]
-  cmd__qualify --> engine
-  cmd__qualify --> qualify
-  cmd__qualify --> types
   cmd__req["cmd::req"]
   cmd__req --> config
   cmd__req --> trace
   cmd__req --> types
-  stub["stub"]
-  stub --> config
-  stub --> types
-  analyze["analyze"]
-  analyze --> config
-  analyze --> engine
-  analyze --> types
+  release["release"]
+  release --> types
+  trace["trace"]
+  trace --> config
+  trace --> types
+  qualify["qualify"]
+  qualify --> engine
+  qualify --> types
+  cmd__diff["cmd::diff"]
+  cmd__diff --> types
+  report["report"]
+  report --> types
+  stub_2["stub 2"]
+  stub_2 --> config
+  stub_2 --> types
+  cmd__comp["cmd::comp"]
+  cmd__comp --> types
+  cmd__coverage["cmd::coverage"]
+  cmd__coverage --> types
+  cmd__impact["cmd::impact"]
+  cmd__impact --> config
+  cmd__impact --> types
+  cmd__qualify["cmd::qualify"]
+  cmd__qualify --> engine
+  cmd__qualify --> qualify
+  cmd__qualify --> types
+  main["main"]
+  main --> config
+  main --> trace
+  cmd__verify["cmd::verify"]
+  cmd__verify --> types
+  cmd__sign["cmd::sign"]
+  cmd__sign --> types
+  cmd__template["cmd::template"]
+  cmd__template --> config
+  cmd__template --> types
   cyber["cyber"]
   cyber --> config
   cyber --> engine
   cyber --> types
-  cmd__hooks["cmd::hooks"]
-  cmd__hooks --> types
-  lint["lint"]
-  lint --> config
-  lint --> engine
-  lint --> types
-  cmd__sci["cmd::sci"]
-  cmd__sci --> config
-  cmd__sci --> types
-  cmd__verify["cmd::verify"]
-  cmd__verify --> types
   cmd__cyber["cmd::cyber"]
   cmd__cyber --> config
   cmd__cyber --> cyber
   cmd__cyber --> engine
   cmd__cyber --> report
   cmd__cyber --> types
-  release["release"]
-  release --> types
-  trace["trace"]
-  trace --> config
-  trace --> types
-  main_2["main 2"]
-  main_2 --> config
-  main_2 --> trace
-  cmd__disposition["cmd::disposition"]
-  cmd__disposition --> config
-  cmd__disposition --> types
-  auditpack["auditpack"]
-  auditpack --> types
-  cmd__sign["cmd::sign"]
-  cmd__sign --> types
-  cmd__badge["cmd::badge"]
-  cmd__badge --> types
-  cmd__safety_case["cmd::safety_case"]
-  cmd__safety_case --> attestation
-  cmd__safety_case --> config
-  cmd__safety_case --> stub
-  cmd__safety_case --> types
-  cmd__boundary["cmd::boundary"]
-  cmd__boundary --> types
-  main["main"]
-  main --> config
-  main --> trace
-  cmd__version["cmd::version"]
-  cmd__version --> types
+  cmd__pr["cmd::pr"]
+  cmd__pr --> types
+  cmd__hara["cmd::hara"]
+  cmd__hara --> attestation
+  cmd__hara --> config
+  cmd__hara --> stub
+  cmd__hara --> types
+  cmd__lint["cmd::lint"]
+  cmd__lint --> config
+  cmd__lint --> engine
+  cmd__lint --> lint
+  cmd__lint --> report
+  cmd__lint --> types
+  cmd__coupling["cmd::coupling"]
+  cmd__coupling --> types
+  cmd__auditpack["cmd::auditpack"]
+  cmd__auditpack --> auditpack
+  cmd__auditpack --> types
+  lint["lint"]
+  lint --> config
+  lint --> engine
+  lint --> types
   cmd__trace["cmd::trace"]
   cmd__trace --> config
   cmd__trace --> trace
   cmd__trace --> types
-  cmd__init["cmd::init"]
-  cmd__init --> config
-  cmd__init --> types
-  cmd__auditpack["cmd::auditpack"]
-  cmd__auditpack --> auditpack
-  cmd__auditpack --> types
-  cmd__impact["cmd::impact"]
-  cmd__impact --> config
-  cmd__impact --> types
+  cmd__badge["cmd::badge"]
+  cmd__badge --> types
+  cmd__release["cmd::release"]
+  cmd__release --> auditpack
+  cmd__release --> release
+  cmd__release --> types
+  auditpack["auditpack"]
+  auditpack --> types
+  analyze["analyze"]
+  analyze --> config
+  analyze --> engine
+  analyze --> types
+  engine["engine"]
+  engine --> config
+  engine --> types
+  cmd__metrics["cmd::metrics"]
+  cmd__metrics --> types
+  cmd__version["cmd::version"]
+  cmd__version --> types
+  cmd__check["cmd::check"]
+  cmd__check --> config
+  cmd__check --> engine
+  cmd__check --> report
+  cmd__check --> types
+  main_2["main 2"]
+  main_2 --> config
+  main_2 --> trace
+  cmd__boundary["cmd::boundary"]
+  cmd__boundary --> types
   cmd__analyze["cmd::analyze"]
   cmd__analyze --> analyze
   cmd__analyze --> config
   cmd__analyze --> engine
   cmd__analyze --> report
   cmd__analyze --> types
-  cmd__vuln["cmd::vuln"]
-  cmd__vuln --> types
+  config["config"]
+  config --> types
+  cmd__sci["cmd::sci"]
+  cmd__sci --> config
+  cmd__sci --> types
+  cmd__safety_case["cmd::safety_case"]
+  cmd__safety_case --> attestation
+  cmd__safety_case --> config
+  cmd__safety_case --> stub
+  cmd__safety_case --> types
+  cmd__fix["cmd::fix"]
+  cmd__fix --> config
+  cmd__fix --> engine
+  cmd__fix --> types
   cmd__sas["cmd::sas"]
   cmd__sas --> attestation
   cmd__sas --> config
   cmd__sas --> stub
   cmd__sas --> types
-  cmd__coverage["cmd::coverage"]
-  cmd__coverage --> types
-  cmd__fix["cmd::fix"]
-  cmd__fix --> config
-  cmd__fix --> engine
-  cmd__fix --> types
-  config["config"]
-  config --> types
+  stub["stub"]
+  stub --> config
+  stub --> types
+  cmd__standards["cmd::standards"]
+  cmd__standards --> types
+  cmd__init["cmd::init"]
+  cmd__init --> config
+  cmd__init --> types
+  cmd__disposition["cmd::disposition"]
+  cmd__disposition --> config
+  cmd__disposition --> types
