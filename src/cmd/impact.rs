@@ -23,6 +23,20 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     let from = opts.from.as_deref().unwrap_or("HEAD~1");
     let to = opts.to.as_deref().unwrap_or("HEAD");
 
+    // Reject leading-dash revisions: without this guard a value like
+    // `--from=--output=<path>` is parsed by git as an option, not a revision,
+    // enabling argument injection (an attacker overwrote an arbitrary file).
+    for (flag, val) in [("--from", from), ("--to", to)] {
+        if val.starts_with('-') {
+            writeln!(
+                stderr,
+                "rsfusa impact: {flag} must be a git revision, not an option-like value: {val:?}"
+            )
+            .ok();
+            return EXIT_USAGE;
+        }
+    }
+
     let changed_files = get_changed_files(&project_root, from, to);
 
     // Load requirements
@@ -105,7 +119,7 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
 
 fn get_changed_files(root: &PathBuf, from: &str, to: &str) -> Vec<String> {
     let output = std::process::Command::new("git")
-        .args(["diff", "--name-only", from, to])
+        .args(["diff", "--name-only", from, to, "--"])
         .current_dir(root)
         .output();
 

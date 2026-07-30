@@ -481,15 +481,42 @@ fn compute_completeness(hara: &HaraFile, dangling_references: usize) -> Value {
     })
 }
 
-fn cmd_asil(args: &[String], stdout: &mut dyn Write, _stderr: &mut dyn Write) -> i32 {
+/// Parses an `S`/`E`/`C` class value (e.g. "S3" or "3") for the given prefix,
+/// returning `None` for unparseable input so callers can fail loudly instead
+/// of silently defaulting to the lowest integrity class.
+fn parse_class(value: &str, prefix: char) -> Option<u8> {
+    let digits = value
+        .trim()
+        .trim_start_matches(prefix)
+        .trim_start_matches(prefix.to_ascii_lowercase());
+    digits.parse::<u8>().ok()
+}
+
+fn cmd_asil(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
     // Derive ASIL from S/E/C: rsfusa hara asil --severity S3 --exposure E4 --controllability C2
     let s = parse_flag(args, "--severity").unwrap_or_else(|| "S1".to_string());
     let e = parse_flag(args, "--exposure").unwrap_or_else(|| "E1".to_string());
     let c = parse_flag(args, "--controllability").unwrap_or_else(|| "C1".to_string());
 
-    let s_num: u8 = s.trim_start_matches('S').parse().unwrap_or(1);
-    let e_num: u8 = e.trim_start_matches('E').parse().unwrap_or(1);
-    let c_num: u8 = c.trim_start_matches('C').parse().unwrap_or(1);
+    // Reject unparseable S/E/C rather than silently defaulting to the lowest
+    // integrity class (QM) — a silent minimum on a MUST-derive safety field is
+    // a misleading result.
+    let (s_num, e_num, c_num) = match (
+        parse_class(&s, 'S'),
+        parse_class(&e, 'E'),
+        parse_class(&c, 'C'),
+    ) {
+        (Some(s_num), Some(e_num), Some(c_num)) => (s_num, e_num, c_num),
+        _ => {
+            writeln!(
+                stderr,
+                "rsfusa hara asil: invalid S/E/C values (got S={s:?} E={e:?} C={c:?}); \
+                 expected e.g. --severity S3 --exposure E4 --controllability C2"
+            )
+            .ok();
+            return EXIT_USAGE;
+        }
+    };
 
     let asil = iso26262_asil(s_num, e_num, c_num);
 
@@ -597,10 +624,14 @@ fn parse_flag(args: &[String], flag: &str) -> Option<String> {
 }
 
 fn truncate(s: &str, max: usize) -> String {
-    if s.len() <= max {
+    // Count by chars, not bytes: byte-slicing a multibyte UTF-8 string on a
+    // non-char boundary panics ("byte index N is not a char boundary"), which
+    // crashed `hara show` on any accented/CJK/emoji hazard description.
+    if s.chars().count() <= max {
         s.to_string()
     } else {
-        format!("{}…", &s[..max - 1])
+        let truncated: String = s.chars().take(max.saturating_sub(1)).collect();
+        format!("{truncated}…")
     }
 }
 
@@ -656,6 +687,18 @@ mod tests {
         // Out-of-range severity (e.g. an invalid "S4") fails safe to QM
         // rather than guessing a higher integrity level.
         assert_eq!(iso26262_asil(4, 4, 4), "QM");
+    }
+
+    // D004 regression: truncate must be char-safe. A multibyte-UTF-8 string
+    // longer than `max` bytes previously panicked on a non-char boundary.
+    #[test]
+    fn truncate_handles_multibyte_utf8_without_panic() {
+        let s = "café-über-naïve-Ω-字-🚗-描述描述描述描述描述描述描述描述";
+        let out = truncate(s, 10);
+        assert!(out.chars().count() <= 10);
+        assert!(out.ends_with('…'));
+        // Short multibyte strings are returned unchanged (no panic, no cut).
+        assert_eq!(truncate("café", 10), "café");
     }
 
     //fusa:test REQ-HARA006
@@ -748,5 +791,38 @@ mod tests {
         assert!(hara.hazards.is_empty());
         assert!(hara.operational_situations.is_empty());
         assert!(hara.safety_goals.is_empty());
+    }
+
+    // D008: lock the WHOLE ISO 26262-3:2018 Table 4 (every S1-3/E1-4/C1-3
+    // combination), not just the 4 spot-checks above. The table equals
+    // Points = S+E+C: <=6 -> QM, 7 -> A, 8 -> B, 9 -> C, 10 -> D. A regression
+    // corrupting any cell (e.g. (2,4,3) which is ASIL-C, or (1,4,3) = ASIL-B)
+    // now fails CI.
+    //fusa:test REQ-HARA002
+    #[test]
+    fn iso26262_asil_table_all_cells() {
+        fn expected(s: u8, e: u8, c: u8) -> &'static str {
+            match s + e + c {
+                0..=6 => "QM",
+                7 => "ASIL-A",
+                8 => "ASIL-B",
+                9 => "ASIL-C",
+                _ => "ASIL-D",
+            }
+        }
+        let mut cells = 0;
+        for s in 1..=3u8 {
+            for e in 1..=4u8 {
+                for c in 1..=3u8 {
+                    cells += 1;
+                    assert_eq!(
+                        iso26262_asil(s, e, c),
+                        expected(s, e, c),
+                        "ASIL mismatch at S{s}/E{e}/C{c}"
+                    );
+                }
+            }
+        }
+        assert_eq!(cells, 36, "expected 3*4*3 = 36 enumerated S/E/C cells");
     }
 }

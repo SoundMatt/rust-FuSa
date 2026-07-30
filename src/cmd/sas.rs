@@ -6,6 +6,7 @@
 //fusa:req REQ-SAS002
 //fusa:req REQ-SAS003
 //fusa:req REQ-SAS004
+//fusa:req REQ-SAS005
 
 use crate::attestation::Attestation;
 use crate::config::load;
@@ -178,6 +179,19 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
         .or_else(|| cfg.as_ref().and_then(|c| c.asil.as_deref()))
         .unwrap_or("unclassified");
 
+    // rust-FuSa-08: a DO-178C §11.20 Software Accomplishment Summary is a
+    // real certification-basis claim ("this project has accomplished its
+    // planned DO-178C life cycle"). Generating one, unqualified, for a
+    // project whose configured standard is NOT do178c (or that has no real
+    // DAL classification) misrepresents the document as a genuine
+    // accomplishment summary rather than what it actually is: an
+    // informational §11-checklist heuristic run against an unrelated
+    // project. Detect that mismatch here and label the output accordingly
+    // instead of silently presenting it as if it were authoritative.
+    let is_do178c_project = standard.eq_ignore_ascii_case("do178c");
+    let dal_classified = dal != "unclassified";
+    let applicable = is_do178c_project && dal_classified;
+
     let mut checklist: Vec<ChecklistEntry> = Vec::new();
     for item in CHECKLIST {
         let present = item.file.is_some_and(|f| project_root.join(f).exists());
@@ -229,6 +243,18 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
             "version": version,
             "standard": standard,
             "dal": dal,
+            "applicable": applicable,
+            "notice": if applicable {
+                None
+            } else {
+                Some(format!(
+                    "INFORMATIONAL ONLY — not a certification-basis DO-178C §11.20 \
+                     accomplishment summary. This project's configured standard is \
+                     {standard:?} with DAL/ASIL {dal:?}, not an actively-classified \
+                     do178c project. The checklist below is a heuristic §11 \
+                     evidence-presence scan only."
+                ))
+            },
             "checklist": checklist,
             "summary": { "total": CHECKLIST.len(), "present": present_count },
             "attestation": attestation,
@@ -260,6 +286,23 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
             VERSION,
             SPEC_VERSION
         );
+
+        if !applicable {
+            md.push_str(
+                "> **:warning: INFORMATIONAL ONLY.** This is **not** a certification-basis \
+                 DO-178C §11.20 accomplishment summary. This project's configured standard \
+                 is `",
+            );
+            md.push_str(standard);
+            md.push_str("` with DAL/ASIL `");
+            md.push_str(dal);
+            md.push_str(
+                "` — not an actively-classified `do178c` project with a real DAL. \
+                 The checklist below is a heuristic §11 evidence-presence scan only and \
+                 carries no certification weight until the project is genuinely \
+                 classified under DO-178C.\n\n",
+            );
+        }
 
         md.push_str("## Software Life Cycle Data (DO-178C §11)\n\n");
         md.push_str("| Clause | Data Item | Evidence | Status |\n");
@@ -384,5 +427,93 @@ mod tests {
         clauses.sort_unstable();
         clauses.dedup();
         assert_eq!(clauses.len(), before);
+    }
+
+    // rust-FuSa-08: a project configured for a standard other than do178c
+    // (e.g. this repo's own iso26262 .fusa.json) must NOT have its sas.md
+    // presented as a real DO-178C §11.20 accomplishment summary.
+    //fusa:test REQ-SAS005
+    #[test]
+    fn sas_marks_non_do178c_project_informational_only() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::write(
+            dir.path().join(".fusa.json"),
+            "{\"configVersion\":\"1.0\",\"project\":{\"name\":\"t\"},\"standard\":\"iso26262\"}\n",
+        )
+        .unwrap();
+        let out_file = dir.path().join("sas.json");
+        let a: Vec<String> = vec![
+            "--dir".to_string(),
+            dir.path().to_string_lossy().into_owned(),
+            "--format".to_string(),
+            "json".to_string(),
+            "--output".to_string(),
+            out_file.to_string_lossy().into_owned(),
+        ];
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0);
+        let v: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&out_file).unwrap()).unwrap();
+        assert_eq!(
+            v["applicable"].as_bool(),
+            Some(false),
+            "an iso26262 project must not be marked as an applicable DO-178C SAS"
+        );
+        assert!(
+            v["notice"]
+                .as_str()
+                .is_some_and(|n| n.contains("INFORMATIONAL ONLY")),
+            "notice must flag the report as informational-only"
+        );
+
+        // Also check the default markdown format carries the same banner.
+        let md_args: Vec<String> = vec![
+            "--dir".to_string(),
+            dir.path().to_string_lossy().into_owned(),
+        ];
+        let mut md_out = Vec::new();
+        let mut md_err = Vec::new();
+        assert_eq!(run(&md_args, &mut md_out, &mut md_err), 0);
+        let md = std::fs::read_to_string(dir.path().join(SAS_MD)).unwrap();
+        assert!(
+            md.contains("INFORMATIONAL ONLY"),
+            "sas.md must carry the informational-only banner for a non-do178c project"
+        );
+    }
+
+    // rust-FuSa-08: a project genuinely configured for do178c with a real
+    // (non-"unclassified") DAL must be treated as an applicable, real SAS.
+    //fusa:test REQ-SAS005
+    #[test]
+    fn sas_marks_do178c_project_with_dal_as_applicable() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::write(
+            dir.path().join(".fusa.json"),
+            "{\"configVersion\":\"1.0\",\"project\":{\"name\":\"t\"},\"standard\":\"do178c\",\"dal\":\"C\"}\n",
+        )
+        .unwrap();
+        let out_file = dir.path().join("sas.json");
+        let a: Vec<String> = vec![
+            "--dir".to_string(),
+            dir.path().to_string_lossy().into_owned(),
+            "--format".to_string(),
+            "json".to_string(),
+            "--output".to_string(),
+            out_file.to_string_lossy().into_owned(),
+        ];
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run(&a, &mut out, &mut err);
+        assert_eq!(code, 0);
+        let v: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&out_file).unwrap()).unwrap();
+        assert_eq!(
+            v["applicable"].as_bool(),
+            Some(true),
+            "a do178c project with a classified DAL must be applicable"
+        );
+        assert!(v["notice"].is_null());
     }
 }

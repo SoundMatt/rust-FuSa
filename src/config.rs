@@ -166,26 +166,14 @@ pub fn save(path: &Path, cfg: &FusaConfig) -> std::io::Result<()> {
 }
 
 fn validate_standard(s: &str) -> Result<(), ConfigError> {
-    const KNOWN: &[&str] = &[
-        "iso26262",
-        "iec61508",
-        "do178c",
-        "iso21434",
-        "iec62443-4-1",
-        "iec62443-4-2",
-        "misra-c",
-        "misra-cpp",
-        "autosar-cpp14",
-        "cert-c",
-        "cert-cpp",
-        "unece-r155",
-        "unece-r156",
-        "generic",
-    ];
-    if KNOWN.contains(&s) {
-        Ok(())
-    } else {
+    // §2.4.1 requires verbatim pass-through of the `standard` id: the tool
+    // MUST NOT hard-reject ids it does not recognise (the README itself
+    // documents iec62443/misra/unece variants the old allow-list rejected).
+    // Only a blank id is a real configuration error.
+    if s.trim().is_empty() {
         Err(ConfigError::InvalidStandard(s.to_string()))
+    } else {
+        Ok(())
     }
 }
 

@@ -1,6 +1,6 @@
 # rust-FuSa
 
-**Version 0.3.12** · x-FuSa spec v1.15 · language: rust · binary: `rsfusa`
+**Version 0.3.16** · x-FuSa spec v1.15 · language: rust · binary: `rsfusa`
 
 A functional safety enablement toolkit for Rust projects. rust-FuSa provides static checks, coding rules, traceability helpers, CI evidence bundles, reproducible build metadata, HARA, FMEA, TARA, boundary diagrams, and tool qualification support to help teams build safety cases under ISO 26262, IEC 61508, ISO 21434, DO-178C, and MISRA.
 
@@ -177,8 +177,8 @@ rsfusa hooks install
 | FUSA003 | WARNING | `LICENSE` file must be present |
 | FUSA004 | WARNING | `README` file must be present |
 | FUSA005 | WARNING | CI configuration must be present |
-| FUSA006 | ERROR | `unsafe` block without `//fusa:unsafe` justification |
-| FUSA007 | WARNING | `.unwrap()` in non-test code |
+| FUSA006 | WARNING | `.fusa-reqs.json` requirements registry should be present |
+| FUSA007 | ERROR | Duplicate requirement IDs in `.fusa-reqs.json` (§1.2.2) |
 
 ### LINT — Rust coding standards
 
@@ -279,7 +279,7 @@ Integrity levels: `asil` (QM / ASIL-A–D) · `sil` (SIL-1–4) · `dal` (DAL-A�
 | `sarif` | `check`, `report` | GitHub Code Scanning |
 | `md` | `check`, `report`, `trace` | Documentation |
 
-JSON output follows the [x-FuSa spec v1.9](https://github.com/SoundMatt/FuSaOps) common header (§3.1) so FuSaOps can consume rust-FuSa output without tool-specific adapters.
+JSON output follows the [x-FuSa spec v1.15.2](https://github.com/SoundMatt/FuSaOps) common header (§3.1) so FuSaOps can consume rust-FuSa output without tool-specific adapters.
 
 ---
 
@@ -304,7 +304,7 @@ See [`.github/workflows/ci.yml`](.github/workflows/ci.yml) for the full workflow
 
 ## FuSaOps integration
 
-rust-FuSa implements the x-FuSa spec v1.9 interface:
+rust-FuSa implements the x-FuSa spec v1.15.2 interface:
 
 ```yaml
 # docker-compose.yml

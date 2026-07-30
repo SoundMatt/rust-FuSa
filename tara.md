@@ -1,8 +1,8 @@
 # Threat Analysis and Risk Assessment (TARA)
 
 **Standard**: ISO/SAE 21434 Clause 15  
-**Generated**: 2026-07-28T21:32:54Z  
-**Tool**: rust-FuSa 0.3.12  
+**Generated**: 2026-07-30T20:03:04Z  
+**Tool**: rust-FuSa 0.3.16  
 
 ## Threat Register
 
@@ -10,23 +10,23 @@
 |-------|--------|-----|-------------|--------|-----------|-------------|---------|------|-----------|
 | src/cyber.rs | possible hardcoded secret in string literal (src/cyber.rs:134) | CWE-798 | high | moderate | major | moderate | major | high | mitigate |
 | src/auditpack.rs | SQL query appears to be constructed by string interpolation (src/auditpack.rs:72) | CWE-89 | high | negligible | major | moderate | major | high | mitigate |
-| src/qualify.rs | SQL query appears to be constructed by string interpolation (src/qualify.rs:361) | CWE-89 | high | negligible | major | moderate | major | high | mitigate |
+| src/qualify.rs | SQL query appears to be constructed by string interpolation (src/qualify.rs:360) | CWE-89 | high | negligible | major | moderate | major | high | mitigate |
 | src/cmd/coverage.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/coverage.rs:440) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/standards.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/standards.rs:723) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/badge.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/badge.rs:140) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/tara.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/tara.rs:506) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/coupling.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/coupling.rs:230) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/safety_case.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/safety_case.rs:392) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
-| src/cmd/hara.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/hara.rs:560) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
+| src/cmd/hara.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/hara.rs:587) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/auditpack.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/auditpack.rs:78) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/hooks.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/hooks.rs:171) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/comp.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/comp.rs:350) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/boundary.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/boundary.rs:253) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/qualify.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/qualify.rs:162) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/lint.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/lint.rs:131) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
-| src/cmd/impact.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/impact.rs:210) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
+| src/cmd/impact.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/impact.rs:224) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/analyze.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/analyze.rs:120) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
-| src/cmd/verify.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/verify.rs:152) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
+| src/cmd/verify.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/verify.rs:184) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/fmea.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/fmea.rs:479) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/vuln.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/vuln.rs:233) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/sci.rs | path constructed from potentially user-controlled input without canonicalization (src/cmd/sci.rs:201) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
@@ -51,28 +51,28 @@
 | src/cmd/safety_case.rs | arithmetic on length/count values without overflow check (src/cmd/safety_case.rs:215) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/safety_case.rs | arithmetic on length/count values without overflow check (src/cmd/safety_case.rs:386) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/check.rs | arithmetic on length/count values without overflow check (src/cmd/check.rs:213) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/hara.rs | arithmetic on length/count values without overflow check (src/cmd/hara.rs:559) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/hara.rs | arithmetic on length/count values without overflow check (src/cmd/hara.rs:573) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/hara.rs | arithmetic on length/count values without overflow check (src/cmd/hara.rs:588) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/hara.rs | arithmetic on length/count values without overflow check (src/cmd/hara.rs:586) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/hara.rs | arithmetic on length/count values without overflow check (src/cmd/hara.rs:600) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/hara.rs | arithmetic on length/count values without overflow check (src/cmd/hara.rs:615) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/version.rs | arithmetic on length/count values without overflow check (src/cmd/version.rs:36) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/release.rs | arithmetic on length/count values without overflow check (src/cmd/release.rs:130) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/auditpack.rs | arithmetic on length/count values without overflow check (src/cmd/auditpack.rs:72) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/hooks.rs | arithmetic on length/count values without overflow check (src/cmd/hooks.rs:170) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/comp.rs | arithmetic on length/count values without overflow check (src/cmd/comp.rs:305) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/comp.rs | arithmetic on length/count values without overflow check (src/cmd/comp.rs:344) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sas.rs | arithmetic on length/count values without overflow check (src/cmd/sas.rs:336) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sas.rs | arithmetic on length/count values without overflow check (src/cmd/sas.rs:379) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/trace.rs | arithmetic on length/count values without overflow check (src/cmd/trace.rs:253) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/boundary.rs | arithmetic on length/count values without overflow check (src/cmd/boundary.rs:247) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/metrics.rs | arithmetic on length/count values without overflow check (src/cmd/metrics.rs:212) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/qualify.rs | arithmetic on length/count values without overflow check (src/cmd/qualify.rs:151) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/lint.rs | arithmetic on length/count values without overflow check (src/cmd/lint.rs:125) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/impact.rs | arithmetic on length/count values without overflow check (src/cmd/impact.rs:204) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/impact.rs | arithmetic on length/count values without overflow check (src/cmd/impact.rs:218) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/analyze.rs | arithmetic on length/count values without overflow check (src/cmd/analyze.rs:114) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/verify.rs | arithmetic on length/count values without overflow check (src/cmd/verify.rs:146) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/verify.rs | arithmetic on length/count values without overflow check (src/cmd/verify.rs:178) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/req.rs | arithmetic on length/count values without overflow check (src/cmd/req.rs:217) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/fmea.rs | arithmetic on length/count values without overflow check (src/cmd/fmea.rs:150) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/fmea.rs | arithmetic on length/count values without overflow check (src/cmd/fmea.rs:473) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sign.rs | arithmetic on length/count values without overflow check (src/cmd/sign.rs:204) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sign.rs | arithmetic on length/count values without overflow check (src/cmd/sign.rs:213) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/vuln.rs | arithmetic on length/count values without overflow check (src/cmd/vuln.rs:131) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/vuln.rs | arithmetic on length/count values without overflow check (src/cmd/vuln.rs:227) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/sci.rs | arithmetic on length/count values without overflow check (src/cmd/sci.rs:195) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
@@ -89,24 +89,26 @@
 | src/trace.rs | arithmetic on length/count values without overflow check (src/trace.rs:366) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/lint.rs | arithmetic on length/count values without overflow check (src/lint.rs:88) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/analyze.rs | arithmetic on length/count values without overflow check (src/analyze.rs:75) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/main.rs | arithmetic on length/count values without overflow check (src/main.rs:2110) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/main.rs | arithmetic on length/count values without overflow check (src/main.rs:2214) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cyber.rs | arithmetic on length/count values without overflow check (src/cyber.rs:103) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cyber.rs | arithmetic on length/count values without overflow check (src/cyber.rs:684) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cyber.rs | arithmetic on length/count values without overflow check (src/cyber.rs:782) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cyber.rs | arithmetic on length/count values without overflow check (src/cyber.rs:1002) | CWE-190 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/badge.rs | HTTP URL used — data transmitted in cleartext (src/cmd/badge.rs:85) | CWE-319 | high | negligible | moderate | negligible | major | high | mitigate |
 | src/main 2.rs | HTTP URL used — data transmitted in cleartext (src/main 2.rs:969) | CWE-319 | high | negligible | moderate | negligible | major | high | mitigate |
-| src/main.rs | HTTP URL used — data transmitted in cleartext (src/main.rs:1196) | CWE-319 | high | negligible | moderate | negligible | major | high | mitigate |
+| src/main.rs | HTTP URL used — data transmitted in cleartext (src/main.rs:1300) | CWE-319 | high | negligible | moderate | negligible | major | high | mitigate |
 | src/cyber.rs | HTTP URL used — data transmitted in cleartext (src/cyber.rs:378) | CWE-319 | high | negligible | moderate | negligible | major | high | mitigate |
 | src/cyber.rs | HTTP URL used — data transmitted in cleartext (src/cyber.rs:384) | CWE-319 | high | negligible | moderate | negligible | major | high | mitigate |
 | src/cmd/coverage.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cmd/coverage.rs:70) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
 | src/cmd/hara.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cmd/hara.rs:191) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/cmd/hara.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cmd/hara.rs:747) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/cmd/hara.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cmd/hara.rs:790) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/cmd/sas.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cmd/sas.rs:458) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/cmd/sas.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cmd/sas.rs:511) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
 | src/cmd/boundary.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cmd/boundary.rs:138) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
 | src/cmd/metrics.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cmd/metrics.rs:125) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/cmd/req.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cmd/req.rs:370) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/cmd/req.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cmd/req.rs:474) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/cmd/req.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cmd/req.rs:598) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/cmd/req.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cmd/req.rs:372) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/cmd/req.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cmd/req.rs:476) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/cmd/req.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cmd/req.rs:600) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
 | src/cmd/vuln.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cmd/vuln.rs:358) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
 | src/cmd/vuln.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cmd/vuln.rs:382) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
 | src/cmd/vuln.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cmd/vuln.rs:429) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
@@ -157,8 +159,8 @@
 | src/main 2.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main 2.rs:2813) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
 | src/main 2.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main 2.rs:2845) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
 | src/config.rs | deserialisation of external data — ensure input is size-bounded and validated (src/config.rs:128) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/config.rs | deserialisation of external data — ensure input is size-bounded and validated (src/config.rs:241) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/config.rs | deserialisation of external data — ensure input is size-bounded and validated (src/config.rs:285) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/config.rs | deserialisation of external data — ensure input is size-bounded and validated (src/config.rs:229) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/config.rs | deserialisation of external data — ensure input is size-bounded and validated (src/config.rs:273) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
 | src/report.rs | deserialisation of external data — ensure input is size-bounded and validated (src/report.rs:379) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
 | src/report.rs | deserialisation of external data — ensure input is size-bounded and validated (src/report.rs:390) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
 | src/report.rs | deserialisation of external data — ensure input is size-bounded and validated (src/report.rs:444) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
@@ -176,43 +178,44 @@
 | src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:735) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
 | src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:781) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
 | src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:821) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:938) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:978) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1025) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1072) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1106) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1138) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1173) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1207) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1247) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1298) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1323) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1560) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1588) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1623) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1650) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1674) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1718) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1745) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1795) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1837) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1908) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2021) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2041) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2063) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2169) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2188) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2223) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2501) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2556) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2602) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2626) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2649) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:965) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1042) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1082) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1129) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1176) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1210) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1242) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1277) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1311) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1351) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1402) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1427) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1664) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1692) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1727) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1754) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1778) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1822) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1849) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1899) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:1941) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2012) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2125) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2145) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2167) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2273) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2292) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2327) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2635) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2690) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
 | src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2736) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2920) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2960) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:3037) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
-| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:3080) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2760) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2783) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:2870) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:3054) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:3094) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:3171) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
+| src/main.rs | deserialisation of external data — ensure input is size-bounded and validated (src/main.rs:3214) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
 | src/attestation.rs | deserialisation of external data — ensure input is size-bounded and validated (src/attestation.rs:71) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
 | src/cyber.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cyber.rs:559) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
 | src/cyber.rs | deserialisation of external data — ensure input is size-bounded and validated (src/cyber.rs:560) | CWE-502 | high | major | moderate | major | moderate | high | mitigate |
@@ -232,18 +235,18 @@
 | src/cmd/auditpack.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/auditpack.rs:70) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/hooks.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/hooks.rs:170) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/comp.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/comp.rs:104) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sas.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/sas.rs:333) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sas.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/sas.rs:376) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/trace.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/trace.rs:238) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/boundary.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/boundary.rs:245) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/metrics.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/metrics.rs:160) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/qualify.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/qualify.rs:140) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/lint.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/lint.rs:121) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/impact.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/impact.rs:202) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/impact.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/impact.rs:216) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/analyze.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/analyze.rs:111) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/verify.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/verify.rs:144) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/verify.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/verify.rs:176) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/req.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/req.rs:217) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/fmea.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/fmea.rs:135) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sign.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/sign.rs:204) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sign.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/sign.rs:213) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/vuln.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/vuln.rs:225) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/sci.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/sci.rs:193) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/init.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/init.rs:122) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
@@ -256,6 +259,7 @@
 | src/cmd/pr.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/cmd/pr.rs:276) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/canonjson.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/canonjson.rs:57) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/main 2.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/main 2.rs:264) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/qualify.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/qualify.rs:473) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/report.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/report.rs:380) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/lint.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/lint.rs:128) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/analyze.rs | direct slice indexing with a variable — consider .get() for bounds-safe access (src/analyze.rs:290) | CWE-125 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
@@ -269,7 +273,7 @@
 | src/cyber.rs | TLS certificate verification disabled — vulnerable to MITM (src/cyber.rs:730) | CWE-295 | medium | moderate | moderate | negligible | major | high | mitigate |
 | src/cyber.rs | TLS certificate verification disabled — vulnerable to MITM (src/cyber.rs:731) | CWE-295 | medium | moderate | moderate | negligible | major | high | mitigate |
 | src/cmd/pr.rs | filesystem check followed by use within 5 lines — possible TOCTOU (src/cmd/pr.rs:64) | CWE-367 | low | moderate | negligible | moderate | negligible | low | mitigate |
-| src/release.rs | filesystem check followed by use within 5 lines — possible TOCTOU (src/release.rs:221) | CWE-367 | low | moderate | negligible | moderate | negligible | low | mitigate |
+| src/release.rs | filesystem check followed by use within 5 lines — possible TOCTOU (src/release.rs:224) | CWE-367 | low | moderate | negligible | moderate | negligible | low | mitigate |
 | src/auditpack.rs | filesystem check followed by use within 5 lines — possible TOCTOU (src/auditpack.rs:90) | CWE-367 | low | moderate | negligible | moderate | negligible | low | mitigate |
 | src/cyber.rs | filesystem check followed by use within 5 lines — possible TOCTOU (src/cyber.rs:772) | CWE-367 | low | moderate | negligible | moderate | negligible | low | mitigate |
 | src/cyber.rs | world-writable/world-readable file permission mask (src/cyber.rs:815) | CWE-732 | medium | negligible | negligible | moderate | moderate | medium | mitigate |
@@ -286,7 +290,7 @@
 | src/cmd/safety_case.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/safety_case.rs:323) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/safety_case.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/safety_case.rs:331) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/hara.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/hara.rs:115) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
-| src/cmd/hara.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/hara.rs:741) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
+| src/cmd/hara.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/hara.rs:784) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/release.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/release.rs:47) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/release.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/release.rs:61) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/release.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/release.rs:77) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
@@ -300,17 +304,18 @@
 | src/cmd/hooks.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/hooks.rs:324) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/hooks.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/hooks.rs:389) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/hooks.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/hooks.rs:409) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
-| src/cmd/sas.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/sas.rs:183) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
-| src/cmd/sas.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/sas.rs:200) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
-| src/cmd/sas.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/sas.rs:294) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
+| src/cmd/sas.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/sas.rs:197) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
+| src/cmd/sas.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/sas.rs:214) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
+| src/cmd/sas.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/sas.rs:337) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
+| src/cmd/sas.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/sas.rs:479) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/boundary.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/boundary.rs:36) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/boundary.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/boundary.rs:42) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/metrics.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/metrics.rs:44) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/qualify.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/qualify.rs:32) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
-| src/cmd/impact.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/impact.rs:125) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
-| src/cmd/impact.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/impact.rs:160) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
-| src/cmd/impact.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/impact.rs:169) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
-| src/cmd/verify.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/verify.rs:74) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
+| src/cmd/impact.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/impact.rs:139) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
+| src/cmd/impact.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/impact.rs:174) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
+| src/cmd/impact.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/impact.rs:183) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
+| src/cmd/verify.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/verify.rs:93) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/fmea.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/fmea.rs:210) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/fmea.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/fmea.rs:251) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cmd/vuln.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/vuln.rs:30) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
@@ -327,8 +332,8 @@
 | src/cmd/pr.rs | path .join() with variable argument — verify no .. traversal is possible (src/cmd/pr.rs:48) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/main 2.rs | path .join() with variable argument — verify no .. traversal is possible (src/main 2.rs:1858) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/auditpack.rs | path .join() with variable argument — verify no .. traversal is possible (src/auditpack.rs:89) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
-| src/qualify.rs | path .join() with variable argument — verify no .. traversal is possible (src/qualify.rs:448) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
-| src/main.rs | path .join() with variable argument — verify no .. traversal is possible (src/main.rs:2081) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
+| src/qualify.rs | path .join() with variable argument — verify no .. traversal is possible (src/qualify.rs:447) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
+| src/main.rs | path .join() with variable argument — verify no .. traversal is possible (src/main.rs:2185) | CWE-22 | high | negligible | moderate | moderate | major | high | mitigate |
 | src/cyber.rs | ManuallyDrop used without //fusa:unsafe justification (src/cyber.rs:47) | CWE-415 | low | moderate | negligible | moderate | negligible | low | mitigate |
 | src/cyber.rs | ManuallyDrop used without //fusa:unsafe justification (src/cyber.rs:934) | CWE-415 | low | moderate | negligible | moderate | negligible | low | mitigate |
 | src/cyber.rs | ManuallyDrop used without //fusa:unsafe justification (src/cyber.rs:935) | CWE-415 | low | moderate | negligible | moderate | negligible | low | mitigate |
@@ -403,7 +408,7 @@
 | src/cmd/hara.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/hara.rs:279) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/hara.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/hara.rs:286) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/hara.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/hara.rs:301) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/hara.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/hara.rs:507) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/hara.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/hara.rs:534) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/version.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/version.rs:9) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/version.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/version.rs:18) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/version.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/version.rs:39) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
@@ -444,13 +449,13 @@
 | src/cmd/comp.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/comp.rs:184) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/comp.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/comp.rs:345) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/comp.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/comp.rs:440) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sas.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sas.rs:215) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sas.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sas.rs:242) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sas.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sas.rs:245) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sas.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sas.rs:296) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sas.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sas.rs:299) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sas.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sas.rs:337) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sas.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sas.rs:357) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sas.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sas.rs:229) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sas.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sas.rs:268) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sas.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sas.rs:271) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sas.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sas.rs:339) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sas.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sas.rs:342) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sas.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sas.rs:380) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sas.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sas.rs:400) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/trace.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/trace.rs:40) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/trace.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/trace.rs:48) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/trace.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/trace.rs:56) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
@@ -490,17 +495,17 @@
 | src/cmd/lint.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/lint.rs:67) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/lint.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/lint.rs:126) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/lint.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/lint.rs:145) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:68) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:73) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:76) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:80) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:81) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:84) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:82) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:87) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:89) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:90) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:94) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:95) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:98) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:205) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:230) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:101) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:103) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:112) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:219) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/impact.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/impact.rs:244) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/analyze.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/analyze.rs:32) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/analyze.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/analyze.rs:42) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/analyze.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/analyze.rs:57) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
@@ -508,13 +513,14 @@
 | src/cmd/analyze.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/analyze.rs:115) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/analyze.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/analyze.rs:134) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/verify.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/verify.rs:24) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/verify.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/verify.rs:43) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/verify.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/verify.rs:44) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/verify.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/verify.rs:83) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/verify.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/verify.rs:85) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/verify.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/verify.rs:91) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/verify.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/verify.rs:147) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/verify.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/verify.rs:163) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/verify.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/verify.rs:41) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/verify.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/verify.rs:42) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/verify.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/verify.rs:64) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/verify.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/verify.rs:102) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/verify.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/verify.rs:104) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/verify.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/verify.rs:110) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/verify.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/verify.rs:179) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/verify.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/verify.rs:195) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/req.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/req.rs:24) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/req.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/req.rs:42) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/req.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/req.rs:54) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
@@ -539,19 +545,19 @@
 | src/cmd/fmea.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/fmea.rs:474) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/fmea.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/fmea.rs:486) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/fmea.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/fmea.rs:505) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:46) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:62) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:74) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:84) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:92) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:99) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:112) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:116) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:126) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:148) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:155) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:190) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:194) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:50) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:53) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:83) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:93) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:101) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:108) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:121) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:125) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:135) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:157) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:164) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:199) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/cmd/sign.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/sign.rs:203) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/vuln.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/vuln.rs:32) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/vuln.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/vuln.rs:143) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/cmd/vuln.rs | writeln!( called with non-literal first argument — ensure it is not user-controlled (src/cmd/vuln.rs:145) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
@@ -677,10 +683,10 @@
 | src/types.rs | write!( called with non-literal first argument — ensure it is not user-controlled (src/types.rs:41) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/types.rs | write!( called with non-literal first argument — ensure it is not user-controlled (src/types.rs:42) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/types.rs | write!( called with non-literal first argument — ensure it is not user-controlled (src/types.rs:77) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/config.rs | write!( called with non-literal first argument — ensure it is not user-controlled (src/config.rs:203) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/config.rs | write!( called with non-literal first argument — ensure it is not user-controlled (src/config.rs:204) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/config.rs | write!( called with non-literal first argument — ensure it is not user-controlled (src/config.rs:205) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
-| src/config.rs | write!( called with non-literal first argument — ensure it is not user-controlled (src/config.rs:206) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/config.rs | write!( called with non-literal first argument — ensure it is not user-controlled (src/config.rs:191) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/config.rs | write!( called with non-literal first argument — ensure it is not user-controlled (src/config.rs:192) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/config.rs | write!( called with non-literal first argument — ensure it is not user-controlled (src/config.rs:193) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
+| src/config.rs | write!( called with non-literal first argument — ensure it is not user-controlled (src/config.rs:194) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/trace.rs | write!( called with non-literal first argument — ensure it is not user-controlled (src/trace.rs:39) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/trace.rs | write!( called with non-literal first argument — ensure it is not user-controlled (src/trace.rs:40) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |
 | src/trace.rs | write!( called with non-literal first argument — ensure it is not user-controlled (src/trace.rs:41) | CWE-134 | medium | moderate | negligible | moderate | negligible | medium | mitigate |

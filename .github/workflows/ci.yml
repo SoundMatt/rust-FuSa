@@ -14,6 +14,9 @@ jobs:
   build-test:
     name: Build & Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v4
 
@@ -43,44 +46,56 @@ jobs:
       - name: build release
         run: cargo build --release --locked
 
-      - name: self-check (lint + analyze + check + comp)
+      - name: self-scan (lint + analyze + comp + cyber, informational)
+        # These four sub-views run the SAME underlying rule engine as the
+        # `check` gate below, but — unlike `check` — none of them consult
+        # `.fusa-dispositions.json`, so a rule matching its own pattern-list/
+        # matcher-source/test-fixture strings when scanning rust-FuSa's own
+        # source (e.g. CYBER020's rule description literally contains the
+        # string "from_utf8_unchecked") cannot be waived here. They remain
+        # informational, evidence-only views; `check` (with disposition
+        # support) is the real, un-masked gate.
         run: |
           ./target/release/rsfusa lint --dir . --format json --output lint-report.json || true
           ./target/release/rsfusa analyze --dir . --format json --output analyze-report.json || true
-          ./target/release/rsfusa check --dir . --format json --output check-report.json || true
           ./target/release/rsfusa comp --dir . --format json --output comp-report.json || true
+          ./target/release/rsfusa cyber --dir . --format json --output cyber-report.json || true
+
+      - name: self-check gate (rsfusa check on own source)
+        run: |
+          ./target/release/rsfusa check --dir . --format json --output check-report.json
 
       - name: self-check SARIF (GitHub code scanning)
         run: |
-          ./target/release/rsfusa check --dir . --format sarif --output results.sarif || true
+          ./target/release/rsfusa check --dir . --format sarif --output results.sarif
 
       - name: qualify
         run: ./target/release/rsfusa qualify
 
       - name: trace (requirement traceability)
         run: |
-          ./target/release/rsfusa trace --dir . --format json --output trace.json || true
-          ./target/release/rsfusa trace --dir . --format text || true
+          ./target/release/rsfusa trace --dir . --format json --output trace.json
+          ./target/release/rsfusa trace --dir . --format text
 
       - name: safety documents
         run: |
-          ./target/release/rsfusa fmea --dir . || true
-          ./target/release/rsfusa boundary --dir . || true
-          ./target/release/rsfusa hara show --dir . || true
-          ./target/release/rsfusa tara --dir . || true
-          ./target/release/rsfusa safety-case --dir . || true
-          ./target/release/rsfusa cyber --dir . --format json --output cyber-report.json || true
+          ./target/release/rsfusa fmea --dir .
+          ./target/release/rsfusa boundary --dir .
+          ./target/release/rsfusa hara show --dir .
+          ./target/release/rsfusa tara --dir .
+          ./target/release/rsfusa safety-case --dir .
 
       - name: release artifacts
         run: |
-          ./target/release/rsfusa release --dir . || true
+          ./target/release/rsfusa release --dir .
 
       - name: docs version consistency
         run: |
           VERSION=$(./target/release/rsfusa version | head -1 | awk '{print $2}')
           echo "Tool version: $VERSION"
           if ! grep -q "$VERSION" README.md; then
-            echo "WARNING: $VERSION not found in README.md"
+            echo "ERROR: tool version $VERSION not found in README.md"
+            exit 1
           fi
 
       - name: Upload check report
@@ -109,7 +124,6 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: results.sarif
-        continue-on-error: true
 
       - name: Upload safety evidence bundle
         if: always()

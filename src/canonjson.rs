@@ -1,5 +1,5 @@
-// RFC 8785-inspired JSON canonicalization, used to compute reproducible
-// content hashes: the §6 `qualify.hash` field and the §1.6.2 attestation
+// JCS-subset (RFC 8785-inspired) JSON canonicalization, used to compute
+// reproducible content hashes: the §6 `qualify.hash` field and the §1.6.2 attestation
 // `contentHash`. Targets the JSON shapes this tool itself emits (structs
 // serialized via serde_json — small integers, plain strings, nested
 // objects/arrays) rather than adversarial arbitrary JSON.

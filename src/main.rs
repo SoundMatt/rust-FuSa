@@ -2355,6 +2355,36 @@ mod tests {
         );
     }
 
+    // rust-FuSa-06: §2.4.1 requires verbatim pass-through of the `standard`
+    // id. An unknown-but-nonblank id (e.g. README-documented "iec62443") must
+    // load successfully rather than being hard-rejected; a blank id is still
+    // a configuration error.
+    //fusa:test REQ-CFG003
+    #[test]
+    fn config_accepts_unknown_standard_id() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let cfg = dir.path().join(".fusa.json");
+        std::fs::write(
+            &cfg,
+            "{\"configVersion\":\"1.0\",\"project\":{\"name\":\"t\"},\"standard\":\"iec62443\"}\n",
+        )
+        .unwrap();
+        assert!(
+            crate::config::load(&cfg).is_ok(),
+            "unknown-but-nonblank standard id must pass through per §2.4.1"
+        );
+
+        std::fs::write(
+            &cfg,
+            "{\"configVersion\":\"1.0\",\"project\":{\"name\":\"t\"},\"standard\":\"\"}\n",
+        )
+        .unwrap();
+        assert!(
+            crate::config::load(&cfg).is_err(),
+            "a blank standard id is still a configuration error"
+        );
+    }
+
     //fusa:test REQ-NF002
     #[test]
     fn fingerprint_format_invariant() {
