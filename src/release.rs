@@ -98,13 +98,16 @@ fn scan_cargo_deps(root: &Path) -> Result<Vec<Component>, String> {
                 .and_then(|v| v.as_str())
                 .unwrap_or("0.0.0")
                 .to_string();
-            // Use checksum from Cargo.lock when available, else hash the name+version.
+            // Use the checksum from Cargo.lock when available. For packages
+            // that have none (path/git deps and the root crate itself) do NOT
+            // fabricate a `sha256:` value from name+version — that is
+            // structurally indistinguishable from a real registry content
+            // checksum and would mislead a consumer verifying component
+            // integrity. Emit a clearly-distinct "unpinned" marker instead.
             let hash = if let Some(cksum) = pkg.get("checksum").and_then(|v| v.as_str()) {
                 format!("sha256:{cksum}")
             } else {
-                let mut h = Sha256::new();
-                h.update(format!("{name}@{version}").as_bytes());
-                format!("sha256:{}", hex::encode(h.finalize()))
+                "unpinned".to_string()
             };
             if !name.is_empty() {
                 components.push(Component {

@@ -1,0 +1,75 @@
+{
+  "dispositions": [
+    {
+      "fingerprint": "sha256:d30a6b6ccfa5fcba791bcf90e2dbb9d2dc766aa499ba19f2c976f401ddab4138",
+      "ruleId": "CYBER001",
+      "file": "src/cyber.rs",
+      "status": "accepted",
+      "note": "Self-referential false positive: CYBER001's own pattern list (e.g. \"secret_key\") is the rule's detection data, not a hardcoded secret.",
+      "by": "rust-FuSa maintainers"
+    },
+    {
+      "fingerprint": "sha256:6b0e1a7f2a340c2f93d7a75c2390f23f54f1d0b09c7111eefd3f9c8994b767d2",
+      "ruleId": "CYBER002",
+      "file": "src/auditpack.rs",
+      "status": "accepted",
+      "note": "Self-referential false positive: an error message containing the word \"create\" plus a format!() call is not SQL string interpolation."
+    },
+    {
+      "fingerprint": "sha256:c9a59e3d27b644dc235e5307499b37199fefa9ecd53077d22ee5030f52c149c9",
+      "ruleId": "CYBER002",
+      "file": "src/qualify.rs",
+      "status": "accepted",
+      "note": "Self-referential false positive: an error message containing the word \"create\" plus a format!() call is not SQL string interpolation."
+    },
+    {
+      "fingerprint": "sha256:813ce61b484aa2a9193375d7b6b011d70ce1bbd6153494b6908d99fef0befa1b",
+      "ruleId": "CYBER013",
+      "file": "src/cyber.rs",
+      "status": "accepted",
+      "note": "Self-referential false positive: CYBER013's own pattern list (e.g. \"danger_accept_invalid_certs\") is the rule's detection data, not an actual TLS verification bypass."
+    },
+    {
+      "fingerprint": "sha256:38cbc3e09b402ef6e0c87b9f86f46d3195a1f2c72912e599caeae290dd0f25fe",
+      "ruleId": "CYBER020",
+      "file": "src/cyber.rs",
+      "status": "accepted",
+      "note": "Self-referential false positive: CYBER020's own rule description/matcher/message strings mention \"from_utf8_unchecked\" literally; there is no actual call in this file."
+    },
+    {
+      "fingerprint": "sha256:b9ba871c5cc28fbfec77017caf5af537cee9a25c6368913237a8c7f7e7616b6d",
+      "ruleId": "LINT001",
+      "file": "src/qualify.rs",
+      "status": "accepted",
+      "note": "Self-referential false positive: these are string literals in qualify's own builtin test-case fixtures (e.g. \"unsafe { let _ = 0; }\"), not live unsafe blocks."
+    },
+    {
+      "fingerprint": "sha256:6292e6b438397496ac2c8b8d4a6550d61407d847963dd287cc91924a17ec2fd2",
+      "ruleId": "LINT001",
+      "file": "src/lint.rs",
+      "status": "accepted",
+      "note": "Self-referential false positive: LINT001's own matcher source contains the literal pattern strings \"unsafe {\"/\"unsafe{\" it searches for."
+    },
+    {
+      "fingerprint": "sha256:ec2d94a87e4a3bef3139fc0973dcc4f5eea114796b419b1b62d6f6279723d51d",
+      "ruleId": "LINT001",
+      "file": "src/cyber.rs",
+      "status": "accepted",
+      "note": "Self-referential false positive: a code comment (\"// look for unsafe{ counter } length arithmetic patterns\") mentions the substring \"unsafe{\"; there is no unsafe block on this line."
+    },
+    {
+      "fingerprint": "sha256:f8b9b837342d9e7de55b6fa53120bb58e025f22acfef469ecea083d803317add",
+      "ruleId": "LINT004",
+      "file": "src/qualify.rs",
+      "status": "accepted",
+      "note": "Self-referential false positive: these are string literals in qualify's own builtin test-case fixtures (e.g. \"mem::transmute(x)\"), not live transmute calls."
+    },
+    {
+      "fingerprint": "sha256:bc2f312c5e4edd1f6ffbcc9bb360b721bf5b9ea239f35f44232f9749b1b58c5e",
+      "ruleId": "LINT004",
+      "file": "src/lint.rs",
+      "status": "accepted",
+      "note": "Self-referential false positive: LINT004's own matcher/message source contains the literal string \"mem::transmute\" it searches for."
+    }
+  ]
+}

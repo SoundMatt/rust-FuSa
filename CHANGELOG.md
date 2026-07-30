@@ -7,6 +7,110 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## v0.3.16 — 2026-07-30
+
+Third-party security audit remediation. Independently re-verified against the
+live code, including building the binary and reproducing both security bugs
+before this fix. **The ISO 26262 Table 4 ASIL determination (`iso26262_asil`,
+`src/cmd/hara.rs`) was independently re-verified correct across all 36
+S×E×C cells and required NO changes.**
+
+### Security
+
+- **CI could never actually fail — `\|\| true` and `continue-on-error: true`
+  masked every safety command (High, rust-FuSa-02)** — every self-analysis
+  step in `.github/workflows/ci.yml` (`lint`, `analyze`, `check`, `comp`,
+  `trace`, `fmea`, `hara`, `tara`, `safety-case`, `cyber`, `release`) was
+  suffixed `\|\| true`, and the SARIF code-scanning upload carried
+  `continue-on-error: true`. A regression that made rust-FuSa emit real
+  `check` errors on its own source — or that broke `trace`/`fmea`/`hara`/
+  `tara`/`safety-case`/`release` outright — could not fail CI. `check` (the
+  tool's actual advertised gate) now runs unmasked, backed by a new
+  `.fusa-dispositions.json` waiving the ~10 rule classes that are
+  self-referential false positives (a rule's own pattern-list/matcher-source/
+  test-fixture string matching itself when the tool scans its own source —
+  e.g. CYBER020's rule description literally contains the string
+  `from_utf8_unchecked`). `trace`, `qualify`, `fmea`, `boundary`,
+  `hara show`, `tara`, `safety-case`, and `release` are also now real,
+  unmasked gates (all pass clean today). `lint`/`analyze`/`comp`/`cyber`
+  remain informational only, since — unlike `check` — none of those four
+  sub-views consult dispositions, so the same self-referential matches
+  there cannot be waived without adding suppression support those
+  subcommands don't have.
+- **`impact` git argument injection via leading-dash revisions — live
+  exploited (High, rust-FuSa-V01)** — `rsfusa impact --from`/`--to` were
+  passed straight into `git diff <from> <to>` with no `--` separator and no
+  leading-dash guard. `rsfusa impact --from="--output=<path>"` was
+  live-reproduced destroying an arbitrary existing file (git parsed it as
+  its own `--output` flag, exit 0). Option-like revisions are now rejected
+  outright and a `--` path separator is always appended.
+- **`truncate()` panics on multibyte UTF-8 near the truncation boundary —
+  live reproduced crash (Medium, rust-FuSa-V02 / rust-FuSa-D004)** — the
+  same helper, duplicated in `hara.rs`, `standards.rs`, `req.rs`, and
+  `pr.rs`, sliced a `&str` on a raw byte index instead of a char boundary,
+  panicking (exit 101) on any hazard/requirement/PR text with a multibyte
+  character positioned across the limit (live-reproduced with `中`). All
+  four copies now truncate on char boundaries.
+
+### Fixed
+
+- **`config` `validate_standard` hard-rejected unknown `standard` ids,
+  violating the spec's §2.4.1 verbatim pass-through rule
+  (Medium, rust-FuSa-06)** — a fixed allow-list rejected any id not on it,
+  including README-documented bare `iec62443`/`misra`/`unece` variants,
+  while accepting non-canonical `generic`. Only a blank id is now a
+  configuration error.
+- **DO-178C SAS generated for non-DO-178C projects with an unclassified DAL,
+  presented as a real accomplishment summary (Medium, rust-FuSa-08)** —
+  `rsfusa sas` unconditionally produced a DO-178C §11.20 Software
+  Accomplishment Summary regardless of the project's configured standard —
+  including for this very repository, whose own `.fusa.json` declares
+  `iso26262`. `sas.json`/`sas.md` now carry an `applicable` flag: when the
+  configured standard isn't `do178c` or it has no real (non-"unclassified")
+  DAL, the output is explicitly labelled **INFORMATIONAL ONLY — not a
+  certification-basis accomplishment summary** instead of being presented
+  as if it were authoritative. New `REQ-SAS005`.
+- **Stale committed evidence artifacts (Medium, rust-FuSa-05)** —
+  `trace.json` (schemaVersion 1.9, 148 reqs), `results.sarif` (driver
+  0.2.0), and `sas.md` (tool "0.3.11 / spec 1.14.0"), along with
+  `boundary.dot`/`boundary.mermaid`, `safety-case.md`/`.mermaid`,
+  `tara.md`, and `sci.json`, had not been regenerated in a long time and
+  no longer reflected the current tree (251 requirements, spec 1.15.2,
+  tool 0.3.16). Regenerated all of them against the current source. This
+  is a point-in-time snapshot, not an auto-refreshing one; the hardened CI
+  gates above (§Security) now catch a *tool* regression immediately even
+  though they don't re-commit these files automatically.
+- README `FUSA006`/`FUSA007` rule table fabricated — claimed
+  `unsafe block`/`.unwrap()` (Medium, rust-FuSa-03) — actual rules
+  (`src/rules.rs`) are `RuleReqsPresent`/`RuleNoDuplicateReqs`. Corrected.
+- README referenced stale x-FuSa spec `v1.9` in two places while
+  `SPEC_VERSION` is `1.15.2` (Medium, rust-FuSa-04). Corrected.
+- README header version `0.3.12` (Low, rust-FuSa-07) and Dockerfile
+  default build-arg `VERSION=0.3.11`/`SPEC_VERSION=1.10` — both now track
+  `0.3.16`/`1.15.2`.
+
+### Changed
+
+- `Dockerfile`: mandatory `Cargo.lock` and `cargo build --release --locked`
+  (was an optional `Cargo.lock*` glob with an unlocked build) for
+  reproducible container builds; builder pinned to `rust:1.83-alpine`
+  (was floating `rust:alpine`) and runtime now drops to a non-root user.
+- `release.yml`: Docker image `VERSION` build-arg now strips the tag's
+  leading `v` (`github.ref_name` is `v0.3.16`; the binary must report the
+  bare semver).
+- CI `build-test` job gets an explicit least-privilege `permissions:`
+  block (`contents: read`, `security-events: write`).
+- `qualify`'s integrity hash now covers the report's full serialized
+  document (previously a hand-rolled subset omitted
+  `qualificationRecordUri`/`achievableAsil`); `sign --keygen` now reads
+  the OS CSPRNG in-process and fails hard rather than falling back to an
+  all-zero key on entropy failure; `verify` sums every `test result:`
+  line instead of only the last; SBOM emits `"unpinned"` instead of a
+  fabricated checksum for packages with none; `hara asil` rejects
+  unparseable S/E/C input instead of silently defaulting to QM.
+- Data-driven test now locks all 36 ISO 26262 Table 4 S×E×C cells (was 4
+  spot-checks) — the table itself is unchanged and was already correct.
+
 ## v0.3.15 — 2026-07-29
 
 ### Fixed

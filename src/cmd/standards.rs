@@ -745,9 +745,11 @@ fn parse(args: &[String], stderr: &mut dyn Write, cmd: &str) -> Option<Opts> {
 }
 
 fn truncate(s: &str, max: usize) -> String {
-    if s.len() <= max {
+    // Char-safe: byte-slicing multibyte UTF-8 on a non-char boundary panics.
+    if s.chars().count() <= max {
         s.to_string()
     } else {
-        format!("{}…", &s[..max - 1])
+        let truncated: String = s.chars().take(max.saturating_sub(1)).collect();
+        format!("{truncated}…")
     }
 }

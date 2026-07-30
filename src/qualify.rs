@@ -334,7 +334,7 @@ pub fn builtin_cases() -> Vec<Case> {
 }
 
 /// Builder for extra qualification / V&V metadata.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct QualifyOptions {
     pub qualification_method: Option<String>,
     pub qualification_record_uri: Option<String>,
@@ -455,59 +455,27 @@ fn write_case_files(dir: &Path, files: &BTreeMap<String, String>) -> Result<(), 
 }
 
 fn compute_hash(report: &Report) -> String {
-    // Per §6: sort results by name, remove hash, set generatedAt:"", then
-    // hash via true RFC 8785 (recursive lexicographic key sort) canonical-
-    // ization — the same `canonjson` helper used for the §1.6.2 attestation
-    // `contentHash` (fmea/tara/safety-case/sas). A hand-rolled struct with a
-    // fixed field-declaration order is NOT RFC 8785: `serde_json::to_string`
-    // emits keys in struct-declaration order, not sorted order.
-    #[derive(Serialize)]
-    #[serde(rename_all = "camelCase")]
-    struct Canonical<'a> {
-        schema_version: &'a str,
-        kind: &'a str,
-        tool: &'a str,
-        tool_version: &'a str,
-        language: &'a str,
-        generated_at: &'static str,
-        total: usize,
-        passed: usize,
-        failed: usize,
-        results: Vec<&'a CaseResult>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        qualification_method: Option<&'a str>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        qualifier_identity: Option<&'a str>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        implementation_author: Option<&'a str>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        independent_reviewer: Option<&'a str>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        independent_test_executor: Option<&'a str>,
+    // Per §6: sort results by name, remove `hash`, blank `generatedAt`, then
+    // hash the report's OWN serialized document via canonjson — so EVERY
+    // authenticated field is covered. A hand-rolled `Canonical` subset omitted
+    // operator-supplied `qualificationRecordUri` and `achievableAsil`, leaving
+    // them tamperable without invalidating the emitted hash. This mirrors the
+    // independent RFC 8785 reconstruction in this module's hash tests.
+    let mut value = serde_json::to_value(report).expect("serialize report");
+    let obj = value.as_object_mut().expect("report is an object");
+    obj.remove("hash");
+    obj.insert(
+        "generatedAt".to_string(),
+        serde_json::Value::String(String::new()),
+    );
+    if let Some(results) = obj.get_mut("results").and_then(|r| r.as_array_mut()) {
+        results.sort_by(|a, b| {
+            a["name"]
+                .as_str()
+                .unwrap_or("")
+                .cmp(b["name"].as_str().unwrap_or(""))
+        });
     }
-
-    let mut sorted_results: Vec<&CaseResult> = report.results.iter().collect();
-    sorted_results.sort_by_key(|r| r.name.as_str());
-
-    let c = Canonical {
-        schema_version: &report.schema_version,
-        kind: &report.kind,
-        tool: &report.tool,
-        tool_version: &report.tool_version,
-        language: &report.language,
-        generated_at: "",
-        total: report.total,
-        passed: report.passed,
-        failed: report.failed,
-        results: sorted_results,
-        qualification_method: report.qualification_method.as_deref(),
-        qualifier_identity: report.qualifier_identity.as_deref(),
-        implementation_author: report.implementation_author.as_deref(),
-        independent_reviewer: report.independent_reviewer.as_deref(),
-        independent_test_executor: report.independent_test_executor.as_deref(),
-    };
-
-    let value = serde_json::to_value(&c).expect("canonical value");
     crate::canonjson::content_hash(&value)
 }
 
@@ -521,13 +489,14 @@ mod hash_tests {
     use super::*;
     use crate::engine::default_registry;
 
-    /// §6 "hash": MUST be computed per RFC 8785 — keys sorted lexicographically
+    /// §6 "hash": computed over a key-sorted canonical document (the JCS-subset
+    /// canonicalization in `canonjson`) — keys sorted lexicographically
     /// at *every* level, not just `results[]` sorted by name. A hand-rolled
     /// struct serialised via `serde_json::to_string` emits keys in
     /// struct-declaration order, which is not lexicographic (e.g.
     /// `schemaVersion` before `kind` before `tool`, but sorted order is
     /// `kind` < `schemaVersion` < `tool`). This test independently
-    /// reconstructs the true RFC 8785-canonical document (via `canonjson`,
+    /// reconstructs the key-sorted canonical document (via `canonjson`,
     /// the same helper the §1.6.2 attestation `contentHash` uses) and checks
     /// it against the tool's emitted `hash`, so a regression back to
     /// declaration-order serialisation would fail it.
@@ -562,7 +531,7 @@ mod hash_tests {
 
         assert_eq!(
             emitted, expected,
-            "qualify hash must equal a true RFC 8785 (recursively key-sorted) \
+            "qualify hash must equal a key-sorted (recursively lexicographic) \
              canonicalization of the document, not one serialised in \
              struct-declaration key order"
         );
@@ -583,6 +552,43 @@ mod hash_tests {
         assert_eq!(
             forward.hash, reversed.hash,
             "hash must be stable regardless of the order cases were run in"
+        );
+    }
+
+    /// D003 regression: the integrity hash MUST authenticate every serialized
+    /// field, including operator-supplied `achievableAsil` and
+    /// `qualificationRecordUri`. Editing either must change the hash.
+    //fusa:test REQ-QUALIFY004
+    #[test]
+    fn hash_covers_achievable_asil_and_record_uri() {
+        let registry = default_registry();
+        let cases = builtin_cases();
+
+        let base_opts = QualifyOptions {
+            achievable_asil: Some("ASIL-B".to_string()),
+            qualification_record_uri: Some("https://example.com/dossier-a".to_string()),
+            ..Default::default()
+        };
+        let base = run_with_opts(&registry, &cases, &base_opts);
+
+        let tampered_asil = QualifyOptions {
+            achievable_asil: Some("ASIL-D".to_string()),
+            ..base_opts.clone()
+        };
+        let asil_report = run_with_opts(&registry, &cases, &tampered_asil);
+        assert_ne!(
+            base.hash, asil_report.hash,
+            "changing achievableAsil must change the integrity hash"
+        );
+
+        let tampered_uri = QualifyOptions {
+            qualification_record_uri: Some("https://evil.example/dossier-b".to_string()),
+            ..base_opts.clone()
+        };
+        let uri_report = run_with_opts(&registry, &cases, &tampered_uri);
+        assert_ne!(
+            base.hash, uri_report.hash,
+            "changing qualificationRecordUri must change the integrity hash"
         );
     }
 }

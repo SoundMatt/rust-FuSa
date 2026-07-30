@@ -1753,6 +1753,13 @@
       "level": "HLR"
     },
     {
+      "id": "REQ-SAS005",
+      "title": "SAS applicability gating",
+      "text": "The sas command shall only present its output as a genuine DO-178C section 11.20 accomplishment summary when the project's configured standard is do178c and it carries a real (non-unclassified) DAL; otherwise it shall mark the generated sas.md/sas.json as informational-only and not a certification-basis artifact.",
+      "standard": "do178c",
+      "level": "HLR"
+    },
+    {
       "id": "REQ-SCI004",
       "title": "SCI artifacts index real files",
       "text": "The sci command's artifacts[] shall list only files that actually exist in the project, each with a real sha256:-prefixed hash of its current contents and the project's version string.",

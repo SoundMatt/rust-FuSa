@@ -119,20 +119,29 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
     EXIT_OK
 }
 
-/// Parses the last `test result:` summary line out of `cargo test` output.
+/// Parses and sums every `test result:` summary line out of `cargo test`
+/// output. `cargo test` emits one such line per test binary (the lib, each
+/// integration test file, and the doctest run), so returning only the last
+/// line under-reports the real test count for any multi-binary crate.
 /// Returns `None` when no such line is present, which means the test
 /// binaries never produced a real summary (e.g. they failed to start) —
 /// callers must not treat that as "0 tests, 0 failures".
 fn parse_test_summary(output: &str) -> Option<(usize, usize, usize)> {
-    for line in output.lines().rev() {
+    let mut found = false;
+    let (mut passed, mut failed, mut ignored) = (0usize, 0usize, 0usize);
+    for line in output.lines() {
         if line.contains("test result:") {
-            let passed = extract_count(line, "passed");
-            let failed = extract_count(line, "failed");
-            let ignored = extract_count(line, "ignored");
-            return Some((passed, failed, ignored));
+            found = true;
+            passed += extract_count(line, "passed");
+            failed += extract_count(line, "failed");
+            ignored += extract_count(line, "ignored");
         }
     }
-    None
+    if found {
+        Some((passed, failed, ignored))
+    } else {
+        None
+    }
 }
 
 fn extract_count(line: &str, label: &str) -> usize {
@@ -208,6 +217,24 @@ mod tests {
         let output =
             "test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out\n";
         assert_eq!(parse_test_summary(output), Some((3, 1, 0)));
+    }
+
+    // D002 regression: cargo test emits one `test result:` line per binary
+    // (lib, each integration test, doctests). All counts must be summed, not
+    // just the last line (which is typically the 0-count doctest summary).
+    #[test]
+    fn parse_test_summary_sums_all_binaries() {
+        let output = "\
+running 5 tests
+test result: ok. 5 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+running 3 tests
+test result: ok. 2 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+running 0 tests
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+";
+        assert_eq!(parse_test_summary(output), Some((7, 1, 1)));
     }
 
     // Regression for GitHub issue #46: when cargo test's harness never

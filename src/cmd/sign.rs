@@ -30,41 +30,50 @@ pub fn run(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i
 }
 
 fn cmd_keygen(_args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
-    // Generate a 32-byte random key using /dev/urandom
+    // Generate a 32-byte cryptographically-random signing key in-process.
+    // A signing key of all zeros (or any predictable value) makes every
+    // HMAC trivially forgeable, so on ANY failure to obtain real entropy we
+    // MUST fail hard (write no key), never emit a placeholder.
     let key_path = "fusa.key";
-    let output = std::process::Command::new("dd")
-        .args([
-            "if=/dev/urandom",
-            &format!("of={key_path}"),
-            "bs=32",
-            "count=1",
-        ])
-        .output();
-
-    match output {
-        Ok(o) if o.status.success() => {
-            writeln!(stdout, "Key written to {key_path}").ok();
-            writeln!(
-                stdout,
-                "Keep this file secret and never commit it to source control."
-            )
-            .ok();
-            EXIT_OK
-        }
-        _ => {
-            // Fallback: write 32 zero bytes (not secure, warn user)
+    let key = match generate_key() {
+        Ok(k) => k,
+        Err(e) => {
             writeln!(
                 stderr,
-                "rsfusa sign keygen: /dev/urandom not available; using placeholder key"
+                "rsfusa sign keygen: unable to obtain secure entropy: {e}"
             )
             .ok();
-            if let Err(e) = std::fs::write(key_path, [0u8; 32]) {
-                writeln!(stderr, "rsfusa sign keygen: {e}").ok();
-                return EXIT_RUNTIME;
-            }
-            EXIT_OK
+            return EXIT_RUNTIME;
         }
+    };
+    if let Err(e) = std::fs::write(key_path, key) {
+        writeln!(stderr, "rsfusa sign keygen: {e}").ok();
+        return EXIT_RUNTIME;
     }
+    writeln!(stdout, "Key written to {key_path}").ok();
+    writeln!(
+        stdout,
+        "Keep this file secret and never commit it to source control."
+    )
+    .ok();
+    EXIT_OK
+}
+
+/// Fills a 32-byte key from the OS CSPRNG (`/dev/urandom`) in-process.
+/// Returns an error — rather than a predictable placeholder — if the entropy
+/// source is unavailable or returns an obviously invalid (all-zero) key.
+fn generate_key() -> std::io::Result<[u8; 32]> {
+    use std::io::Read;
+    let mut f = std::fs::File::open("/dev/urandom")?;
+    let mut key = [0u8; 32];
+    f.read_exact(&mut key)?;
+    if key.iter().all(|&b| b == 0) {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            "entropy source returned an all-zero key",
+        ));
+    }
+    Ok(key)
 }
 
 fn cmd_sign(args: &[String], stdout: &mut dyn Write, stderr: &mut dyn Write) -> i32 {
@@ -210,4 +219,21 @@ fn parse_flag(args: &[String], flag: &str) -> Option<String> {
         i += 1;
     }
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // D001 regression: keygen MUST derive a real 32-byte CSPRNG key and never
+    // fall back to a predictable all-zero placeholder.
+    #[test]
+    fn generate_key_produces_nonzero_32_bytes() {
+        let key = generate_key().expect("/dev/urandom should be available in test env");
+        assert_eq!(key.len(), 32);
+        assert!(
+            !key.iter().all(|&b| b == 0),
+            "generated key must never be all zeros"
+        );
+    }
 }
